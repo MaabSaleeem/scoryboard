@@ -252,6 +252,193 @@
       ],
       "published_at": "2026-08-28T11:02:53.000Z",
       "status": "published"
+    },
+    "13.1": {
+      "intercom_id": "16735803",
+      "collection": "13",
+      "intercom_collection_id": "19733982",
+      "brief": "briefs/13.md",
+      "spec": "specs/13/13.1.spec.ts",
+      "commit_sha": "cb332f5d8dccaa4177c8b82ba561bf4717c9074a",
+      "screenshots": [
+        "screenshots/13/13.1/01-format-board.ab923876.png",
+        "screenshots/13/13.1/02-group-phase-two-groups.c1f00f07.png",
+        "screenshots/13/13.1/03-edit-group-number-of-teams.7216dc84.png",
+        "screenshots/13/13.1/04-team-drag-handle.6cf1903c.png"
+      ],
+      "published_at": "2026-08-28T14:39:26.000Z",
+      "status": "draft"
+    },
+    "13.2": {
+      "intercom_id": "16735807",
+      "collection": "13",
+      "intercom_collection_id": "19733982",
+      "brief": "briefs/13.md",
+      "spec": "specs/13/13.2.spec.ts",
+      "commit_sha": "902a84d0f1b68ec98c9758ff0edde2e39ea22e75",
+      "screenshots": [
+        "screenshots/13/13.2/01-padel-group-with-pairs.72aaf55c.png",
+        "screenshots/13/13.2/02-participants-pairs.3f698a99.png",
+        "screenshots/13/13.2/03-fill-automatically-and-clear.4de64718.png",
+        "screenshots/13/13.2/04-autofill-configuration.00b84869.png"
+      ],
+      "published_at": "2026-08-28T14:40:02.000Z",
+      "status": "draft"
+    },
+    "13.3": {
+      "intercom_id": "16735812",
+      "collection": "13",
+      "intercom_collection_id": "19733982",
+      "brief": "briefs/13.md",
+      "spec": "specs/13/13.3.spec.ts",
+      "commit_sha": "b730216ae39c39545d955467ba34fa857c346059",
+      "screenshots": [
+        "screenshots/13/13.3/01-group-edit-and-delete.2dc4d226.png",
+        "screenshots/13/13.3/02-edit-group-dialog.d6ddce29.png",
+        "screenshots/13/13.3/03-encounters-open.7838a5c6.png",
+        "screenshots/13/13.3/04-delete-group-confirm.77af1281.png",
+        "screenshots/13/13.3/05-team-menu-remove.ad356321.png"
+      ],
+      "published_at": "2026-08-28T14:40:39.000Z",
+      "status": "draft"
+    },
+    "13.4": {
+      "intercom_id": "16735813",
+      "collection": "13",
+      "intercom_collection_id": "19733982",
+      "brief": "briefs/13.md",
+      "spec": "specs/13/13.4.spec.ts",
+      "commit_sha": "dea8dc0a945ef4761a54736bae5d786c3e8be9dd",
+      "screenshots": [
+        "screenshots/13/13.4/01-padel-group-edit-only.e1e20aee.png",
+        "screenshots/13/13.4/02-edit-group-name-only.105718d5.png",
+        "screenshots/13/13.4/03-delete-swiss-format-button.1d0a2f0d.png",
+        "screenshots/13/13.4/04-delete-swiss-format-confirm.c65cf992.png"
+      ],
+      "published_at": "2026-08-28T14:41:05.000Z",
+      "status": "draft"
+    },
+    "13.5": {
+      "intercom_id": "16735816",
+      "collection": "13",
+      "intercom_collection_id": "19733982",
+      "brief": "briefs/13.md",
+      "spec": "specs/13/13.5.spec.ts",
+      "commit_sha": "33b6313f3bbd11f2efb913ca5e88542f7795abc9",
+      "screenshots": [
+        "screenshots/13/13.5/01-results-group-phase.5eb38642.png",
+        "screenshots/13/13.5/02-standings-columns.b557f265.png",
+        "screenshots/13/13.5/03-fixtures-with-scores.17636c51.png"
+      ],
+      "published_at": "2026-08-28T14:41:25.000Z",
+      "status": "draft"
+    },
+    "13.6": {
+      "intercom_id": "16735818",
+      "collection": "13",
+      "intercom_collection_id": "19733982",
+      "brief": "briefs/13.md",
+      "spec": "specs/13/13.6.spec.ts",
+      "commit_sha": "6f70fde4203d9959f18441032a9933a7f63341b8",
+      "screenshots": [
+        "screenshots/13/13.6/01-padel-results-group-phase.2bf6baba.png",
+        "screenshots/13/13.6/02-padel-standings-columns.1710471e.png",
+        "screenshots/13/13.6/03-padel-fixtures-by-round.c8770595.png"
+      ],
+      "published_at": "2026-08-28T14:41:49.000Z",
+      "status": "draft"
+    },
+    "13.7": {
+      "intercom_id": "16735824",
+      "collection": "13",
+      "intercom_collection_id": "19733982",
+      "brief": "briefs/13.md",
+      "spec": "specs/13/13.7.spec.ts",
+      "commit_sha": "eef0a8942fb6d817862f18ad799a8ee813a52d5a",
+      "screenshots": [
+        "screenshots/13/13.7/01-knockout-phase-board.1cddb1f0.png",
+        "screenshots/13/13.7/02-quarter-final-empty-slots.56d21ffc.png",
+        "screenshots/13/13.7/03-later-rounds-winner-slots.87491501.png",
+        "screenshots/13/13.7/04-edit-bracket-dialog.aba974d0.png",
+        "screenshots/13/13.7/05-bracket-size-options.a4c95c0d.png",
+        "screenshots/13/13.7/06-delete-bracket-confirm.1ca3c8a2.png"
+      ],
+      "published_at": "2026-08-28T14:42:17.000Z",
+      "status": "draft"
+    },
+    "13.8": {
+      "intercom_id": "16735828",
+      "collection": "13",
+      "intercom_collection_id": "19733982",
+      "brief": "briefs/13.md",
+      "spec": "specs/13/13.8.spec.ts",
+      "commit_sha": "4dc22627ada9dc8f20668219a3d737d448b160e4",
+      "screenshots": [
+        "screenshots/13/13.8/01-padel-knockout-board.f1aa455e.png",
+        "screenshots/13/13.8/02-preseeded-slots.b116913d.png",
+        "screenshots/13/13.8/03-edit-slot-dialog.e5d8da95.png",
+        "screenshots/13/13.8/04-edit-match-title.fe432764.png",
+        "screenshots/13/13.8/05-edit-bracket-dialog.fc985fb4.png",
+        "screenshots/13/13.8/06-delete-bracket-confirm.260c7ef6.png"
+      ],
+      "published_at": "2026-08-28T14:42:39.000Z",
+      "status": "draft"
+    },
+    "13.9": {
+      "intercom_id": "16735843",
+      "collection": "13",
+      "intercom_collection_id": "19733982",
+      "brief": "briefs/13.md",
+      "spec": "specs/13/13.9.spec.ts",
+      "commit_sha": "7931748a69dd074975366533f6cb311fef1bade5",
+      "screenshots": [
+        "screenshots/13/13.9/01-add-team-to-slot.688ccc66.png",
+        "screenshots/13/13.9/02-position-menu.6560e00d.png",
+        "screenshots/13/13.9/03-slot-filled-with-position.3c5692a3.png",
+        "screenshots/13/13.9/04-add-team-search-dialog.efc2e718.png",
+        "screenshots/13/13.9/05-edit-match-title.4dafc244.png"
+      ],
+      "published_at": "2026-08-28T14:43:07.000Z",
+      "status": "draft"
+    },
+    "13.10": {
+      "intercom_id": "16735857",
+      "collection": "13",
+      "intercom_collection_id": "19733982",
+      "brief": "briefs/13.md",
+      "spec": "specs/13/13.10.spec.ts",
+      "commit_sha": "8c3747a0850a7eedb928027a5904e2fee46dd05b",
+      "screenshots": [
+        "screenshots/13/13.10/01-configuration-button.ec564953.png",
+        "screenshots/13/13.10/02-padel-configuration-dialog.df545e60.png",
+        "screenshots/13/13.10/03-scoring-options.371d7b1d.png",
+        "screenshots/13/13.10/04-courts-field.57c55fca.png",
+        "screenshots/13/13.10/05-update-confirm.751b22a5.png"
+      ],
+      "published_at": "2026-08-28T14:43:34.000Z",
+      "status": "draft"
+    },
+    "13.11": {
+      "intercom_id": "16735884",
+      "collection": "13",
+      "intercom_collection_id": "19733982",
+      "brief": "briefs/13.md",
+      "spec": "specs/13/13.11.spec.ts",
+      "commit_sha": "4805124de04fef130ad30f2b1880ae53fdecd946",
+      "screenshots": [
+        "screenshots/13/13.11/01-no-phase-controls.add1f1a2.png",
+        "screenshots/13/13.11/02-start-disabled.51e6889a.png",
+        "screenshots/13/13.11/03-start-enabled.5c5cfbc8.png",
+        "screenshots/13/13.11/04-start-preview-modal.3e3ae3b3.png",
+        "screenshots/13/13.11/05-preview-assignments.10ec823b.png",
+        "screenshots/13/13.11/06-knockout-started.4503c53a.png",
+        "screenshots/13/13.11/07-undo-card.c7058b17.png",
+        "screenshots/13/13.11/08-undo-confirm.3710ffaf.png",
+        "screenshots/13/13.11/09-end-phase-card.7d5c3024.png",
+        "screenshots/13/13.11/10-end-phase-confirm.a91c1bd8.png"
+      ],
+      "published_at": "2026-08-28T14:44:29.000Z",
+      "status": "draft"
     }
   }
 }

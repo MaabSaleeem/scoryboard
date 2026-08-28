@@ -1,0 +1,18 @@
+{
+  "id": "13.1",
+  "title": "How teams are distributed into groups in a football tournament",
+  "description": "Where Group A and Group B come from, which teams land in each, and how to change the order.",
+  "collection": "13",
+  "intercom_collection_id": "19733982",
+  "author_id": "11443412",
+  "state": "published",
+  "spec": "specs/13/13.1.spec.ts",
+  "commit_sha": "cb332f5d8dccaa4177c8b82ba561bf4717c9074a",
+  "screenshots": [
+    "screenshots/13/13.1/01-format-board.ab923876.png",
+    "screenshots/13/13.1/02-group-phase-two-groups.c1f00f07.png",
+    "screenshots/13/13.1/03-edit-group-number-of-teams.7216dc84.png",
+    "screenshots/13/13.1/04-team-drag-handle.6cf1903c.png"
+  ],
+  "body": "<p>Your teams are dealt into groups the moment you save the format. The <strong>Format</strong> tab shows you the result.</p>\n\n<h2>Before you start</h2>\n\n<p>Save a format first. A tournament with no format has no groups. Choosing one is covered in \"Choosing a format for a football tournament\".</p>\n\n<h2>Reading the board</h2>\n\n<ol>\n  <li>Open the tournament and select <strong>Format</strong>.\n    <p><img src=\"https://cdn.jsdelivr.net/gh/MaabSaleeem/scoryboard@cb332f5d8dccaa4177c8b82ba561bf4717c9074a/screenshots/13/13.1/01-format-board.ab923876.png\" alt=\"The Format tab showing the Phases board, with a Group Phase card on the left and a Knockout Phase card on the right.\"></p>\n  </li>\n  <li>Read the <strong>Group Phase</strong> card. Every group you asked for is there, and every team sits in one of them.\n    <p><img src=\"https://cdn.jsdelivr.net/gh/MaabSaleeem/scoryboard@cb332f5d8dccaa4177c8b82ba561bf4717c9074a/screenshots/13/13.1/02-group-phase-two-groups.c1f00f07.png\" alt=\"The Group Phase card outlined, showing Group A and Group B with four teams each.\"></p>\n  </li>\n  <li>Select <strong>Edit</strong> on a group to see how big it is. <strong>Number of teams</strong> is the size the format gave it.\n    <p><img src=\"https://cdn.jsdelivr.net/gh/MaabSaleeem/scoryboard@cb332f5d8dccaa4177c8b82ba561bf4717c9074a/screenshots/13/13.1/03-edit-group-number-of-teams.7216dc84.png\" alt=\"The Edit group dialog with the Number of teams field outlined, showing 4.\"></p>\n  </li>\n  <li>Drag a team by the handle on the left of its row to change its order inside the group.\n    <p><img src=\"https://cdn.jsdelivr.net/gh/MaabSaleeem/scoryboard@cb332f5d8dccaa4177c8b82ba561bf4717c9074a/screenshots/13/13.1/04-team-drag-handle.6cf1903c.png\" alt=\"A team row on the board with its drag handle outlined.\"></p>\n  </li>\n</ol>\n\n<h2>What you will see</h2>\n\n<p>Teams are dealt in the order you added them. The first four you added go into Group A, the next four into Group B, and so on.</p>\n\n<p>Order matters later. The group standings decide who fills each knockout slot, and those slots are written as positions - <strong>1st Group A</strong>, <strong>2nd Group B</strong>. See \"Brackets and knockout rounds in a football tournament\".</p>\n\n<h2>If it does not work</h2>\n\n<ul>\n  <li><strong>There is only one group.</strong> You saved Round Robin, or you asked for one group. Change <strong>Number of groups</strong> on the format and save again.</li>\n  <li><strong>A group has the wrong number of teams.</strong> Open <strong>Edit</strong> on the group and change <strong>Number of teams</strong>.</li>\n  <li><strong>A team is in the wrong group.</strong> Remove it from the group it is in, then add it where you want it. Removing a team is on the team's own menu, not the group's.</li>\n  <li><strong>You cannot see the board at all.</strong> Only the Owner and an Administrator open the Format tab. Everyone else is sent to the tournament's public page.</li>\n</ul>"
+}

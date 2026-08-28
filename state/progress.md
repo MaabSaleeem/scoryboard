@@ -26,7 +26,7 @@ target.
 | 10 | Match day | 11 | 65 | manager_pro | not started | - | - |
 | 11 | Match insights & statistics | 3 | 9 | player | not started | - | - |
 | 12 | Tournaments - setting one up | 10 (+2) | 80 | organiser | published | [briefs/12.md](../briefs/12.md) | 12 published, 80 screenshots. 12.11 and 12.12 added for Padel; not in the map |
-| 13 | Tournaments - groups, brackets & phases | 11 | 54 | organiser | not started | - | flag: TOURNAMENT_FEATURE_ENABLED. Split by sport 2026-08-28. Account: kb-organiser-13@yopmail.com |
+| 13 | Tournaments - groups, brackets & phases | 11 | 55 | organiser | drafts on Intercom | [briefs/13.md](../briefs/13.md) | flag: TOURNAMENT_FEATURE_ENABLED. 11 drafts, 55 screenshots. 13.8 retitled. Account: kb-organiser-13@yopmail.com |
 | 14 | Tournaments - the fixture schedule | 8 | 37 | organiser | not started | - | flag: TOURNAMENT_FEATURE_ENABLED. Split by sport 2026-08-28. Account: kb-organiser-14@yopmail.com |
 | 15 | Tournaments - publishing & running | 9 | 62 | organiser | not started | - | flag: TOURNAMENT_FEATURE_ENABLED. Structure unchanged; 15.8 needs a padel section. Account: kb-organiser-15@yopmail.com |
 | 16 | Tournament plans & payment | 6 | 35 | organiser | not started | - | REAL MONEY. Stripe test mode required. |
@@ -391,3 +391,160 @@ tournaments, which misleads nobody.
 Do not "fix" this by re-capturing without being asked.
 
 Next: `/kb-brief 13`.
+
+### 2026-08-28 - collection 13 complete. Eleven articles, all drafts.
+
+| Article | Intercom ID | Shots | Pinned commit |
+|---|---|---|---|
+| 13.1 | 16735803 | 4 | cb332f5 |
+| 13.2 | 16735807 | 4 | 902a84d |
+| 13.3 | 16735812 | 5 | b730216 |
+| 13.4 | 16735813 | 4 | dea8dc0 |
+| 13.5 | 16735816 | 3 | 33b6313 |
+| 13.6 | 16735818 | 3 | 6f70fde |
+| 13.7 | 16735824 | 6 | eef0a89 |
+| 13.8 | 16735828 | 6 | 4dc2262 |
+| 13.9 | 16735843 | 5 | 7931748 |
+| 13.10 | 16735857 | 5 | 8c3747a |
+| 13.11 | 16735884 | 10 | 4805124 |
+
+55 screenshots, all in Intercom collection `19733982`. Every image URL embedded
+in the stored bodies was re-fetched at the end: all 55 return 200 with an
+`image/*` content type. No article carries `<ol start=`. **Every one is a draft.
+Nothing is published and nothing has been reviewed.**
+
+**One article retitled.** 13.8 "Brackets in a padel tournament, and filling them
+automatically" is published as **"Brackets in a padel tournament"**. Fill
+automatically and Clear are group controls, not bracket ones: they sit in the
+padel Group Phase card and send `PUT /tournament-groups/:id` with
+`autofillStrategy` or `clearAssignments`. The autofill material is in 13.2, which
+is the article about how pairs are grouped.
+
+**One extra screenshot.** 13.11 has 10 rather than the mapped 9. End Phase needs
+both its card and its confirm dialog, and the card alone does not show what
+confirming does.
+
+**Four map notes were wrong, and are corrected in the brief:**
+
+- Padel's **Configuration** is a button that opens a dialog, not a sub-tab.
+- A group-only tournament shows the full Phases board with **Edit Group Phase**
+  and **Delete Group Phase**. What it has no trace of is the phase banner on
+  **Results**. The banner appears only when there is something to do.
+- Only the **last** phase carries a Delete control - the reverse of the
+  2026-08-28 note in this file, which had football as "Edit/Delete Group Phase,
+  Edit Knockout Phase".
+- Football's **Add Team** on a bracket slot opens a menu of positions (1st Group
+  A ... Bye), not of teams. A second control, the round **+**, opens a team
+  search. Both are in 13.9.
+
+**Also found:** padel phase cards carry fewer controls than football's. Football
+Group Phase has Edit; Knockout Phase has Edit and Delete. Padel Group Phase has
+neither, and its Knockout Phase has Delete only - a padel phase cannot be
+renamed.
+
+### The padel format save is now automatable
+
+Collection 12 recorded that the two-step padel Format screen "was never captured
+on the wire" and left its seed able only to check the result. It was captured
+this session. It is a plain **`PUT /tournaments/:id`** - the same call football's
+format save uses - carrying `padelFormat`, `padelStandingType`,
+`padelScoringPoints`, the win/loss/draw points, `padelMin/MaxPlayers`,
+`padelRoundCount`, `padelCourtCount` and `padelRoundGapMinutes`. `teamIds` is
+empty on a first save and the server generates the pairs.
+
+`scripts/seed-13.mjs` builds both padel fixtures from nothing, with no hand work.
+The call is in `config/api.md`, along with twenty other group, bracket and phase
+endpoints read off the wire this session.
+
+### Fixtures
+
+Six tournaments under `kb-organiser-13@yopmail.com`, all built and reconciled by
+`node scripts/seed-13.mjs` (idempotent - a second run makes zero writes):
+
+| Name | Game | State | Used by |
+|------|------|-------|---------|
+| KB 13 Cup | Football | Group and Knockout, 8 teams, nothing played | 13.1, 13.3, 13.7, 13.9, 13.11 |
+| KB 13 Summer Cup | Football | the same, group phase fully scored, bracket drawn from group positions | 13.5, 13.11 |
+| KB 13 League | Football | Round Robin, one phase, nothing played | 13.11 |
+| KB 13 Sunday League | Football | Round Robin, one phase, every match scored | 13.11 |
+| KB 13 Padel Cup | Padel | Swiss, 8 players, nothing played | 13.2, 13.4, 13.8, 13.10 |
+| KB 13 Padel Open | Padel | Swiss, 8 players, group matches scored | 13.6 |
+
+The seed reconciles rather than appends: stray phases are deleted, bracket slots
+are cleared or re-drawn, group draws are re-ordered, the padel configuration is
+reset, and a knockout phase left started is undone. That matters because three
+specs mutate their fixture on purpose.
+
+### Capture defects found and fixed in the specs
+
+- **13.11/04** had the header-identity mask painted across the preview dialog's
+  explanatory paragraph. The dialog is the widest in the app. Clipped to the
+  dialog instead, which needs no mask.
+- **13.11/05** clipped to the whole next-phase column, which is taller than the
+  modal's scroll area, so the capture stitched in the page underneath. Clipped to
+  one match card.
+- **13.5/02 and 13.6/02** annotated the column heading row, which is the top row
+  of the clip, so only the outline's lower border survived. `shot()` now takes an
+  `annotatePad`, and these two use a negative one.
+- **13.2/03** outlined Fill automatically only, leaving Clear outside a shot
+  whose step is about the pair. Outlines the row that holds both.
+- **13.9/02** cut the position menu off the bottom of the viewport. New
+  `alignTop()` helper moves the trigger up first. The menu still scrolls - it has
+  a fixed maximum height and shows six and a half of its nine options.
+- **13.10/02** was cut off at Loss points as a viewport shot. Clipped to the
+  dialog, which is cleaner, though the dialog scrolls internally and the last two
+  fields are still below its fold. They are readable in 13.10/05.
+
+### Determinism, and where it was left
+
+Three things made captures differ between runs and are fixed:
+
+1. **A spec that mutates its fixture must put it back itself.** 13.9 fills a
+   bracket slot. Leaving the seed to clear it changed nine screenshots across
+   13.1, 13.3 and 13.7, which photograph the same board.
+2. **Clipped captures need a known scroll position.** Playwright scrolls a
+   clipped element into view from wherever the page already was; a fractional
+   device-pixel difference re-renders every glyph's antialiasing. 1.5% of the
+   pixels on the padel bracket board. `shot()` now scrolls to the top first.
+3. **The Results tab paints its table before its fixture list.** New
+   `fixturesReady()` gates on a match card's status chip, not on the FIXTURES
+   heading, which renders before the list has anything in it.
+
+**Left deliberately, on the repo owner's instruction during this run:** one or
+two captures per pair of runs still differ by a fraction of a percent of their
+pixels, from font antialiasing. That was judged not worth chasing. A re-run gives
+those files a new content hash and therefore a new URL; the image is the same
+image.
+
+### Worth a look, and worth a ticket
+
+- **The board's Group and Bracket buttons appear to do nothing.** Every phase
+  card has a **Group** and a **Bracket** button, and the bundle has
+  `POST /tournament-groups` and `POST /tournament-brackets` behind them. Clicking
+  either on KB 13 Cup fired no request and changed no state, three times. The
+  **Phase** button beside them works on the first click, with no dialog and no
+  undo. No article documents adding a group or a bracket. This looks like a bug.
+- **The number fields in Padel Configuration barely accept typing.** The caret is
+  forced back to position 0 on every render, so Backspace never deletes and a
+  typed digit is prepended - typing "2" over "4" leaves "42". The stepper works,
+  but a second press in the same session puts the value back up. 13.10 tells the
+  reader to use the stepper.
+- **13.6 says SCORE is "the points the pair won across its matches".** That
+  matches the fixture's numbers and the way the column moves, but it was not
+  confirmed against a spec or a product owner. Look hard at that sentence.
+- **Dragging a team across a group boundary was not tried.** Dragging within a
+  group is verified and persists. 13.1 claims reordering inside a group only.
+
+### Where to look hard in the drafts
+
+13.6's SCORE definition, above. 13.11's steps 9 and 10: the End Phase card and its
+confirm were photographed on a one-phase tournament and the button was never
+clicked, because ending a phase cannot be undone - so what happens after
+confirming is described, not shown. And 13.9's claim that the slot menu lists
+positions: it lists real team names instead once the feeding group has been
+played, which the article says but no screenshot shows.
+
+No flakes. The eleven specs were run repeatedly through the session and never
+failed once the selector fixes were in.
+
+Next: `/kb-brief 14`.

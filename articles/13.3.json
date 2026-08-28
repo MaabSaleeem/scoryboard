@@ -1,0 +1,19 @@
+{
+  "id": "13.3",
+  "title": "Editing and deleting a group in a football tournament",
+  "description": "Rename a group, change its size, change how many times each team plays, or delete it and its matches.",
+  "collection": "13",
+  "intercom_collection_id": "19733982",
+  "author_id": "11443412",
+  "state": "published",
+  "spec": "specs/13/13.3.spec.ts",
+  "commit_sha": "b730216ae39c39545d955467ba34fa857c346059",
+  "screenshots": [
+    "screenshots/13/13.3/01-group-edit-and-delete.2dc4d226.png",
+    "screenshots/13/13.3/02-edit-group-dialog.d6ddce29.png",
+    "screenshots/13/13.3/03-encounters-open.7838a5c6.png",
+    "screenshots/13/13.3/04-delete-group-confirm.77af1281.png",
+    "screenshots/13/13.3/05-team-menu-remove.ad356321.png"
+  ],
+  "body": "<p>A football group can be renamed, resized, and deleted. Only the tournament <strong>Owner</strong> and an <strong>Administrator</strong> can do any of it.</p>\n\n<p>Everyone else is sent to the tournament's public page, which has no Format tab.</p>\n\n<h2>Editing a group</h2>\n\n<ol>\n  <li>Open the tournament and select <strong>Format</strong>. Each group's header carries an edit control and a delete control.\n    <p><img src=\"https://cdn.jsdelivr.net/gh/MaabSaleeem/scoryboard@b730216ae39c39545d955467ba34fa857c346059/screenshots/13/13.3/01-group-edit-and-delete.2dc4d226.png\" alt=\"A group header outlined, showing the edit and delete controls to the right of the group name.\"></p>\n  </li>\n  <li>Select <strong>Edit</strong>. Change the <strong>Name</strong>, the <strong>Number of teams</strong>, or both.\n    <p><img src=\"https://cdn.jsdelivr.net/gh/MaabSaleeem/scoryboard@b730216ae39c39545d955467ba34fa857c346059/screenshots/13/13.3/02-edit-group-dialog.d6ddce29.png\" alt=\"The Edit group dialog with a Name field, a Number of teams field and an Encounters field.\"></p>\n  </li>\n  <li>Open <strong>Encounters</strong> to choose how many times each team plays the others in the group.\n    <p><img src=\"https://cdn.jsdelivr.net/gh/MaabSaleeem/scoryboard@b730216ae39c39545d955467ba34fa857c346059/screenshots/13/13.3/03-encounters-open.7838a5c6.png\" alt=\"The Encounters list open, offering &quot;Play all teams in pool once&quot; and the numbers 2 to 10.\"></p>\n  </li>\n  <li>Select <strong>Save</strong>.</li>\n</ol>\n\n<h2>Deleting a group</h2>\n\n<ol>\n  <li>Select the delete control on the group's header.</li>\n  <li>Read the confirmation. Deleting a group deletes its matches too.\n    <p><img src=\"https://cdn.jsdelivr.net/gh/MaabSaleeem/scoryboard@b730216ae39c39545d955467ba34fa857c346059/screenshots/13/13.3/04-delete-group-confirm.77af1281.png\" alt=\"The Delete group dialog asking whether to delete this group and all its matches.\"></p>\n  </li>\n  <li>Select <strong>Delete</strong>.</li>\n</ol>\n\n<h2>Removing one team instead</h2>\n\n<p>Deleting a group takes every team in it. To take one team out and leave the group standing, use the team's own menu.</p>\n\n<p><img src=\"https://cdn.jsdelivr.net/gh/MaabSaleeem/scoryboard@b730216ae39c39545d955467ba34fa857c346059/screenshots/13/13.3/05-team-menu-remove.ad356321.png\" alt=\"A team's menu open on the board, offering Edit, Add Owner and Remove team.\"></p>\n\n<h2>If it does not work</h2>\n\n<ul>\n  <li><strong>Number of teams will not go below what is in the group.</strong> Remove the teams you do not want first, then resize.</li>\n  <li><strong>Encounters changed and the fixtures did not.</strong> The fixture list is rebuilt from the group. Check the <strong>Schedule</strong> tab after saving.</li>\n  <li><strong>Delete is not there.</strong> Padel groups have no delete control. Removing a padel group means deleting the format - see \"Editing a group in a padel tournament\".</li>\n  <li><strong>You have no edit or delete controls at all.</strong> You are not the Owner or an Administrator of this tournament.</li>\n</ul>"
+}
