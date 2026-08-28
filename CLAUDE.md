@@ -27,10 +27,10 @@ what lets a fresh session resume this collection after a crash.
 Intercom, with the real screenshots in front of them, and publishes from there.
 That is the only review and it happens after the run.
 
-**The artifacts stay deterministic even though you are watching the run.** The specs
-are the source of truth. Re-running them against unchanged UI must produce the same
-screenshots on Tuesday that it produced on Monday, so the whole suite can be
-regenerated when the product changes. You supervise the run. You do not improvise it.
+**The specs are the source of truth.** We must be able to re-run them to regenerate
+the screenshots when the product changes. Small differences between runs are fine -
+a shifted pixel, a different hash. What is not fine is fixing a screenshot by hand
+instead of fixing the spec. You supervise the run. You do not improvise it.
 
 Full process, brief template and per-stage detail: [docs/workflow.md](docs/workflow.md).
 Voice, structure and screenshot conventions: [docs/style-guide.md](docs/style-guide.md).

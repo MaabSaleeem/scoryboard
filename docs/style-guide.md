@@ -1,7 +1,7 @@
 # Style guide
 
 Two halves: how an article reads, and how a screenshot is made. The second half is
-mechanical and non-negotiable - it is what keeps the artifacts deterministic.
+mechanical - settle it once in the spec rather than deciding it per capture.
 
 ---
 
@@ -120,9 +120,15 @@ per-capture judgement calls.
   to the element under discussion, with enough surrounding chrome to orient the
   reader.
 
-### Determinism
+### Stability
 
-Every one of these is required:
+These settings keep a capture stable enough to trust. They are not a demand for
+byte-identical output: two runs may differ by a pixel or an antialiased edge, and
+that is fine. **Never re-run a spec to compare its screenshots against the last
+run's, and never retry a capture hoping for a closer match.** If a screenshot is
+wrong, fix the spec. If it is merely different, ship it.
+
+Every one of these is still required:
 
 - `animations: 'disabled'` and `caret: 'hide'` on every capture.
 - `reducedMotion: 'reduce'` on the context.

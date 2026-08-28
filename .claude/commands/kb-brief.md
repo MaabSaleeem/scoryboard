@@ -32,8 +32,9 @@ Before anything else, read in this order:
   gates, the role differences, the empty states.
 - Write one replayable Playwright spec per article under
   `specs/$ARGUMENTS/<article-id>.spec.ts`. Stable selectors, seeded fixtures,
-  animations disabled, no waits on durations, no random data. A second run against
-  unchanged UI must produce identical screenshots.
+  animations disabled, no waits on durations, no random data. The point is that the
+  spec can be re-run when the product changes - not that two runs match pixel for
+  pixel. 
 - Write `briefs/$ARGUMENTS.md` using the template in `docs/workflow.md`. It must
   cover: the article list with anything added or dropped and why; the personas used
   and the seed calls that produced them; the routes covered; per article the

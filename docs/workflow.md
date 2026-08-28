@@ -3,12 +3,13 @@
 Two steps per collection, run back to back with no stop between them. One
 collection per session. Review happens at the end, on Intercom, on the drafts.
 
-The rule that governs everything below: **the specs are the source of truth, and the
-artifacts must be deterministic.** Step 1 decides what a screenshot shows and writes
-that decision into a spec. Step 2 runs the spec. A second run against unchanged UI
-must produce byte-identical screenshots. If a capture depends on something you typed
-in the moment rather than on something the spec encodes, the spec is wrong - fix the
-spec, not the screenshot.
+The rule that governs everything below: **the specs are the source of truth.** Step 1
+decides what a screenshot shows and writes that decision into a spec. Step 2 runs the
+spec. If a capture depends on something you typed in the moment rather than on
+something the spec encodes, the spec is wrong - fix the spec, not the screenshot.
+
+That is a rule about regenerability, not about pixels. Two runs may differ slightly
+and still be correct. Do not re-run a spec to compare one run against another.
 
 ---
 
@@ -76,7 +77,8 @@ were a stranger, because it probably is.
      nth-child, not coordinates
    - captures the screenshots the brief lists, in order, with the names the brief
      gives them
-   - obeys the capture settings in `docs/style-guide.md`
+   - obeys the capture settings in `docs/style-guide.md`, which exist to make one
+     run trustworthy - not to make two runs identical
 6. **Write one file, `briefs/<collection-id>.md`,** using the template below.
 7. Go straight into step 2. Do not wait, do not ask.
 
