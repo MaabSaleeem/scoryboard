@@ -86,11 +86,31 @@ most of step 1.
 |---|---|---|---|
 | POST | `/users` | Create the DB user after Firebase signup | `name`, `lastName`, `email`; optional `gender`, `dateOfBirth`, `position`, `sports[]`, `bio`, `avatarToken`, `defaultProfile` (`Player` or `Referee`), `isMarketingOpted`, `gclid`/`gbraid`/`wbraid`, `utm_*` |
 | GET | `/users/me` | Current user, membership, flags | - |
-| PUT | `/users/:userId` | Update own details | any of `name`, `lastName`, `bio`, `gender`, `dateOfBirth`, `isMarketingOpted`. A 10-year minimum-age rule applies to `dateOfBirth` |
+| PUT | `/users/:userId` | Update own details | `name`, `lastName`, `gender`, `dateOfBirth`, `sports`, `position`; optional `bio`, `isMarketingOpted`, `avatarToken`, `bannerToken`. A 10-year minimum-age rule applies to `dateOfBirth`. **(observed in app, 2026-08-29)** It is a full REPLACE, not a patch - see below |
 | DELETE | `/users/:userId` | Delete own account | - |
 | POST | `/users/reset-password` | Send a password-reset email | `email` |
 | POST | `/users/subscription` | Self-serve Free / Pro toggle | `membership`: `Free` or `Pro`. Pro is free during beta, no payment step |
 | GET | `/users/banner/invite` | State of the "invite your team mates" banner | - |
+
+**(observed in app, 2026-08-29)** `PUT /users/:userId` replaces rather than
+patches, and it does not do it evenly:
+
+- the required fields are **kept** when the body leaves them out - a body of only
+  `{"avatarToken": "..."}` does not clear `gender` or `dateOfBirth`;
+- the optional ones are **cleared** - the same body sets `bio` to `""`.
+
+Sending only part of the profile also answers `400` on some paths: a body of
+`{"avatarToken"}` alone was accepted, but `{"bio"}` alone answered
+`"name is required", "lastName is required", "gender is required"`. Send the whole
+profile every time.
+
+**This is a live defect a reader will hit.** Changing your profile photo from
+Profile settings deletes your bio. The page saves a new photo with
+`PUT /users/:userId {"avatarToken": "..."}` and nothing else, so the bio is
+cleared as a side effect. Isolated on staging 2026-08-29 by reading the bio, doing
+nothing but choosing a photo and selecting Apply, and reading the bio again. The
+banner behaves the same way. Article 02.5 warns about it and puts the bio step
+last for that reason.
 
 ### Email verification
 
@@ -246,10 +266,10 @@ Roles: `Owner`, `Administrator`, `Player`, `Fan`.
 
 | Method | Path | For | Body / notes |
 |---|---|---|---|
-| POST | `/team-players` | Add a player to a team | `teamId`, `name`; optional `email`, `playerId`, `role` |
+| POST | `/team-players` | Add a player to a team | `teamId`, `name`; optional `email`, `playerId`, `role`. **(observed in app, 2026-08-29)** On the Free plan a friend may belong to exactly ONE of your teams: a second team answers `400 ONE_FRIEND_PER_TEAM`, "On free plan, each friend can only be added to one team" |
 | PUT | `/team-players/:teamPlayerId` | Change a member's name, email or role | `teamId`, `name`, `email`, `role`; optional `isReplaceAllowed`, `resendInvite` |
 | DELETE | `/team-players/:teamPlayerId?isBlocked=true` | Remove a member, optionally block them | - |
-| GET | `/team-players/search` | Search players and teams | `query`, `searchType` (e.g. `referee`), `limit`, `skip` |
+| GET | `/team-players/search` | Search players and teams | `query`, `searchType` (e.g. `referee`), `limit`, `skip`. **(observed in app, 2026-08-29)** The header search box sends `searchType=all&limit=20&skip=0` and gets back players, teams **and leaderboards** in one list. Fewer than three characters is refused client-side - "Please enter at least 3 characters" |
 | POST | `/team-players/bulk-invite` | Invite many members by email | `invites[]` of `{teamPlayerId, email}` |
 | POST | `/team-players/invite/:teamPlayerId` | Make an invite link for a member with no email | returns a `teamInvitationId` |
 | POST | `/team-players/join-via-invite/:teamInvitationId` | Join from that link | - |
@@ -325,7 +345,7 @@ Comment edit and delete are not in the collection. See
 | POST | `/matches` | Create a match | `homeTeam{teamId, formation, players[{teamPlayerId, position}]}`, `awayTeam{...}`, `date` (ISO), `duration` (e.g. `"60 min"`); optional `clubLocationId`, `teamSize` (e.g. `"5 VS 5"`), `bookingId`, `tag` (e.g. `friendly`, `league`) |
 | PUT | `/matches/:matchId` | Update anything on the match | any of `date`, `clubLocationId`, `leaderboardId`, `duration`, `teamSize`, `homeTeam`, `awayTeam` (lineup and formation), `bannerToken` |
 | DELETE | `/matches/:matchId` | Delete a match | - |
-| POST | `/matches/:matchId/status` | Start, pause, finish | `status`: `Scheduled`, `Live`, `Paused`, `Finished` |
+| POST | `/matches/:matchId/status` | Start, pause, finish | `status`: `Scheduled`, `Live`, `Paused`, `Finished`. **(observed in app, 2026-08-29)** A **Finished match is permanent**: this answers "Cannot update status of a Finished match", `PUT` answers "Cannot update match of a Finished match", and `DELETE` answers "Date must be at least one hour ahead of the current time" for any match whose date has passed. A player's statistics survive even the deletion of the team the match was played for. There is no way to undo a played match |
 | GET | `/matches/:matchId/Calendar` | Calendar entry (capital C, as in the collection) | - |
 | GET | `/matches/:matchId/league` | League table for a league match | - |
 | GET | `/matches/:id/facts` | Match facts and insights (**admin key**) | - |
@@ -346,6 +366,24 @@ Every event is `POST /matches/:matchId/events` with a `type`:
 | `RedCard` | `teamId`, `teamPlayerId`, `teamType` | - |
 | `PlayerOfMatch` | `teamId`, `teamPlayerId`, `teamType` | - |
 | commentary | `minute`, `description` | `mediaTokens[]` |
+
+**(observed in app, 2026-08-29)** `teamType` is `HomeTeam` or `AwayTeam`; `home`
+and `away` are refused. Events are only accepted while the match is Live or
+Paused - anything else answers "Match must be live or paused to add events" - and
+a match created with a date in the past **starts itself** a second or two after
+`POST /matches` answers. A seed that writes events immediately loses the first
+ones, permanently, because the match cannot be reopened. Poll
+`GET /matches/:id` for `status === "Live"` first. `scripts/seed-02.mjs` does.
+
+The positions a lineup takes are the app's own enum, not the labels the profile
+form shows: `Goalkeeper`, `CenterBack`, `LeftBack`, `RightBack`,
+`CentralMidfielder`, `LeftMidfielder`, `RightMidfielder`, `AttackingMidfielder`,
+`LeftWinger`, `RightWinger`, `Striker`, and `Substitute-1` to `Substitute-5`.
+"Centerback" and "Central Midfielder" are refused.
+
+Player statistics are written **asynchronously** after a match finishes. Reading
+`GET /players/:id/stats` a second after posting `Finished` returned all zeroes;
+the same call a minute later returned the right numbers.
 
 TODO: the collection names the commentary request "comment" but does not show its
 `type` value, and there is no request for a penalty. Confirm both in the app before
@@ -368,12 +406,29 @@ writing 10.6 and 10.8.
 | GET | `/players/:playerId/teams` | Teams joined |
 | GET | `/players/:playerId/teams/rank` | Teams with rank |
 | GET | `/players/:playerId/matches` | Match history (`limit`, `skip`, `scheduleType`, `includeBooking`, `includeIncomplete`, `startDate`, `endDate`) |
-| POST | `/players/avatar` | Upload a profile photo, returns `avatarToken` (multipart, field `avatar`) |
+| POST | `/players/avatar` | Upload a profile photo, returns `avatarToken` (multipart, field `avatar`). **WebP only** - see below |
 | GET | `/players/:playerId/avatar?v=` | Fetch the photo |
 | DELETE | `/players/:playerId/avatar` | Remove the photo |
 | POST | `/players/:playerId/banner` | Upload a profile banner (multipart, field `banner`) |
 | GET | `/players/:playerId/banner?v=` | Fetch the banner |
 | DELETE | `/players/:playerId/banner` | Remove the banner |
+
+**(observed in app, 2026-08-29)** Both image endpoints - `POST /players/avatar`
+and `POST /players/:playerId/banner` - accept **WebP and nothing else**. A PNG is
+refused with `415 {"error":"Unsupported file type"}`, which is not the API's usual
+`{"status":"FAILED"}` envelope, and so is a JPEG. The settings page says "JPG, GIF
+or PNG. 3MB max." because its cropper re-encodes to WebP in the browser before
+uploading: the caption describes what you may CHOOSE, not what the API takes.
+`lib/api.mjs`'s `upload()` sets the MIME type on the part; without one, fetch
+sends `application/octet-stream` and the answer is 415 whatever the file is.
+
+Both also answer with a token rather than storing the image themselves. Store it
+with `PUT /users/:userId {"avatarToken"}` or `{"bannerToken"}` - and read the note
+under Users first, because that PUT clears the bio.
+
+**The page's cropper does not upload the file it was given.** Its crop window is a
+fixed box in the middle of the image, so what it stores is a zoomed centre band.
+A direct API upload stores the whole image. Two different pictures from one file.
 
 ### Following
 

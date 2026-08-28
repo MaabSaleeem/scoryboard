@@ -14,9 +14,9 @@ import path from 'node:path';
 // lib/api.mjs is the one implementation of the API client; scripts/ run it under
 // plain node, specs bundle it through Playwright's esbuild.
 // @ts-ignore - plain JS module, no types
-import { admin, asUser, mintSession, signinUrl, API, APP } from './api.mjs';
+import { admin, asUser, mintSession, signinUrl, upload, API, APP } from './api.mjs';
 
-export { admin, asUser, mintSession, signinUrl, API, APP };
+export { admin, asUser, mintSession, signinUrl, upload, API, APP };
 
 // Collection 12's accounts. `organiser` is unsuffixed because this collection was
 // captured before accounts were isolated per collection, and its 80 published
@@ -218,7 +218,16 @@ export type ShotOptions = {
  */
 export async function imagesPainted(page: Page) {
   await page.waitForFunction(() => {
-    const imgs = Array.from(document.images);
+    // Only images that actually occupy space on screen. Several of these pages
+    // render a wide-layout and a narrow-layout copy of the same icon and give the
+    // unused one a zero-sized box, and one of those - registered.svg on a player
+    // profile - reports complete: false for ever while still having a
+    // naturalWidth. Waiting on it never finishes and has nothing to do with what
+    // the capture shows.
+    const imgs = Array.from(document.images).filter((i) => {
+      const r = i.getBoundingClientRect();
+      return r.width > 0 && r.height > 0;
+    });
     if (!imgs.every((i) => i.complete && i.naturalWidth > 0)) return false;
 
     const urls = new Set<string>();
@@ -712,12 +721,20 @@ export { verificationCode, passwordResetLink, firstLink, emptyInbox };
  * does nothing.
  */
 export async function blockPromos(page: Page) {
-  await page.route('**/promo-campaigns/active**', (route) =>
-    route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify({ status: 'OK', data: null }),
-    }),
+  // A URL predicate, not a glob. `page.route('**/promo-campaigns/active**')`
+  // never fired: the request carries a query string - `?screen=Home` - and the
+  // glob does not reach past it, so the campaign came through and the banner
+  // rendered anyway. Found in collection 02, where the banner is on the page the
+  // article is about; collection 01 did not notice because quiet01() also hides
+  // anything with "promo" in its class.
+  await page.route(
+    (url) => url.pathname.includes('/promo-campaigns/'),
+    (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ status: 'OK', data: null }),
+      }),
   );
 }
 
@@ -966,10 +983,36 @@ export function profileChecklistLine(page: Page) {
  * from its own heading. The result is asserted to still contain that heading.
  */
 export async function settingsRow(page: Page, label: string) {
-  const heading = onScreen(page.getByText(label, { exact: true })).first();
+  // Scoped to `main`. "Leaderboards" and "Teams" are also sidebar links, and a
+  // page-wide match finds the link first - whose ancestry has no settings row in
+  // it at all. Found in collection 02; collection 01 only ever asked for
+  // "Personal Details" and "My Bio", which the sidebar does not carry.
+  const heading = onScreen(page.locator('main').getByText(label, { exact: true })).first();
   const row = heading.locator('xpath=ancestor::div[contains(@class,"lg:flex-row")][1]');
   await expect(row.getByText(label, { exact: true }).first()).toBeVisible();
   return row;
+}
+
+/**
+ * A whole section card on Profile settings, by its upper-case heading.
+ *
+ * The page is five cards - Profile appearance, Basic information, Leaderboards
+ * teams and locations, Security, Delete account - each headed by an `h2` and
+ * each holding one or more `settingsRow()`s. Use this where the article is about
+ * the section rather than one row.
+ *
+ * The headings are upper-cased by CSS and inconsistent underneath - "BASIC
+ * INFORMATION" and "SECURITY" are upper case in the DOM, "Leaderboards, Teams
+ * and Locations" is not - so the match is case-insensitive.
+ */
+export async function settingsSection(page: Page, heading: string) {
+  const h = onScreen(
+    page.locator('main h2').filter({ hasText: new RegExp(`^${heading}$`, 'i') }),
+  ).first();
+  await expect(h).toBeVisible();
+  const card = h.locator('xpath=ancestor::div[contains(@class,"rounded-lg")][1]');
+  await expect(card.locator('h2').first()).toBeVisible();
+  return card;
 }
 
 /**
@@ -1036,4 +1079,336 @@ export async function rebuildVerified01(
     await asUser(session.idToken, `/leaderboards/${board.id}`, { method: 'DELETE' });
   }
   return { token: session.idToken as string, me };
+}
+
+// --- collection 02: finding your way around, and your profile ---------------
+//
+// Everything below is read by specs/02/*.spec.ts. The names, squads, match and
+// expected statistics live in lib/fixtures-02.mjs, which scripts/seed-02.mjs
+// also reads - so a spec cannot drift from what the seed produced.
+
+// @ts-ignore - plain JS module, no types
+import {
+  ACCOUNTS as KB02, PROFILES as KB02_PROFILES, TEAMS as KB02_TEAMS,
+  IMAGES as KB02_IMAGES, EXPECTED_PLAYER_STATS as KB02_STATS,
+} from './fixtures-02.mjs';
+
+export { KB02, KB02_PROFILES, KB02_TEAMS, KB02_IMAGES, KB02_STATS };
+
+/**
+ * The collection's accounts and fixtures, looked up rather than hardcoded.
+ *
+ * `scripts/seed-02.mjs --rebuild` deletes and recreates all three accounts, and
+ * every id changes when it does. A spec that carried an id would then point at
+ * a deleted row - collection 12 learned the same lesson about tournaments.
+ */
+export async function fixtures02() {
+  const session = async (email: string) => {
+    const token: string = (await mintSession(email)).idToken;
+    const me = (await asUser(token, '/users/me')).body?.data;
+    if (!me?.playerId) throw new Error(`${email} is not seeded. Run: node scripts/seed-02.mjs`);
+    return { email, token, id: String(me.id), playerId: String(me.playerId), membership: me.membership };
+  };
+  const player = await session(KB02.player);
+  const owner = await session(KB02.owner);
+  const pro = await session(KB02.pro);
+
+  if (player.membership !== 'Free' || pro.membership !== 'Pro') {
+    throw new Error(
+      `02.8 needs one Free and one Pro account: ${KB02.player} is ${player.membership}, `
+      + `${KB02.pro} is ${pro.membership}. Run: node scripts/seed-02.mjs`,
+    );
+  }
+
+  const teams = (await asUser(owner.token, '/teams?all=true')).body?.data ?? [];
+  const byName = (name: string) => {
+    const row = teams.find((t: any) => t.name === name);
+    if (!row) throw new Error(`Fixture team "${name}" is missing. Run: node scripts/seed-02.mjs`);
+    return String(row.teamId);
+  };
+  return {
+    player, owner, pro,
+    home: byName(KB02_TEAMS.home),
+    away: byName(KB02_TEAMS.away),
+  };
+}
+
+/**
+ * Wait for the player's statistics to be the numbers the seed produced.
+ *
+ * They are written asynchronously after a match finishes: the seed read all
+ * zeroes a second after posting Finished and the right numbers a minute later,
+ * which is the same lag config/personas.yaml warns about for this persona. A
+ * capture taken in between shows a profile with no history at all.
+ *
+ * expect.poll rather than a wait on a duration - docs/style-guide.md.
+ */
+export async function statsReady(token: string, playerId: string) {
+  await expect.poll(async () => {
+    const s = (await asUser(token, `/players/${playerId}/stats`)).body?.data ?? {};
+    return {
+      totalMatches: s.winLossDraws?.totalMatches,
+      wins: s.winLossDraws?.wins,
+      goalsScored: s.goalsScored,
+      playerOfMatch: s.playerOfMatch,
+    };
+  }, { timeout: 60_000, intervals: [2000] }).toEqual({
+    totalMatches: KB02_STATS.totalMatches,
+    wins: KB02_STATS.wins,
+    goalsScored: KB02_STATS.goalsScored,
+    playerOfMatch: KB02_STATS.playerOfMatch,
+  });
+}
+
+/**
+ * Keep the Trending strip to this collection's own fixtures.
+ *
+ * `GET /activities` is a global feed: every team created and every match
+ * finished on staging, other collections' fixtures and other people's accounts
+ * included. docs/style-guide.md forbids a capture that carries another persona's
+ * data, and the feed drifts between runs besides.
+ *
+ * This is the real endpoint's real payload with the other entries removed -
+ * nothing is invented, and the narrowing lives in the spec so a re-run
+ * reproduces it. The relative timestamps still move and are masked instead.
+ *
+ * Call before the first navigation: a route added after the fetch has gone out
+ * does nothing.
+ */
+export const KB02_OURS = /KB 02|Pia KB|Pru KB|Otto KB|Pia K FC/;
+
+export async function onlyOurActivities(page: Page) {
+  // A URL predicate rather than a glob, for the reason in blockPromos() above:
+  // /activities always carries ?limit=&page=, and the glob does not match past
+  // the query string.
+  await page.route((url) => url.pathname.endsWith('/activities'), async (route) => {
+    const response = await route.fetch();
+    let json: any = null;
+    try { json = await response.json(); } catch { json = null; }
+    if (!Array.isArray(json?.data)) return route.fulfill({ response });
+    return route.fulfill({
+      response,
+      json: { ...json, data: json.data.filter((a: any) => KB02_OURS.test(String(a?.message ?? ''))) },
+    });
+  });
+}
+
+/**
+ * One card on the home page or a player profile, by its heading.
+ *
+ * Every panel heading is an `h3` inside `main`, and the card is the nearest
+ * ancestor that is both rounded and bordered. Matched case-insensitively:
+ * "MY BIO", "MATCHES" and "TEAM RANK" are upper case in the DOM, while
+ * "Trending" and "Leaderboards" are title case and upper-cased by CSS - the same
+ * text-transform trap collections 12 and 14 hit.
+ *
+ * Scoped to `h3` on purpose. "MATCHES" is also the label on a statistic tile,
+ * and a plain text match finds the tile first.
+ */
+export async function panel(page: Page, heading: string) {
+  const h = onScreen(
+    page.locator('main h3').filter({ hasText: new RegExp(`^${heading}$`, 'i') }),
+  ).first();
+  await expect(h).toBeVisible();
+  const card = h.locator('xpath=ancestor::div[contains(@class,"rounded-lg")][contains(@class,"border")][1]');
+  await expect(card.locator('h3').first()).toBeVisible();
+  return card;
+}
+
+/**
+ * The grid of ten statistic tiles - Matches, Win, Loss, Draw and the rest.
+ *
+ * Every label is matched case-insensitively. The tiles are upper-cased by CSS
+ * and the DOM underneath is inconsistent to the point of comedy: "WIN", "Loss",
+ * "DRAW", "W/L Ratio", "goals scored", "ASSISTS", "card". Matching the rendered
+ * text finds nothing.
+ */
+export function statTile(page: Page, label: string) {
+  return onScreen(page.getByText(new RegExp(`^${label}$`, 'i'))).first();
+}
+
+export async function statTiles(page: Page) {
+  const grid = statTile(page, 'goals scored')
+    .locator('xpath=ancestor::div[contains(@class,"grid")][1]');
+  await expect(grid.getByText(/^assists$/i)).toBeVisible();
+  await expect(grid.getByText(/^player of the match$/i)).toBeVisible();
+  return grid;
+}
+
+/** The sidebar's own navigation list: Home down to Subscriptions. */
+export async function sidebarNav(page: Page) {
+  const list = page.locator('a[href="/leaderboards"]').first()
+    .locator('xpath=ancestor::ul[1]');
+  await expect(list.locator('a[href="/"]')).toBeVisible();
+  await expect(list.locator('a[href="/subscriptions"]')).toBeVisible();
+  return list;
+}
+
+/** FAQ and Contact Us, in their own list at the foot of the sidebar. */
+export async function sidebarHelp(page: Page) {
+  const list = page.locator('a[href="/contact"]').first().locator('xpath=ancestor::ul[1]');
+  await expect(list.locator('a[href="https://scoryboard.com/faq/"]')).toBeVisible();
+  return list;
+}
+
+/** The search box at the top of the sidebar. */
+export function searchBox(page: Page) {
+  return onScreen(page.getByPlaceholder('Search players, teams & more')).first();
+}
+
+/**
+ * The list the search box drops down.
+ *
+ * A portalled popover, so it is NOT inside the search box's own element and no
+ * single element holds both - which is why 02.2's captures are viewport shots.
+ * Assertions still have to be scoped to it: "KB 02 City" is also on five cards
+ * in the Trending strip behind, and a page-wide match is ambiguous.
+ */
+export function searchResults(page: Page) {
+  return onScreen(page.locator('div[class*="bg-popover"]')).first();
+}
+
+/** The whole sidebar: logo, search, your name, the navigation, FAQ and Contact Us. */
+export function sidebar(page: Page) {
+  return page.locator('div[data-sidebar="sidebar 1"]').first();
+}
+
+/** The block at the very top of the sidebar: the logo and the search box. */
+export async function sidebarHeader(page: Page) {
+  const header = page.locator('div[data-sidebar="header"]').first();
+  await expect(header.getByPlaceholder('Search players, teams & more')).toBeVisible();
+  return header;
+}
+
+/**
+ * The unread count on the notification bell.
+ *
+ * docs/style-guide.md masks notification badges: it counts whatever the seed and
+ * the other specs happened to generate, so it differs between runs. The badge is
+ * the red disc rather than the number - masking only the digits leaves a red ring
+ * round a black block.
+ */
+export function notificationBadge(page: Page) {
+  return sidebar(page).locator('div[class*="bg-red-500"][class*="rounded-full"]').first();
+}
+
+/**
+ * Hide the badge rather than mask it.
+ *
+ * Masking is the style guide's default and is right wherever the bell is
+ * visible. It is wrong where something else covers the bell but not the badge -
+ * the open search dropdown does exactly that - because the capture then carries
+ * a black square floating beside nothing. Collection 01 made the same call about
+ * the TRENDING panel: a block nobody can read is not a screenshot.
+ *
+ * The badge is hidden, not the bell, so the reader still sees the control.
+ */
+export async function hideNotificationBadge(page: Page) {
+  await notificationBadge(page).evaluate((el) => {
+    (el as HTMLElement).style.visibility = 'hidden';
+  });
+}
+
+/**
+ * The number beside the Views label in the profile header.
+ *
+ * It rises every time any account opens the profile, including the ones these
+ * specs sign in as, so it differs between runs. Only the number is masked - the
+ * word Views is part of what the capture is showing.
+ */
+export function viewsCount(page: Page) {
+  return onScreen(page.getByText('Views', { exact: true })).first()
+    .locator('xpath=preceding-sibling::*[1]');
+}
+
+/** Every "2 minutes ago" in the Trending strip. Relative, so always different. */
+export function trendingTimes(page: Page) {
+  return page.getByText(/^(a|an|\d+)\s+(second|minute|hour|day|month|year)s?\s+ago$/);
+}
+
+/**
+ * The Profile appearance card on Profile settings: banner, photo, and the
+ * upload and delete control beside each.
+ *
+ * Reached from the banner's own file input, which is the only labelled thing in
+ * it - `aria-label="Upload banner image"`, the same pattern collection 12 found
+ * on a tournament's settings page. Neither image is something the card can be
+ * found by: the banner is a CSS background, and the photo is an `img` that only
+ * exists once one has been uploaded.
+ */
+export async function appearanceCard(page: Page) {
+  const card = page.locator('input[aria-label="Upload banner image"]')
+    .locator('xpath=ancestor::div[contains(@class,"rounded-lg")][contains(@class,"bg-white")][1]');
+  await expect(card.getByText(/^profile appearance$/i)).toBeVisible();
+  return card;
+}
+
+/** The banner panel inside that card - the 280px-tall strip. */
+export function bannerPanel(page: Page) {
+  return page.locator('main div[class*="min-h-[280px]"]').first();
+}
+
+/**
+ * The little edit / delete bar that belongs to one of the two file inputs.
+ *
+ * Neither control is a button, an anchor or anything carrying a role or a label:
+ * each is a bare `div` holding an svg. The only stable handle is the bordered
+ * bar the pair sit in, found from the input inside it, and then the hover colour
+ * that separates edit (blue) from delete (red).
+ */
+export function imageControls(page: Page, which: 'banner' | 'avatar') {
+  const label = which === 'banner' ? 'Upload banner image' : 'Upload avatar image';
+  return page.locator(`input[aria-label="${label}"]`)
+    .locator('xpath=ancestor::div[contains(@class,"rounded-md")][1]');
+}
+
+export function imageEditControl(page: Page, which: 'banner' | 'avatar') {
+  return imageControls(page, which).locator('div[class*="hover:bg-blue-100"]').first();
+}
+
+export function imageDeleteControl(page: Page, which: 'banner' | 'avatar') {
+  return imageControls(page, which).locator('div[class*="hover:bg-red-100"]').first();
+}
+
+/**
+ * The image cropper, which is not a dialog.
+ *
+ * Both croppers - "Edit Your Avatar" for the photo and "Crop Banner" for the
+ * banner - are plain overlays with no `role="dialog"`, so openDialog() never
+ * finds them. Reached from their heading instead.
+ */
+export async function cropper(page: Page, heading: string) {
+  const h = onScreen(page.getByText(heading, { exact: true })).first();
+  await expect(h).toBeVisible();
+  const box = h.locator('xpath=ancestor::div[contains(@class,"rounded")][1]');
+  await expect(box.getByText(heading, { exact: true }).first()).toBeVisible();
+  return box;
+}
+
+/**
+ * The signed-in account's name in the sidebar. Masked where it is incidental.
+ *
+ * It sits in its own row under the header block, not inside it, which is also
+ * why notificationBadge() is scoped to the whole sidebar rather than the header.
+ */
+export function sidebarIdentity(page: Page, name: string) {
+  return sidebar(page).getByText(name, { exact: true }).first();
+}
+
+/**
+ * Open the reader's own account block in the sidebar - name, address, Edit User
+ * Profile, Sign out. Collapsed until the name is selected.
+ *
+ * Collection 01's `sidebarUserBlock()` finds it from the "Complete your profile
+ * (n)" warning. That warning is only there while a field is missing, and this
+ * collection's persona has a complete profile, so the block is found from
+ * Sign out instead.
+ */
+export async function openAccountBlock(page: Page, name: string) {
+  await sidebarIdentity(page, name).click();
+  const signOut = onScreen(page.getByText('Sign out', { exact: true })).first();
+  await expect(signOut).toBeVisible();
+  const block = signOut.locator('xpath=ancestor::div[contains(@class,"border-y")][1]');
+  await expect(block.getByText('Edit User Profile', { exact: true })).toBeVisible();
+  return block;
 }
