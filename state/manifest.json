@@ -20,11 +20,199 @@
         "brief": "briefs/07.md",
         "spec": "specs/07/07.1.spec.ts",
         "commit_sha": "0000000000000000000000000000000000000000",
-        "screenshots": ["screenshots/07/07.1/01-teams-empty.a1b2c3d4.png"],
+        "screenshots": [
+          "screenshots/07/07.1/01-teams-empty.a1b2c3d4.png"
+        ],
         "published_at": "2026-01-01T00:00:00Z",
         "status": "published"
       }
     }
   },
-  "articles": {}
+  "articles": {
+    "12.1": {
+      "intercom_id": "16733150",
+      "collection": "12",
+      "intercom_collection_id": "19733981",
+      "brief": "briefs/12.md",
+      "spec": "specs/12/12.1.spec.ts",
+      "commit_sha": "0ed9dd4b9b83b80e33f24036de9d741b2004f9bc",
+      "screenshots": [
+        "screenshots/12/12.1/01-tournament-list-both-states.7de06bc1.png",
+        "screenshots/12/12.1/02-format-not-chosen-yet.99fc745e.png",
+        "screenshots/12/12.1/03-public-page-info.4d653a9c.png"
+      ],
+      "published_at": "2026-08-28T09:23:47.000Z",
+      "status": "published"
+    },
+    "12.2": {
+      "intercom_id": "16733171",
+      "collection": "12",
+      "intercom_collection_id": "19733981",
+      "brief": "briefs/12.md",
+      "spec": "specs/12/12.2.spec.ts",
+      "commit_sha": "0ec302176280439ee66d23ca2fa24d27a760b81d",
+      "screenshots": [
+        "screenshots/12/12.2/01-tournament-list.42021ede.png",
+        "screenshots/12/12.2/02-create-modal-blank.a9e3e610.png",
+        "screenshots/12/12.2/03-create-modal-named.928f535d.png",
+        "screenshots/12/12.2/04-start-date-picker.8b2bf3f3.png",
+        "screenshots/12/12.2/05-start-time-chosen.ed024a34.png",
+        "screenshots/12/12.2/06-match-duration.73f62cf6.png",
+        "screenshots/12/12.2/07-create-modal-complete.b65a3641.png",
+        "screenshots/12/12.2/08-board-you-land-on.eae3cfad.png"
+      ],
+      "published_at": "2026-08-28T10:07:18.000Z",
+      "status": "published"
+    },
+    "12.3": {
+      "intercom_id": "16733190",
+      "collection": "12",
+      "intercom_collection_id": "19733981",
+      "brief": "briefs/12.md",
+      "spec": "specs/12/12.3.spec.ts",
+      "commit_sha": "c5fae3a0fa70221c50602f908eef8b7d54f9de07",
+      "screenshots": [
+        "screenshots/12/12.3/01-start-date-field.207b2dae.png",
+        "screenshots/12/12.3/02-start-date-picker-open.8b2bf3f3.png",
+        "screenshots/12/12.3/03-kick-off-time-picker.f09f2593.png",
+        "screenshots/12/12.3/04-venue-picker-saved-venues.0b8ff9d1.png",
+        "screenshots/12/12.3/05-add-venue-form-blank.17b5c2b0.png",
+        "screenshots/12/12.3/06-add-venue-form-filled.3fcee56e.png",
+        "screenshots/12/12.3/07-teams-are-added-on-the-board.27098b3b.png"
+      ],
+      "published_at": "2026-08-28T09:32:04.000Z",
+      "status": "published"
+    },
+    "12.4": {
+      "intercom_id": "16733249",
+      "collection": "12",
+      "intercom_collection_id": "19733981",
+      "brief": "briefs/12.md",
+      "spec": "specs/12/12.4.spec.ts",
+      "commit_sha": "eca5179e10af17bf594deaa466853d9bacf52f72",
+      "screenshots": [
+        "screenshots/12/12.4/01-choose-format-three-templates.99fc745e.png",
+        "screenshots/12/12.4/02-group-phase-only-selected.90cc4a34.png",
+        "screenshots/12/12.4/03-how-many-groups.2e3b82fe.png",
+        "screenshots/12/12.4/04-teams-in-each-group.879ac4d9.png",
+        "screenshots/12/12.4/05-encounters-open.77596f63.png",
+        "screenshots/12/12.4/06-overflow-matches-toggle.c7ea8073.png",
+        "screenshots/12/12.4/07-knockout-phase-only.915ea29a.png",
+        "screenshots/12/12.4/08-group-and-knockout.d7ad5c5b.png",
+        "screenshots/12/12.4/09-format-saved-groups-generated.8947c953.png"
+      ],
+      "published_at": "2026-08-28T10:07:25.000Z",
+      "status": "published"
+    },
+    "12.5": {
+      "intercom_id": "16733298",
+      "collection": "12",
+      "intercom_collection_id": "19733981",
+      "brief": "briefs/12.md",
+      "spec": "specs/12/12.5.spec.ts",
+      "commit_sha": "3730425bbfdeb457970b4ef5a53423df7ea03999",
+      "screenshots": [
+        "screenshots/12/12.5/01-no-teams-added-yet.27098b3b.png",
+        "screenshots/12/12.5/02-add-one-team.54f721d3.png",
+        "screenshots/12/12.5/03-add-many-teams-one-per-line.7998c969.png",
+        "screenshots/12/12.5/04-list-of-all-teams.a6e6234a.png",
+        "screenshots/12/12.5/05-team-row-menu.099b2ee8.png",
+        "screenshots/12/12.5/06-add-owner-blank.d8aa5015.png",
+        "screenshots/12/12.5/07-add-owner-filled.b59cbf5b.png",
+        "screenshots/12/12.5/08-team-with-an-owner.4c6df91e.png",
+        "screenshots/12/12.5/09-tournament-pro-slots.1f629323.png"
+      ],
+      "published_at": "2026-08-28T10:07:32.000Z",
+      "status": "published"
+    },
+    "12.6": {
+      "intercom_id": "16733318",
+      "collection": "12",
+      "intercom_collection_id": "19733981",
+      "brief": "briefs/12.md",
+      "spec": "specs/12/12.6.spec.ts",
+      "commit_sha": "f1e3512fac5ab2b686c0361534674b0b0f972f57",
+      "screenshots": [
+        "screenshots/12/12.6/01-a-venue-is-required.5d6a1170.png",
+        "screenshots/12/12.6/02-venue-picker.bd5e7b11.png",
+        "screenshots/12/12.6/03-add-a-venue.eb9976f3.png",
+        "screenshots/12/12.6/04-save-for-future-tournaments.984a0bb8.png",
+        "screenshots/12/12.6/05-venues-in-tournament-settings.a55efbb2.png",
+        "screenshots/12/12.6/06-venues-on-the-public-page.4d653a9c.png"
+      ],
+      "published_at": "2026-08-28T09:44:45.000Z",
+      "status": "published"
+    },
+    "12.8": {
+      "intercom_id": "16733354",
+      "collection": "12",
+      "intercom_collection_id": "19733981",
+      "brief": "briefs/12.md",
+      "spec": "specs/12/12.8.spec.ts",
+      "commit_sha": "29c1d3871e743db1362316da9be37d1b691c54a0",
+      "screenshots": [
+        "screenshots/12/12.8/01-settings-from-the-card-menu.1f9875b6.png",
+        "screenshots/12/12.8/02-edit-tournament-page.9ad1f5d9.png",
+        "screenshots/12/12.8/03-roles-and-administration.010ee193.png",
+        "screenshots/12/12.8/04-add-admin-dialog.4593ef51.png",
+        "screenshots/12/12.8/05-an-admin-on-the-tournament.8fbabe07.png",
+        "screenshots/12/12.8/06-no-role-goes-to-the-public-page.a7bc437c.png"
+      ],
+      "published_at": "2026-08-28T09:48:59.000Z",
+      "status": "published"
+    },
+    "12.9": {
+      "intercom_id": "16733367",
+      "collection": "12",
+      "intercom_collection_id": "19733981",
+      "brief": "briefs/12.md",
+      "spec": "specs/12/12.9.spec.ts",
+      "commit_sha": "3e3ad4664a831179278400c7ba5bf298bab53f12",
+      "screenshots": [
+        "screenshots/12/12.9/01-no-referees-added-yet.81f8da86.png",
+        "screenshots/12/12.9/02-saved-referees-tab.f5d06d06.png",
+        "screenshots/12/12.9/03-add-a-single-referee.4b6545cc.png",
+        "screenshots/12/12.9/04-add-many-referees.ddaf4b2b.png",
+        "screenshots/12/12.9/05-start-and-end-matches-permission.93b5e6a2.png",
+        "screenshots/12/12.9/06-referees-on-the-tournament.d2c610cd.png"
+      ],
+      "published_at": "2026-08-28T09:51:14.000Z",
+      "status": "published"
+    },
+    "12.10": {
+      "intercom_id": "16733381",
+      "collection": "12",
+      "intercom_collection_id": "19733981",
+      "brief": "briefs/12.md",
+      "spec": "specs/12/12.10.spec.ts",
+      "commit_sha": "4fa083f06a4967ea093715935149b28a8c57876b",
+      "screenshots": [
+        "screenshots/12/12.10/01-what-you-can-still-change.458c4097.png",
+        "screenshots/12/12.10/02-the-format-is-changed-on-its-own-tab.8947c953.png",
+        "screenshots/12/12.10/03-each-section-saves-on-its-own.d806bcd0.png",
+        "screenshots/12/12.10/04-danger-zone.5ad2e564.png",
+        "screenshots/12/12.10/05-delete-confirmation.61f623d9.png",
+        "screenshots/12/12.10/06-type-delete-to-confirm.3109c69b.png"
+      ],
+      "published_at": "2026-08-28T09:53:20.000Z",
+      "status": "published"
+    },
+    "12.7": {
+      "intercom_id": "16733486",
+      "collection": "12",
+      "intercom_collection_id": "19733981",
+      "brief": "briefs/12.md",
+      "spec": "specs/12/12.7.spec.ts",
+      "commit_sha": "7f0e12228d5f2d40aa7202001a438181e296fc96",
+      "screenshots": [
+        "screenshots/12/12.7/01-profile-appearance.9221e145.png",
+        "screenshots/12/12.7/02-crest-upload-and-limits.11bf4e5c.png",
+        "screenshots/12/12.7/03-phases-and-groups.8947c953.png",
+        "screenshots/12/12.7/04-rename-the-phase.b2003e14.png",
+        "screenshots/12/12.7/05-rename-a-group.2f97d9e4.png"
+      ],
+      "published_at": "2026-08-28T10:07:45.000Z",
+      "status": "published"
+    }
+  }
 }
