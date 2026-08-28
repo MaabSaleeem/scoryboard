@@ -21,7 +21,7 @@ target.
 | 09 | Creating & scheduling matches | 8 | 50 | manager_pro | not started | - | - |
 | 10 | Match day | 11 | 65 | manager_pro | not started | - | - |
 | 11 | Match insights & statistics | 3 | 9 | player | not started | - | - |
-| 12 | Tournaments - setting one up | 10 | 65 | organiser | brief approved | [briefs/12.md](../briefs/12.md) | flag: TOURNAMENT_FEATURE_ENABLED. 3 articles retitled - no Draft state, no wizard, no fees. 9 open questions |
+| 12 | Tournaments - setting one up | 10 | 65 | organiser | published (9/10) | [briefs/12.md](../briefs/12.md) | 12.7 BLOCKED - the brief says there is no tournament banner; there is one. Needs a re-brief. Other 9 published, 60 screenshots |
 | 13 | Tournaments - groups, brackets & phases | 6 | 32 | organiser | not started | - | flag: TOURNAMENT_FEATURE_ENABLED |
 | 14 | Tournaments - the fixture schedule | 5 | 23 | organiser | not started | - | flag: TOURNAMENT_FEATURE_ENABLED |
 | 15 | Tournaments - publishing & running | 9 | 60 | organiser | not started | - | flag: TOURNAMENT_FEATURE_ENABLED |
@@ -83,3 +83,64 @@ Still open and NOT covered by this approval: the nine numbered open questions in
 the brief, and the two "please confirm" items (whether `kb-12-admin@` and
 `kb-12-outsider@` should be promoted into `config/personas.yaml`). None of them
 blocks publishing.
+
+**2026-08-28 - collection 12, step 2. Nine of ten articles published.**
+
+| Article | Intercom ID | Shots | Pinned commit |
+|---|---|---|---|
+| 12.1 | 16733150 | 3 | 0ed9dd4 |
+| 12.2 | 16733171 | 8 | 0ec3021 |
+| 12.3 | 16733190 | 7 | c5fae3a |
+| 12.4 | 16733249 | 9 | eca5179 |
+| 12.5 | 16733298 | 9 | 3730425 |
+| 12.6 | 16733318 | 6 | f1e3512 |
+| 12.8 | 16733354 | 6 | 29c1d38 |
+| 12.9 | 16733367 | 6 | 3e3ad46 |
+| 12.10 | 16733381 | 6 | 4fa083f |
+
+60 screenshots. Every embedded image URL was re-checked against the published
+article bodies at the end of the run: all 60 return 200 with an `image/*`
+content type, pinned to the commits above on branch `kb/collection-12`.
+
+**12.7 "Tournament crest and phase names" was NOT published. Stopped, not
+skipped.** The approved brief says the tournament has no banner and drops that
+half of the mapped article. That is wrong. The settings page carries two file
+inputs, `Upload banner image` and `Upload avatar image`, and both render with
+their own edit and delete controls. The banner was missed in step 1 because that
+exploration read pages as text, and an unlabelled image control leaves no text
+behind. 12.7 needs its brief entry rewritten to cover the banner, and then a
+fresh approval. Its five captures were taken and left uncommitted.
+
+Same root cause, smaller consequence: the brief says a tournament referee has no
+email field. The **Single referee** tab does have one - it is the **Multiple
+referees** tab that is names only. 12.9 was written from the captures and is
+correct; only the brief's note is wrong.
+
+**Differed from the brief.** Masks. The brief's table for the tournament-list
+shots says "mask: header name"; the specs had grown two more masks during step 1
+determinism work, which put black bars over the cards those shots are about. The
+creation date is the tournament's own stored date, not today's, so it never
+drifted and never needed masking. Removed in 12.1, 12.2 and 12.8.
+
+**Capture defects found and fixed in the specs, not the images.** Shot 12.2/07
+had the venue popover open across the form and its annotation drawn below the
+modal's internal fold. Three shots in 12.4 did not contain their own subject -
+the annotated field sat flush against the bottom edge, and the overflow toggle
+was off-screen entirely. 12.5/09 caught the tournament list as grey skeletons.
+12.3/04 and 12.6/02 showed the persona's name unmasked. Two new shared helpers
+came out of it: `centre()` and `imagesPainted()`.
+
+**Worth a decision.** 12.5/09 is the free Tournament Pro allowance panel. The
+brief asks for the remaining count to be masked because it drifts. Masking it
+takes the number out of a panel whose only point is the number, so the shot now
+carries two redacted blocks and says little. Recommend dropping that mask.
+
+**No flakes.** Eleven specs, run repeatedly through the session, never failed
+once the selector fixes were in.
+
+**Not committed to master.** Everything is on `kb/collection-12`, pushed. The
+image URLs resolve from that branch's commits. Merging is the human's call.
+Also set `http.sslBackend=schannel` in this repo's local git config - git-bash
+could not validate GitHub's certificate without it.
+
+Next: re-brief 12.7, then `/kb-brief 13`.

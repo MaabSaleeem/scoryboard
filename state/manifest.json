@@ -178,6 +178,24 @@
       ],
       "published_at": "2026-08-28T09:51:14.000Z",
       "status": "published"
+    },
+    "12.10": {
+      "intercom_id": "16733381",
+      "collection": "12",
+      "intercom_collection_id": "19733981",
+      "brief": "briefs/12.md",
+      "spec": "specs/12/12.10.spec.ts",
+      "commit_sha": "4fa083f06a4967ea093715935149b28a8c57876b",
+      "screenshots": [
+        "screenshots/12/12.10/01-what-you-can-still-change.458c4097.png",
+        "screenshots/12/12.10/02-the-format-is-changed-on-its-own-tab.8947c953.png",
+        "screenshots/12/12.10/03-each-section-saves-on-its-own.d806bcd0.png",
+        "screenshots/12/12.10/04-danger-zone.5ad2e564.png",
+        "screenshots/12/12.10/05-delete-confirmation.61f623d9.png",
+        "screenshots/12/12.10/06-type-delete-to-confirm.3109c69b.png"
+      ],
+      "published_at": "2026-08-28T09:53:20.000Z",
+      "status": "published"
     }
   }
 }
