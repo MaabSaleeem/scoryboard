@@ -103,6 +103,27 @@
       ],
       "published_at": "2026-08-28T09:37:01.000Z",
       "status": "published"
+    },
+    "12.5": {
+      "intercom_id": "16733298",
+      "collection": "12",
+      "intercom_collection_id": "19733981",
+      "brief": "briefs/12.md",
+      "spec": "specs/12/12.5.spec.ts",
+      "commit_sha": "3730425bbfdeb457970b4ef5a53423df7ea03999",
+      "screenshots": [
+        "screenshots/12/12.5/01-no-teams-added-yet.27098b3b.png",
+        "screenshots/12/12.5/02-add-one-team.54f721d3.png",
+        "screenshots/12/12.5/03-add-many-teams-one-per-line.7998c969.png",
+        "screenshots/12/12.5/04-list-of-all-teams.a6e6234a.png",
+        "screenshots/12/12.5/05-team-row-menu.099b2ee8.png",
+        "screenshots/12/12.5/06-add-owner-blank.d8aa5015.png",
+        "screenshots/12/12.5/07-add-owner-filled.b59cbf5b.png",
+        "screenshots/12/12.5/08-team-with-an-owner.4c6df91e.png",
+        "screenshots/12/12.5/09-tournament-pro-slots.1f629323.png"
+      ],
+      "published_at": "2026-08-28T09:42:50.000Z",
+      "status": "published"
     }
   }
 }
