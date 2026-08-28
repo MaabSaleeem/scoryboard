@@ -82,6 +82,27 @@
       ],
       "published_at": "2026-08-28T09:32:04.000Z",
       "status": "published"
+    },
+    "12.4": {
+      "intercom_id": "16733249",
+      "collection": "12",
+      "intercom_collection_id": "19733981",
+      "brief": "briefs/12.md",
+      "spec": "specs/12/12.4.spec.ts",
+      "commit_sha": "eca5179e10af17bf594deaa466853d9bacf52f72",
+      "screenshots": [
+        "screenshots/12/12.4/01-choose-format-three-templates.99fc745e.png",
+        "screenshots/12/12.4/02-group-phase-only-selected.90cc4a34.png",
+        "screenshots/12/12.4/03-how-many-groups.2e3b82fe.png",
+        "screenshots/12/12.4/04-teams-in-each-group.879ac4d9.png",
+        "screenshots/12/12.4/05-encounters-open.77596f63.png",
+        "screenshots/12/12.4/06-overflow-matches-toggle.c7ea8073.png",
+        "screenshots/12/12.4/07-knockout-phase-only.915ea29a.png",
+        "screenshots/12/12.4/08-group-and-knockout.d7ad5c5b.png",
+        "screenshots/12/12.4/09-format-saved-groups-generated.8947c953.png"
+      ],
+      "published_at": "2026-08-28T09:37:01.000Z",
+      "status": "published"
     }
   }
 }

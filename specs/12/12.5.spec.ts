@@ -13,7 +13,7 @@
 // is collection 16, not this one.
 
 import { test, expect } from '@playwright/test';
-import { signIn, quiet, shot, fixtures, headerIdentity } from '../../lib/kb';
+import { signIn, quiet, shot, fixtures, headerIdentity, onScreen } from '../../lib/kb';
 
 test.describe('12.5 Adding teams and owners', () => {
   test('from an empty participant list to a team with an owner', async ({ page }) => {
@@ -82,8 +82,27 @@ test.describe('12.5 Adding teams and owners', () => {
     await quiet(page);
     const allowance = page.getByText('Free Tournament Pro slots remaining');
     await allowance.waitFor();
+    // The panel renders before the tournament cards do, and capturing there
+    // catches them as grey skeletons. Wait for the list itself to arrive.
+    await expect(page.getByText('Your Tournaments (2)', { exact: true })).toBeVisible();
+    await expect(page.getByText('KB Cup', { exact: true })).toBeVisible();
+    await expect(page.getByText('KB New Cup', { exact: true })).toBeVisible();
+
+    // The brief masks the remaining count because it drops whenever anyone
+    // creates a tournament. The number appears twice - in the sentence and in
+    // the badge beside it - so mask both, or half of it is redacted and the
+    // other half is not. The heading stays unmasked: it carries the annotation,
+    // and the style guide forbids annotating a masked region.
+    // The badge is the only element on this page whose whole text is a number.
+    const allowanceBadge = onScreen(
+      page.locator('main div').filter({ hasText: /^\d+$/ }),
+    ).first();
     await shot(page, '12.5', '09-tournament-pro-slots', {
-      mask: [headerIdentity(page), page.getByText(/Your next \d+ tournaments/)],
+      mask: [
+        headerIdentity(page),
+        page.getByText(/Your next \d+ tournaments/),
+        allowanceBadge,
+      ],
       annotate: allowance,
     });
   });
