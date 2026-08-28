@@ -33,11 +33,50 @@ Annual for tournament plans.
 3. **Before you start** - only if there is a real precondition (a role, a plan, an
    existing team). Omit the heading when there is none.
 4. **Steps** - numbered. One action per step. The screenshot follows the step it
-   illustrates, never before it.
+   illustrates, never before it, and sits *inside* that step's `<li>`. See
+   [Numbered steps and their screenshots](#numbered-steps-and-their-screenshots).
 5. **What you will see** - the result state, when it is not obvious.
 6. **If it does not work** - the two or three real failure modes, each with the fix.
    Take these from the preconditions and gates found in step 1, not from imagination.
 7. **Related** - links to sibling articles.
+
+### Numbered steps and their screenshots
+
+One procedure is one `<ol>`. Put each screenshot inside the `<li>` of the step it
+illustrates:
+
+```html
+<ol>
+  <li>Open <strong>Game type</strong>. It starts on Football.
+    {{shot:01|The Game type field outlined, showing Football.}}
+  </li>
+  <li>Choose <strong>Padel</strong>.
+    {{shot:02|The Game type list open.}}
+  </li>
+</ol>
+```
+
+Never break the list to place a screenshot between two `<ol>` blocks, and never
+carry the count with `start="2"`. **Intercom strips the `start` attribute**, so a
+split procedure renders as 1. 2. 1. 2. 1. rather than 1. to 5. Nested images
+survive intact - Intercom rewrites each `<li>` into its own paragraph and image
+container and keeps the numbering unbroken. Verified against the rendered help
+centre on 2026-08-28.
+
+`scripts/build-article.mjs` refuses to build an article that carries `<ol start=`,
+or that has two `<ol>` blocks with no heading between them.
+
+Two consequences worth knowing before you write:
+
+- **A list cannot span a heading.** Wanting an `<h2>` mid-procedure means choosing
+  between the heading and unbroken numbering. Prefer the numbering, and fold the
+  heading's sense into the step text.
+- **Restarting at 1 is right when the procedures are genuinely separate.** 12.5 has
+  two: adding teams, then giving a team an owner. Two lists, each from 1, one
+  heading each.
+
+Prose that belongs to a step - a note, a second screenshot - goes inside the same
+`<li>`. Prose that belongs to the article goes outside the list.
 
 ### Free and Pro
 

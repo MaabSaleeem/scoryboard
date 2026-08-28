@@ -50,7 +50,7 @@
       "intercom_collection_id": "19733981",
       "brief": "briefs/12.md",
       "spec": "specs/12/12.2.spec.ts",
-      "commit_sha": "0ec302176280439ee66d23ca2fa24d27a760b81d",
+      "commit_sha": "2b0b16cf6d18d3b9ac98bd25348d1de6e90ebd85",
       "screenshots": [
         "screenshots/12/12.2/01-tournament-list.42021ede.png",
         "screenshots/12/12.2/02-create-modal-blank.a9e3e610.png",
@@ -61,7 +61,7 @@
         "screenshots/12/12.2/07-create-modal-complete.b65a3641.png",
         "screenshots/12/12.2/08-board-you-land-on.eae3cfad.png"
       ],
-      "published_at": "2026-08-28T10:07:18.000Z",
+      "published_at": "2026-08-28T11:01:29.000Z",
       "status": "published"
     },
     "12.3": {
@@ -89,7 +89,7 @@
       "intercom_collection_id": "19733981",
       "brief": "briefs/12.md",
       "spec": "specs/12/12.4.spec.ts",
-      "commit_sha": "eca5179e10af17bf594deaa466853d9bacf52f72",
+      "commit_sha": "2b0b16cf6d18d3b9ac98bd25348d1de6e90ebd85",
       "screenshots": [
         "screenshots/12/12.4/01-choose-format-three-templates.99fc745e.png",
         "screenshots/12/12.4/02-group-phase-only-selected.90cc4a34.png",
@@ -101,7 +101,7 @@
         "screenshots/12/12.4/08-group-and-knockout.d7ad5c5b.png",
         "screenshots/12/12.4/09-format-saved-groups-generated.8947c953.png"
       ],
-      "published_at": "2026-08-28T10:07:25.000Z",
+      "published_at": "2026-08-28T11:01:48.000Z",
       "status": "published"
     },
     "12.5": {
@@ -110,7 +110,7 @@
       "intercom_collection_id": "19733981",
       "brief": "briefs/12.md",
       "spec": "specs/12/12.5.spec.ts",
-      "commit_sha": "3730425bbfdeb457970b4ef5a53423df7ea03999",
+      "commit_sha": "2b0b16cf6d18d3b9ac98bd25348d1de6e90ebd85",
       "screenshots": [
         "screenshots/12/12.5/01-no-teams-added-yet.27098b3b.png",
         "screenshots/12/12.5/02-add-one-team.54f721d3.png",
@@ -122,7 +122,7 @@
         "screenshots/12/12.5/08-team-with-an-owner.4c6df91e.png",
         "screenshots/12/12.5/09-tournament-pro-slots.1f629323.png"
       ],
-      "published_at": "2026-08-28T10:07:32.000Z",
+      "published_at": "2026-08-28T11:02:07.000Z",
       "status": "published"
     },
     "12.6": {
@@ -131,7 +131,7 @@
       "intercom_collection_id": "19733981",
       "brief": "briefs/12.md",
       "spec": "specs/12/12.6.spec.ts",
-      "commit_sha": "f1e3512fac5ab2b686c0361534674b0b0f972f57",
+      "commit_sha": "2b0b16cf6d18d3b9ac98bd25348d1de6e90ebd85",
       "screenshots": [
         "screenshots/12/12.6/01-a-venue-is-required.5d6a1170.png",
         "screenshots/12/12.6/02-venue-picker.bd5e7b11.png",
@@ -140,7 +140,7 @@
         "screenshots/12/12.6/05-venues-in-tournament-settings.a55efbb2.png",
         "screenshots/12/12.6/06-venues-on-the-public-page.4d653a9c.png"
       ],
-      "published_at": "2026-08-28T09:44:45.000Z",
+      "published_at": "2026-08-28T11:02:21.000Z",
       "status": "published"
     },
     "12.8": {
@@ -167,7 +167,7 @@
       "intercom_collection_id": "19733981",
       "brief": "briefs/12.md",
       "spec": "specs/12/12.9.spec.ts",
-      "commit_sha": "3e3ad4664a831179278400c7ba5bf298bab53f12",
+      "commit_sha": "2b0b16cf6d18d3b9ac98bd25348d1de6e90ebd85",
       "screenshots": [
         "screenshots/12/12.9/01-no-referees-added-yet.81f8da86.png",
         "screenshots/12/12.9/02-saved-referees-tab.f5d06d06.png",
@@ -176,7 +176,7 @@
         "screenshots/12/12.9/05-start-and-end-matches-permission.93b5e6a2.png",
         "screenshots/12/12.9/06-referees-on-the-tournament.d2c610cd.png"
       ],
-      "published_at": "2026-08-28T09:51:14.000Z",
+      "published_at": "2026-08-28T11:02:32.000Z",
       "status": "published"
     },
     "12.10": {
@@ -185,7 +185,7 @@
       "intercom_collection_id": "19733981",
       "brief": "briefs/12.md",
       "spec": "specs/12/12.10.spec.ts",
-      "commit_sha": "4fa083f06a4967ea093715935149b28a8c57876b",
+      "commit_sha": "2b0b16cf6d18d3b9ac98bd25348d1de6e90ebd85",
       "screenshots": [
         "screenshots/12/12.10/01-what-you-can-still-change.458c4097.png",
         "screenshots/12/12.10/02-the-format-is-changed-on-its-own-tab.8947c953.png",
@@ -194,7 +194,7 @@
         "screenshots/12/12.10/05-delete-confirmation.61f623d9.png",
         "screenshots/12/12.10/06-type-delete-to-confirm.3109c69b.png"
       ],
-      "published_at": "2026-08-28T09:53:20.000Z",
+      "published_at": "2026-08-28T11:02:45.000Z",
       "status": "published"
     },
     "12.7": {
@@ -250,7 +250,7 @@
         "screenshots/12/12.12/07-rules-and-regulations.06805aa8.png",
         "screenshots/12/12.12/08-swiss-saved-pairs-and-phases.297c86a3.png"
       ],
-      "published_at": "2026-08-28T10:45:15.000Z",
+      "published_at": "2026-08-28T11:02:53.000Z",
       "status": "published"
     }
   }

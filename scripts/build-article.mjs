@@ -47,6 +47,32 @@ const description = src.match(/<!--\s*description:\s*(.+?)\s*-->/)?.[1];
 if (!title) throw new Error(`${srcPath} has no <!-- title: ... --> line`);
 if (!description) throw new Error(`${srcPath} has no <!-- description: ... --> line`);
 
+// Intercom strips the `start` attribute from <ol>, so a procedure split into
+// several lists to interleave screenshots renders as 1. 2. 1. 2. 1. rather than
+// 1. to 5. The fix is one list per procedure with each screenshot nested inside
+// the <li> it belongs to - Intercom keeps that, and the numbering runs unbroken.
+// Both faults are rejected here rather than left to be spotted after publishing.
+// Verified against the rendered help centre, 2026-08-28.
+const startAttr = src.match(/<ol\s+start=/i);
+if (startAttr) {
+  throw new Error(
+    `${articleId}: <ol start="..."> - Intercom drops the start attribute, so this list ` +
+    `restarts at 1. Merge the steps into one <ol> and put each screenshot inside its <li>.`,
+  );
+}
+
+// Two ordered lists with no heading between them are one procedure that has been
+// cut in half, which is the same defect wearing a different hat.
+const betweenLists = src.split(/<\/ol>/i).slice(1, -1);
+for (const chunk of betweenLists) {
+  if (!/<h[1-6][\s>]/i.test(chunk) && /<ol[\s>]/i.test(chunk)) {
+    throw new Error(
+      `${articleId}: two <ol> blocks with no heading between them. Intercom numbers each ` +
+      `list from 1. Merge them, and nest the screenshots inside their <li>.`,
+    );
+  }
+}
+
 const used = new Set();
 const body = src
   .replace(/<!--.*?-->\n?/gs, '')

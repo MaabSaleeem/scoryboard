@@ -254,4 +254,35 @@ selecting. Same behaviour as the venue add button in 12.3 and 12.6. Two
 independent controls now share it, so treat it as a house pattern rather than a
 one-off.
 
+### Step numbering fixed across the collection - 2026-08-28
+
+**The fault.** To interleave screenshots, every procedure was split into several
+`<ol>` blocks carrying the count with `start="2"`, `start="3"`. Intercom strips
+the `start` attribute, so each block restarted at 1 and articles read 1. 2. 1. 2.
+1. Confirmed by fetching the stored bodies back: every list came back as a bare
+`<ol>`.
+
+**The fix.** One `<ol>` per procedure, each screenshot nested inside the `<li>`
+of the step it illustrates. Intercom keeps nested images - it rewrites each item
+into its own paragraph and image container - and numbers the list unbroken.
+Verified against the rendered help centre, not just the stored HTML: 12.11 shows
+`list-style-type: decimal` and markers 1-10.
+
+**Eight articles rewritten**: 12.2, 12.4, 12.5, 12.6, 12.9, 12.10, 12.11, 12.12.
+12.7 and 12.8 already had unsplit lists. 12.1 and 12.3 have no procedure. All
+step text is unchanged and no screenshot moved to a different step.
+
+**One content cost.** 12.11 lost two mid-procedure headings ("The three padel
+questions", "The rest is the same"), because a list cannot span an `<h2>`. Their
+sense is already carried by the step text. Approved by the human before the rest
+of the pass ran.
+
+**Guarded, not just fixed.** `scripts/build-article.mjs` now refuses any article
+carrying `<ol start=`, or two `<ol>` blocks with no heading between them. Both
+guards were negative-tested. The rule is written up in `docs/style-guide.md`
+under "Numbered steps and their screenshots".
+
+All 12 articles re-verified after republishing: 0 lists with `start`, image
+counts match the manifest, all published in `19733981`.
+
 Next: `/kb-brief 13`.
