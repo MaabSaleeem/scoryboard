@@ -18,11 +18,30 @@ import { admin, asUser, mintSession, signinUrl, API, APP } from './api.mjs';
 
 export { admin, asUser, mintSession, signinUrl, API, APP };
 
+// Collection 12's accounts. `organiser` is unsuffixed because this collection was
+// captured before accounts were isolated per collection, and its 80 published
+// screenshots come from that account - see account_isolation in
+// config/personas.yaml. Every later collection uses personaEmail() below.
 export const PERSONAS = {
   organiser: 'kb-organiser@yopmail.com',
   admin: 'kb-12-admin@yopmail.com',
   outsider: 'kb-12-outsider@yopmail.com',
 } as const;
+
+/**
+ * The account address for a persona role inside one collection.
+ *
+ * One account per role per collection: a collection seeds only into its own
+ * accounts. Sharing an account across collections is what stopped six of
+ * collection 12's specs from running - a sibling seeded two tournaments and every
+ * spec that had photographed the list went stale.
+ *
+ * Collection 12 keeps the unsuffixed address it was captured from.
+ */
+export function personaEmail(role: string, collection: string): string {
+  if (collection === '12' && role === 'organiser') return PERSONAS.organiser;
+  return `kb-${role}-${collection}@yopmail.com`;
+}
 
 export type PersonaKey = keyof typeof PERSONAS;
 

@@ -26,9 +26,9 @@ target.
 | 10 | Match day | 11 | 65 | manager_pro | not started | - | - |
 | 11 | Match insights & statistics | 3 | 9 | player | not started | - | - |
 | 12 | Tournaments - setting one up | 10 (+2) | 80 | organiser | published | [briefs/12.md](../briefs/12.md) | 12 published, 80 screenshots. 12.11 and 12.12 added for Padel; not in the map |
-| 13 | Tournaments - groups, brackets & phases | 6 | 32 | organiser | not started | - | flag: TOURNAMENT_FEATURE_ENABLED |
-| 14 | Tournaments - the fixture schedule | 5 | 23 | organiser | not started | - | flag: TOURNAMENT_FEATURE_ENABLED |
-| 15 | Tournaments - publishing & running | 9 | 60 | organiser | not started | - | flag: TOURNAMENT_FEATURE_ENABLED |
+| 13 | Tournaments - groups, brackets & phases | 11 | 54 | organiser | not started | - | flag: TOURNAMENT_FEATURE_ENABLED. Split by sport 2026-08-28. Account: kb-organiser-13@yopmail.com |
+| 14 | Tournaments - the fixture schedule | 8 | 37 | organiser | not started | - | flag: TOURNAMENT_FEATURE_ENABLED. Split by sport 2026-08-28. Account: kb-organiser-14@yopmail.com |
+| 15 | Tournaments - publishing & running | 9 | 62 | organiser | not started | - | flag: TOURNAMENT_FEATURE_ENABLED. Structure unchanged; 15.8 needs a padel section. Account: kb-organiser-15@yopmail.com |
 | 16 | Tournament plans & payment | 6 | 35 | organiser | not started | - | REAL MONEY. Stripe test mode required. |
 | 17 | Collecting & making payments | 11 | 72 | manager_pro | not started | - | REAL MONEY, Stripe Connect. Two audiences - the organiser collecting and the player paying. |
 | 18 | Chat & messaging | 8 | 50 | manager_free | not started | - | - |
@@ -39,7 +39,13 @@ target.
 | 23 | Powerleague & CentreNet bookings | 4 | 16 | manager_free | not started | - | Partner-initiated records. High ticket volume because the user did not start the action. |
 | 24 | Troubleshooting & policies | 4 | 13 | manager_free | not started | - | - |
 
-Totals: 146 articles, 806 screenshots estimated across 24 collections.
+Totals: 154 articles, 844 screenshots estimated across 24 collections. These count
+what `config/articles.yaml` lists and still exclude collection 12's two padel
+articles, which are published but never went back into the map.
+
+Every collection has its own accounts - `kb-<persona>-<collection>@yopmail.com`.
+Collection 12 is the one exception. See `account_isolation` in
+`config/personas.yaml`.
 
 Deferred, not in scope: collection 25, internal back-office operations
 (10 articles, API-key protected, no UI, text only).
@@ -344,5 +350,44 @@ these collections get their own persona, or whether specs stop asserting counts.
 
 Free Tournament Pro slots are at 11: exploring cost one, and deleting the fixture
 afterwards does not give it back.
+
+### Accounts are now isolated per collection - 2026-08-28
+
+**The rule.** One account per persona role per collection,
+`kb-<persona>-<collection>@yopmail.com`. A collection seeds only into its own
+accounts and does not read another collection's. Second actors belong to the
+collection too (`kb-<collection>-<role>@`), as collection 12 already did with
+`kb-12-admin@` and `kb-12-outsider@`.
+
+**Collection 12 is the single exception** and keeps `kb-organiser@yopmail.com`
+unsuffixed, because its 80 published screenshots were captured from that account.
+
+**Why it covers every collection, not the eight that photograph lists.** A
+collection breaks its siblings by *seeding*; it gets broken by *photographing* a
+list of what the account owns. Isolating only the photographers leaves every
+seeder still sharing the account, so the hole stays open. `kb-organiser@` was
+shared by 12 to 16 and `kb-manager-pro@` by 07, 08, 09, 10, 17 and 22.
+
+**Cost is near zero right now.** Only collection 12 has been captured; everything
+else is `not started`, so no account in use has to move. Each collection creates
+its accounts in its own idempotent seed script.
+
+Written into `config/personas.yaml` (`account_isolation`), `docs/workflow.md` step
+1.2, and `lib/kb.ts` as `personaEmail(role, collection)`.
+
+### Collection 12: specs fixed, screenshots deliberately not re-captured
+
+The count-gate fault is fixed - `tournamentListReady()` in `lib/kb.ts`, used by
+12.1, 12.2, 12.3, 12.5, 12.6, 12.8 and 12.11. All eight tests pass.
+
+**Deliberate divergence, decided 2026-08-28:** collection 12 is NOT to be re-run.
+The published screenshots stay as they are. A re-run today yields 19 of 52 captures
+differing from what is live - six visibly (12.1/01, 12.2/01, 12.3/04, 12.5/09,
+12.6/02, 12.8/01, all showing the tournament list) and thirteen by about 0.011% of
+their pixels. All 19 would take new content hashes and new URLs. The articles
+themselves remain accurate: the screenshots show a demo account with fewer
+tournaments, which misleads nobody.
+
+Do not "fix" this by re-capturing without being asked.
 
 Next: `/kb-brief 13`.

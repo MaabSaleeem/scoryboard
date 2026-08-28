@@ -1,8 +1,13 @@
 # Seeded personas
 #
-# Six accounts. Stable across sessions: same email, same state, same names.
-# Re-seeding must be idempotent - if the account exists, bring it to the state
-# below rather than creating a second one.
+# Six persona ROLES, and one ACCOUNT per role per collection. The role is
+# editorial - who the reader is. The account is the row in the database, and it
+# belongs to exactly one collection. See account_isolation below: this is the
+# single most important thing in this file.
+#
+# Stable across sessions: same email, same state, same names. Re-seeding must be
+# idempotent - if the account exists, bring it to the state below rather than
+# creating a second one.
 #
 # Sessions are always minted, never pasted:
 #   POST /admins/generate-signin-token  {"data": {"email": "<persona email>"}}
@@ -29,7 +34,7 @@
 # avatar and email per docs/style-guide.md.
 
 conventions:
-  email_pattern: "kb-<persona>@yopmail.com"
+  email_pattern: "kb-<persona>-<collection>@yopmail.com"   # see account_isolation
   last_name: "KB"
   create: |
     POST /admins/users
@@ -41,10 +46,55 @@ conventions:
     POST /admins/change-user-membership/:userId
     {"data": {"membership": "Free" | "Pro"}}
 
+account_isolation:
+  # "used_by" on each persona below lists the collections that need that ROLE.
+  # It does NOT mean they share an account - each one gets its own address from
+  # the pattern.
+  rule: >
+    One account per persona per collection. A collection seeds ONLY into its own
+    accounts. It never seeds into another collection's, and it does not read from
+    one either.
+  address: "kb-<persona>-<collection>@yopmail.com - kb-organiser-13@yopmail.com, kb-manager-pro-08@yopmail.com"
+  exception:
+    "12": >
+      kb-organiser@yopmail.com, unsuffixed. Collection 12 was captured before this
+      rule existed and its 80 published screenshots were taken from that account.
+      Renaming it would mean re-capturing them. Leave it alone. Its extra fixture
+      accounts, kb-12-admin@ and kb-12-outsider@, already carry the collection id.
+  why: >
+    Accounts used to be shared by role: one kb-organiser@ served collections 12 to
+    16, one kb-manager-pro@ served 07, 08, 09, 10, 17 and 22. Any collection that
+    seeds a tournament, team, leaderboard or venue changes what every sibling
+    collection's screenshots show.
+
+    This is not hypothetical. Collection 12's own padel pass added two tournaments
+    to the organiser's list. Six of its specs waited for "Your Tournaments (2)",
+    the heading became (4), and those specs stopped running - the suite that was
+    meant to regenerate on demand could not. Comparing fresh captures against the
+    published ones afterwards showed 19 of 52 had changed: six visibly, thirteen by
+    a hair, and every one of them would have been given a new content hash and a
+    new URL.
+  what_breaks_what: >
+    A collection breaks its siblings by SEEDING. It is broken by PHOTOGRAPHING a
+    list of things the account owns. So isolating only the collections that take
+    list screenshots is not enough - every seeder sharing that account has to move
+    too. That is why the rule is all collections, not a chosen few.
+  second_actors: >
+    When an article needs a second person - an invited admin, a team owner, an
+    outsider who gets Access denied - that account belongs to the collection as
+    well: kb-<collection>-<role>@yopmail.com, as collection 12 did with
+    kb-12-admin@ and kb-12-outsider@. Do not borrow another collection's persona
+    for it, even read-only. Their state is theirs to change.
+  cost: >
+    Each collection creates its own accounts in its own seed script, so this is
+    idempotent seeding work, not a manual setup step. Accounts that need Pro or a
+    Tournament Pro grant get it in the same script. Nothing needs to exist before a
+    collection's step 1 runs.
+
 personas:
 
   fresh:
-    email: kb-fresh@yopmail.com
+    email_pattern: "kb-fresh-<collection>@yopmail.com"
     name: Fresh
     membership: Free
     used_by: ["01", "07.6"]
@@ -62,7 +112,7 @@ personas:
       do that one through the UI.
 
   player:
-    email: kb-player@yopmail.com
+    email_pattern: "kb-player-<collection>@yopmail.com"
     name: Pia
     membership: Free
     used_by: ["03", "06", "11", "17.10", "19", "20"]
@@ -84,7 +134,7 @@ personas:
       Seed the match, then poll GET /players/:playerId/stats before capturing.
 
   manager_free:
-    email: kb-manager-free@yopmail.com
+    email_pattern: "kb-manager-free-<collection>@yopmail.com"
     name: Marc
     membership: Free
     used_by: ["02", "04", "05", "18", "23", "24"]
@@ -106,7 +156,7 @@ personas:
       the UI and record how in the brief.
 
   manager_pro:
-    email: kb-manager-pro@yopmail.com
+    email_pattern: "kb-manager-pro-<collection>@yopmail.com"
     name: Mo
     membership: Pro
     used_by: ["07", "08", "09", "10", "17", "22"]
@@ -132,7 +182,10 @@ personas:
       capture in the project). Stripe test mode only. Do not enter real details.
 
   organiser:
-    email: kb-organiser@yopmail.com
+    email_pattern: "kb-organiser-<collection>@yopmail.com"
+    # Collection 12 is the one exception: kb-organiser@yopmail.com, unsuffixed,
+    # because its published screenshots were captured from it. See
+    # account_isolation.exception at the top of this file.
     name: Oona
     membership: Pro
     tournament_plan: Pro
@@ -145,7 +198,7 @@ personas:
     seed:
       - "POST /admins/users"
       - "POST /admins/change-user-membership/:userId {\"membership\":\"Pro\"}"
-      - "POST /admins/users/tournament-free-pro/grant {\"email\":\"kb-organiser@yopmail.com\",\"plan\":\"Pro\",\"quantity\":2}"
+      - "POST /admins/users/tournament-free-pro/grant {\"email\":\"<this collection's organiser>\",\"plan\":\"Pro\",\"quantity\":2}"
       - "POST /club-locations x2"
       - "POST /teams x4 with players"
       - "POST /tournaments {\"title\":\"KB Cup\",\"startDate\":\"...\",\"endDate\":\"...\",\"isOnline\":false}"
@@ -155,12 +208,13 @@ personas:
       Requires the TOURNAMENT_FEATURE_ENABLED flag.
       Collection 16 is real money on the Basic/Pro/Annual plans - use a SECOND
       organiser account without the free grant so the paywall is reachable, and
-      Stripe test mode. Name it kb-organiser-basic@yopmail.com.
+      Stripe test mode. Name it kb-16-organiser-basic@yopmail.com - a second actor
+      inside collection 16, not a shared persona.
       TODO: publishing, phases, brackets and the presentation editor have no
       endpoints in the collection. Drive those through the UI and record the steps.
 
   referee:
-    email: kb-referee@yopmail.com
+    email_pattern: "kb-referee-<collection>@yopmail.com"
     name: Rae
     membership: Free
     used_by: ["21", "09.7"]

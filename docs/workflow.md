@@ -31,6 +31,22 @@ were a stranger, because it probably is.
 2. **Seed the personas** the collection needs, through the admin API in
    `config/api.md`. Follow `config/personas.yaml`. Record the exact calls you made
    and the IDs they returned - the brief must carry them so the run is reproducible.
+
+   **Your accounts are yours alone.** One account per persona role per collection,
+   addressed `kb-<persona>-<collection>@yopmail.com`. Seed into your own and no
+   others; do not sign in to another collection's account even to look. A second
+   actor an article needs - an invited admin, an outsider who gets Access denied -
+   belongs to your collection too: `kb-<collection>-<role>@yopmail.com`.
+
+   This is not tidiness. Accounts were shared by role until 2026-08-28, and
+   collection 12's own second pass added two tournaments to the shared organiser.
+   Six of its specs waited on a heading that counted them, the count changed, and
+   those specs stopped running. Nineteen of its captures no longer matched what was
+   published. Seeding is what breaks other collections; photographing a list of
+   what an account owns is what gets you broken.
+
+   Collection 12 keeps the unsuffixed `kb-organiser@yopmail.com`, because its
+   published screenshots were captured from it. It is the only exception.
 3. **Sweep for coverage before you explore.** Two mechanical passes, so you do
    not miss a screen you never thought to visit. Neither needs judgement, and
    both are cheap:
