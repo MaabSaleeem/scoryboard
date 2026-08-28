@@ -124,6 +124,24 @@
       ],
       "published_at": "2026-08-28T09:42:50.000Z",
       "status": "published"
+    },
+    "12.6": {
+      "intercom_id": "16733318",
+      "collection": "12",
+      "intercom_collection_id": "19733981",
+      "brief": "briefs/12.md",
+      "spec": "specs/12/12.6.spec.ts",
+      "commit_sha": "f1e3512fac5ab2b686c0361534674b0b0f972f57",
+      "screenshots": [
+        "screenshots/12/12.6/01-a-venue-is-required.5d6a1170.png",
+        "screenshots/12/12.6/02-venue-picker.bd5e7b11.png",
+        "screenshots/12/12.6/03-add-a-venue.eb9976f3.png",
+        "screenshots/12/12.6/04-save-for-future-tournaments.984a0bb8.png",
+        "screenshots/12/12.6/05-venues-in-tournament-settings.a55efbb2.png",
+        "screenshots/12/12.6/06-venues-on-the-public-page.4d653a9c.png"
+      ],
+      "published_at": "2026-08-28T09:44:45.000Z",
+      "status": "published"
     }
   }
 }

@@ -35,12 +35,10 @@ test.describe('12.8 Settings and admins', () => {
     await cardMenu.click();
     const menu = page.getByRole('menu');
     await expect(menu.getByText('Edit')).toBeVisible();
+    // Header name only, to match the other tournament-list captures. The
+    // creation date is the tournament's own, not today's, so it does not drift.
     await shot(page, '12.8', '01-settings-from-the-card-menu', {
-      mask: [
-        headerIdentity(page),
-        page.getByText(/^Created on /),
-        page.getByText(/Your next \d+ tournaments/),
-      ],
+      mask: [headerIdentity(page)],
     });
 
     await menu.getByText('Edit').click();
