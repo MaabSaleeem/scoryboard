@@ -9,13 +9,14 @@
 // Role: only the signed-in creator sees this. There is no role variation to show.
 
 import { test, expect } from '@playwright/test';
-import { signIn, quiet, shot, fixtures, headerIdentity } from '../../lib/kb';
+import { signIn, quiet, shot, fixtures, headerIdentity, freezeClock } from '../../lib/kb';
 
 test.describe('12.2 Creating a tournament', () => {
   test('the Create Tournament modal, field by field', async ({ page }) => {
     const fx = await fixtures('organiser');
 
     await signIn(page, 'organiser', '/tournaments');
+    await freezeClock(page);
     await quiet(page);
     await page.getByText('Your Tournaments (2)', { exact: true }).waitFor();
 
@@ -28,6 +29,10 @@ test.describe('12.2 Creating a tournament', () => {
     await newButton.click();
     const modal = page.getByRole('dialog').filter({ hasText: 'Create Tournament' });
     await expect(modal).toBeVisible();
+    // The club field's label starts as "Create club location" and becomes
+    // "Create or Select Clubs" when the saved-venue list arrives. Wait for the
+    // settled label, or the modal shots in this spec disagree with each other.
+    await expect(modal.getByText(/create or select clubs/i)).toBeVisible();
     await shot(page, '12.2', '02-create-modal-blank', { clip: modal });
 
     const name = modal.getByPlaceholder('Name your tournament');
@@ -59,9 +64,21 @@ test.describe('12.2 Creating a tournament', () => {
     const clubTrigger = modal.getByText('Select your club');
     await clubTrigger.click();
     await page.getByRole('option', { name: /KB 12 Astro Park/ }).click();
+
+    // Close the venue popover before capturing. Left open it covers the fields
+    // above it, and the shot reads as a half-finished selection rather than a
+    // completed form.
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('dialog').filter({ hasText: 'Location Club' })).toBeHidden();
+
+    // The modal scrolls internally and Create sits below its fold, so scroll it
+    // into view - otherwise the annotation is drawn outside the captured area.
+    const createButton = modal.getByRole('button', { name: 'Create' });
+    await createButton.scrollIntoViewIfNeeded();
+    await expect(createButton).toBeInViewport();
     await shot(page, '12.2', '07-create-modal-complete', {
       clip: modal,
-      annotate: modal.getByRole('button', { name: 'Create' }),
+      annotate: createButton,
     });
 
     // Deliberately not submitted. Close, and show the board a new tournament

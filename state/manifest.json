@@ -20,11 +20,29 @@
         "brief": "briefs/07.md",
         "spec": "specs/07/07.1.spec.ts",
         "commit_sha": "0000000000000000000000000000000000000000",
-        "screenshots": ["screenshots/07/07.1/01-teams-empty.a1b2c3d4.png"],
+        "screenshots": [
+          "screenshots/07/07.1/01-teams-empty.a1b2c3d4.png"
+        ],
         "published_at": "2026-01-01T00:00:00Z",
         "status": "published"
       }
     }
   },
-  "articles": {}
+  "articles": {
+    "12.1": {
+      "intercom_id": "16733150",
+      "collection": "12",
+      "intercom_collection_id": "19733981",
+      "brief": "briefs/12.md",
+      "spec": "specs/12/12.1.spec.ts",
+      "commit_sha": "0ed9dd4b9b83b80e33f24036de9d741b2004f9bc",
+      "screenshots": [
+        "screenshots/12/12.1/01-tournament-list-both-states.7de06bc1.png",
+        "screenshots/12/12.1/02-format-not-chosen-yet.99fc745e.png",
+        "screenshots/12/12.1/03-public-page-info.4d653a9c.png"
+      ],
+      "published_at": "2026-08-28T09:23:47.000Z",
+      "status": "published"
+    }
+  }
 }

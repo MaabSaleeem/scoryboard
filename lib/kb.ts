@@ -76,6 +76,25 @@ export async function quiet(page: Page) {
   await expect(page.locator('#intercom-container')).toBeHidden();
 }
 
+/**
+ * Freeze the wall clock.
+ *
+ * docs/style-guide.md: "Freeze the clock where the screen shows a date or a
+ * countdown ... a calendar's today marker will otherwise differ every run." The
+ * Create Tournament modal defaults its start date to today and its date picker
+ * greys out everything before today, so any spec that captures either needs this.
+ *
+ * setFixedTime, not install: it pins Date.now() without replacing the timers
+ * Firebase uses to refresh the session, so a frozen clock cannot sign the spec
+ * out mid-run. Call it after signIn, never before - the token exchange needs a
+ * real clock.
+ */
+export const FROZEN_NOW = new Date('2026-08-28T09:00:00.000Z');
+
+export async function freezeClock(page: Page) {
+  await page.clock.setFixedTime(FROZEN_NOW);
+}
+
 /** Wait for a tournament board tab to be the selected one. */
 export async function openBoardTab(page: Page, tab: string) {
   await page.getByRole('button', { name: tab, exact: true }).click();
