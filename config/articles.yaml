@@ -6,9 +6,9 @@
 #          (set per article only when it differs from persona_default)
 
 meta:
-  collections: 24
-  articles: 153
-  screenshots: 842
+  collections: 23
+  articles: 149
+  screenshots: 823
   # 13, 14 and 15 were split by sport on 2026-08-28 after walking both game
   # types through every tab. These totals count what this file lists: they do
   # not yet include collection 12's two padel articles, which are published
@@ -29,26 +29,18 @@ collections:
       - {id: "01.7", title: "Deleting your account, and why an account may be disabled", shots: 4}
 
   - id: "02"
-    name: Finding your way around
-    persona_default: manager_free
+    name: Finding your way around & your profile
+    persona_default: player
+    note: "Collections 02 and 03 were merged on 2026-08-29. Three articles were dropped from 02 (installing the app, cookies and ads, the embeddable widget) and one from 03 (player statistics explained). Collection 03 is retired - its Intercom collection 19733972 is unused. Collection ids are NOT renumbered: 04 to 24 keep their ids, because briefs, specs, screenshots and the manifest all reference them."
     articles:
       - {id: "02.1", title: "The main navigation and your home feed", shots: 6}
       - {id: "02.2", title: "Searching for players and teams", shots: 3}
-      - {id: "02.3", title: "Installing Scoryboard on your phone or desktop", shots: 6}
-      - {id: "02.4", title: "Getting help and contacting support", shots: 3}
-      - {id: "02.5", title: "Cookies, ads and in-app messages", shots: 4}
-      - {id: "02.6", title: "Embedding the trending matches widget on your own site", shots: 3}
-
-  - id: "03"
-    name: Your profile & settings
-    persona_default: player
-    articles:
-      - {id: "03.1", title: "Profile settings - what you can change", shots: 5}
-      - {id: "03.2", title: "Your profile photo, banner and bio", shots: 7}
-      - {id: "03.3", title: "What your public player profile shows", shots: 4}
-      - {id: "03.4", title: "Your player statistics explained", shots: 6}
-      - {id: "03.5", title: "Your teams, rankings and match history", shots: 4}
-      - {id: "03.6", title: "Comparing your stats with other players", flags: [free_pro], shots: 4, note: "needs Free gate modal plus Pro state"}
+      - {id: "02.3", title: "Getting help and contacting support", shots: 3}
+      - {id: "02.4", title: "Profile settings - what you can change", shots: 5}
+      - {id: "02.5", title: "Your profile photo, banner and bio", shots: 7}
+      - {id: "02.6", title: "What your public player profile shows", shots: 4}
+      - {id: "02.7", title: "Your teams, rankings and match history", shots: 4}
+      - {id: "02.8", title: "Comparing your stats with other players", flags: [free_pro], shots: 4, note: "needs Free gate modal plus Pro state"}
 
   - id: "04"
     name: Plans & membership

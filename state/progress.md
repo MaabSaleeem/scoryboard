@@ -15,8 +15,7 @@ target.
 | # | Collection | Articles | Shots (est.) | Persona default | Status | Brief | Notes |
 |---|---|---|---|---|---|---|---|
 | 01 | Getting started & onboarding | 7 | 44 | fresh | drafts on Intercom | [briefs/01.md](../briefs/01.md) | 43 screenshots. **01.4-01.7 published by the reviewer 2026-08-28; 01.1-01.3 still drafts.** 01.3 retitled "Resetting your password" - the invited-account half was dropped. Seven accounts, all `kb-fresh-01@` or `kb-01-*@`; two now unused |
-| 02 | Finding your way around | 6 | 25 | manager_free | not started | - | - |
-| 03 | Your profile & settings | 6 | 30 | player | not started | - | - |
+| 02 | Finding your way around & your profile | 8 | 36 | player | not started | - | 03 merged in 2026-08-29; four articles dropped. Account: kb-player-02@yopmail.com |
 | 04 | Plans & membership | 3 | 17 | manager_free | not started | - | Pro is a free self-serve toggle during beta. No payment step. Flag for rewrite when beta ends. |
 | 05 | Friends | 4 | 20 | manager_free | not started | - | - |
 | 06 | Following | 1 | 6 | player | not started | - | - |
@@ -39,7 +38,7 @@ target.
 | 23 | Powerleague & CentreNet bookings | 4 | 16 | manager_free | not started | - | Partner-initiated records. High ticket volume because the user did not start the action. |
 | 24 | Troubleshooting & policies | 4 | 13 | manager_free | not started | - | - |
 
-Totals: 153 articles, 842 screenshots estimated across 24 collections. These count
+Totals: 149 articles, 823 screenshots estimated across 23 collections. These count
 what `config/articles.yaml` lists and still exclude collection 12's two padel
 articles, which are published but never went back into the map.
 
@@ -908,6 +907,26 @@ endpoint on staging can disable an account.
 
 No flakes. The seven specs were run repeatedly through the session and never failed
 once the selector fixes were in.
+
+### Collections 02 and 03 merged - 2026-08-29
+
+Four articles dropped on the repo owner's instruction: 02.3 installing the app,
+02.5 cookies and ads, 02.6 the embeddable widget, and 03.4 player statistics
+explained. What was left - three navigation articles and five profile ones - is
+one collection of eight.
+
+**Collection 02 is now "Finding your way around & your profile", persona
+`player`, account `kb-player-02@yopmail.com`.** Articles renumbered 02.1 to 02.8:
+navigation first, then profile.
+
+**Collection 03 is retired.** Its Intercom collection `19733972` is empty and
+nothing publishes into it. The entry stays in `config/intercom.yaml` marked
+`retired: true` so the id is not silently reused.
+
+**No other collection was renumbered.** 04 to 24 keep their ids. Briefs, specs,
+screenshot paths and `state/manifest.json` all reference them, and 12, 13, 14 and
+01 are already drafted in Intercom under those ids. The map now runs 01, 02,
+04...24 - 23 collections, 149 articles, 823 screenshots.
 
 Next: `/kb-brief 02`.
 

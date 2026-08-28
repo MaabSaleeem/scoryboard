@@ -115,7 +115,7 @@ personas:
     email_pattern: "kb-player-<collection>@yopmail.com"
     name: Pia
     membership: Free
-    used_by: ["03", "06", "11", "17.10", "19", "20"]
+    used_by: ["02", "06", "11", "17.10", "19", "20"]   # 03 merged into 02
     state: >
       A member of two teams she does not own, with match history so her statistics,
       rankings and match list are populated. Has an avatar, a banner and a bio.
@@ -137,7 +137,7 @@ personas:
     email_pattern: "kb-manager-free-<collection>@yopmail.com"
     name: Marc
     membership: Free
-    used_by: ["02", "04", "05", "18", "23", "24"]
+    used_by: ["04", "05", "18", "23", "24"]   # 02 is now a player collection
     state: >
       Owns one team on the Free plan, sitting at the Free limits so every gate
       modal is reachable. Has friends in the friends list, one of them with a

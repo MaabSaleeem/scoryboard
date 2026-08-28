@@ -40,11 +40,15 @@ collections:
     name: "Getting started & onboarding"
     id: "19733970"
   "02":
-    name: "Finding your way around"
+    name: "Finding your way around & your profile"
     id: "19733971"
+  # RETIRED 2026-08-29. Collection 03 was merged into 02. This Intercom
+  # collection is empty and nothing should publish into it. Kept so the id is
+  # not silently reused.
   "03":
-    name: "Your profile & settings"
+    name: "Your profile & settings (retired - merged into 02)"
     id: "19733972"
+    retired: true
   "04":
     name: "Plans & membership"
     id: "19733973"
