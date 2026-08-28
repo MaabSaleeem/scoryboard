@@ -20,6 +20,9 @@ Before anything else, read in this order:
 
 Then:
 
+- Sweep for coverage first: pull the route list out of the app bundle, and keep the
+  network log on for the whole exploration. Mechanical passes find the screens you
+  would not think to visit; your judgement is for what they mean.
 - Seed the personas through the admin API. Record every call and every ID it
   returned. Re-seeding must be idempotent.
 - Explore each flow in the live staging app. Find the real preconditions, the Free

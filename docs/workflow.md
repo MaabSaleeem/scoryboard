@@ -25,7 +25,19 @@ published and nothing here is destructive to real data.
 2. **Seed the personas** the collection needs, through the admin API in
    `config/api.md`. Follow `config/personas.yaml`. Record the exact calls you made
    and the IDs they returned - the brief must carry them so the run is reproducible.
-3. **Explore each flow in the live app.** Use the browser freely. Find the real
+3. **Sweep for coverage before you explore.** Two mechanical passes, so you do
+   not miss a screen you never thought to visit. Neither needs judgement, and
+   both are cheap:
+   - **Route sweep.** Fetch `$SCORYBOARD_APP_BASE`, pull the
+     `/_next/static/chunks/*.js` references out of the HTML, download them and
+     grep for quoted path literals. That yields the app's own route names and
+     often API paths the Postman export lacks - `/chat`, `/tournaments/token`
+     and `/online/users/:uid` were all found this way. The app is code-split, so
+     follow chunk references one level down for the routes you care about.
+   - **Network log.** Left on for the whole exploration, see the next step.
+   Write the routes this collection owns into the brief. A route with no article
+   against it is either an open question or a missing article - say which.
+4. **Explore each flow in the live app.** Use the browser freely. Find the real
    preconditions: what must exist before the screen looks right, what gates appear
    on Free, which roles see which buttons, what empty states look like.
    **Record the network log while you do it.** `config/api.md` is distilled from a
@@ -34,7 +46,7 @@ published and nothing here is destructive to real data.
    to `config/api.md` marked `(observed in app, not in collection)` with the date.
    Observed traffic is evidence and belongs in the reference. A path you inferred
    is not - leave it out and raise it as an open question in the brief.
-4. **Write a replayable Playwright spec per article** under
+5. **Write a replayable Playwright spec per article** under
    `specs/<collection-id>/<article-id>.spec.ts`. Each spec:
    - seeds or asserts its own preconditions; never depends on another spec's leftovers
    - authenticates as the persona the brief names, using a freshly minted token
@@ -43,8 +55,8 @@ published and nothing here is destructive to real data.
    - captures the screenshots the brief lists, in order, with the names the brief
      gives them
    - obeys the capture settings in `docs/style-guide.md`
-5. **Write one file, `briefs/<collection-id>.md`,** using the template below.
-6. Stop. Tell the human the brief is ready. Do not start step 2.
+6. **Write one file, `briefs/<collection-id>.md`,** using the template below.
+7. Stop. Tell the human the brief is ready. Do not start step 2.
 
 If a flow turns out to be unreachable, do not quietly drop the article. Write it in
 the brief under "Unreachable" with what blocked you.
@@ -75,6 +87,16 @@ Anything added or dropped needs a reason here. The human is approving this table
 
 Give the actual calls and the IDs they returned. A later session must be able to
 rebuild this state without guessing.
+
+## Routes covered
+
+From the route sweep. Every route this collection owns, and the article that
+documents it. A route with nothing against it is an open question or a gap.
+
+| Route | Article | Notes |
+|-------|---------|-------|
+| /tournaments/:id/setup | 12.2 | wizard, steps 1-2 |
+| /tournaments/token | - | OPEN - what is this screen |
 
 ## Fixtures
 
