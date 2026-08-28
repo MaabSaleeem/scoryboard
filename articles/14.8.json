@@ -1,0 +1,17 @@
+{
+  "id": "14.8",
+  "title": "Exporting your fixture list as a PDF",
+  "description": "Downloading your fixtures as a PDF or an Excel file, and choosing which groups and brackets go in it.",
+  "collection": "14",
+  "intercom_collection_id": "19733983",
+  "author_id": "11443412",
+  "state": "published",
+  "spec": "specs/14/14.8.spec.ts",
+  "commit_sha": "ff82913",
+  "screenshots": [
+    "screenshots/14/14.8/01-export-fixtures-button.a992bb2e.png",
+    "screenshots/14/14.8/02-export-dialog.69dfdf9c.png",
+    "screenshots/14/14.8/03-all-sections-selected.11ce08d9.png"
+  ],
+  "body": "<p>You can download the whole fixture list as a file to print or send on.</p>\n\n<h2>Before you start</h2>\n\n<p>Exporting fixtures needs <strong>Tournament Pro</strong>. On the Basic plan the button opens an upgrade prompt instead.</p>\n\n<h2>Exporting</h2>\n\n<ol>\n  <li>Open the tournament and select <strong>Schedule</strong>.</li>\n  <li>Select <strong>EXPORT FIXTURES</strong>. It sits above the groups and covers the whole tournament, not just the phase you are looking at.\n    <p><img src=\"https://cdn.jsdelivr.net/gh/MaabSaleeem/scoryboard@ff82913/screenshots/14/14.8/01-export-fixtures-button.a992bb2e.png\" alt=\"The Schedule tab with the EXPORT FIXTURES button outlined, above the fixture list.\"></p>\n  </li>\n  <li>Choose <strong>PDF</strong> or <strong>Excel</strong>. PDF is chosen for you.\n    <p><img src=\"https://cdn.jsdelivr.net/gh/MaabSaleeem/scoryboard@ff82913/screenshots/14/14.8/02-export-dialog.69dfdf9c.png\" alt=\"The Export Fixtures dialog: PDF and Excel, and the groups and brackets listed under their phases with nothing ticked.\"></p>\n  </li>\n  <li>Tick the groups and brackets you want, or use <strong>Select all</strong>.\n    <p><img src=\"https://cdn.jsdelivr.net/gh/MaabSaleeem/scoryboard@ff82913/screenshots/14/14.8/03-all-sections-selected.11ce08d9.png\" alt=\"The same dialog with every section ticked, the Selection chip reading ALL ON, and the Export button outlined.\"></p>\n  </li>\n  <li>Select <strong>Export</strong>. The file downloads.</li>\n</ol>\n\n<h2>What you will see</h2>\n\n<p>The sections are grouped by phase, so a Group and Knockout tournament offers its groups under <strong>Group Phase</strong> and its bracket under <strong>Knockout Phase</strong>. Everything you tick goes into one file.</p>\n\n<p>The file is a table, one row per fixture, with the phase, the group or bracket, the match, the two teams, the date, the kick-off time, the venue, the pitch, the referee and the status.</p>\n\n<h2>If it does not work</h2>\n\n<ul>\n  <li><strong>Export is greyed out.</strong> Nothing is ticked. Tick a group or use <strong>Select all</strong>.</li>\n  <li><strong>You were asked to upgrade.</strong> Exporting needs Tournament Pro.</li>\n  <li><strong>A section is missing.</strong> Only groups and brackets that exist are listed. A tournament with no knockout phase offers no bracket.</li>\n  <li><strong>The times look wrong.</strong> The file uses the same kick-off times the Schedule tab shows. Fix them there first.</li>\n</ul>"
+}

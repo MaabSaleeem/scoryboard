@@ -27,7 +27,7 @@ target.
 | 11 | Match insights & statistics | 3 | 9 | player | not started | - | - |
 | 12 | Tournaments - setting one up | 10 (+2) | 80 | organiser | published | [briefs/12.md](../briefs/12.md) | 12 published, 80 screenshots. 12.11 and 12.12 added for Padel; not in the map |
 | 13 | Tournaments - groups, brackets & phases | 11 | 55 | organiser | drafts on Intercom | [briefs/13.md](../briefs/13.md) | flag: TOURNAMENT_FEATURE_ENABLED. 11 drafts, 55 screenshots. 13.8 retitled. Account: kb-organiser-13@yopmail.com |
-| 14 | Tournaments - the fixture schedule | 8 | 37 | organiser | not started | - | flag: TOURNAMENT_FEATURE_ENABLED. Split by sport 2026-08-28. Account: kb-organiser-14@yopmail.com |
+| 14 | Tournaments - the fixture schedule | 8 | 37 | organiser | drafts on Intercom | [briefs/14.md](../briefs/14.md) | flag: TOURNAMENT_FEATURE_ENABLED. 8 drafts, 37 screenshots. 14.5 retitled - fixtures cannot be deleted. Account: kb-organiser-14@yopmail.com |
 | 15 | Tournaments - publishing & running | 9 | 62 | organiser | not started | - | flag: TOURNAMENT_FEATURE_ENABLED. Structure unchanged; 15.8 needs a padel section. Account: kb-organiser-15@yopmail.com |
 | 16 | Tournament plans & payment | 6 | 35 | organiser | not started | - | REAL MONEY. Stripe test mode required. |
 | 17 | Collecting & making payments | 11 | 72 | manager_pro | not started | - | REAL MONEY, Stripe Connect. Two audiences - the organiser collecting and the player paying. |
@@ -548,3 +548,163 @@ No flakes. The eleven specs were run repeatedly through the session and never
 failed once the selector fixes were in.
 
 Next: `/kb-brief 14`.
+
+### 2026-08-28 - collection 14 complete. Eight articles, all drafts.
+
+| Article | Intercom ID | Shots | Pinned commit |
+|---|---|---|---|
+| 14.1 | 16736750 | 5 | 56e7a37 |
+| 14.2 | 16736752 | 5 | 55d7723 |
+| 14.3 | 16736753 | 5 | 20abd3e |
+| 14.4 | 16736755 | 5 | 835cf7d |
+| 14.5 | 16736756 | 6 | 679f8c9 |
+| 14.6 | 16736757 | 4 | 7623051 |
+| 14.7 | 16736759 | 4 | 11b79d9 |
+| 14.8 | 16736763 | 3 | ff82913 |
+
+37 screenshots, exactly the 37 the map estimated, all in Intercom collection
+`19733983`. Every image URL embedded in the stored bodies was re-fetched at the
+end: all 37 return 200 with an `image/*` content type. No article carries
+`<ol start=`. **Every one is a draft. Nothing is published and nothing has been
+reviewed.**
+
+### The finding that shaped four of the eight articles
+
+**Bulk Match Updates disables the gap field exactly when it is needed.** The
+dialog has a checkbox, **Same start time per round**, whose help text promises
+*"Matches in one round share a start time. The next round starts after the round
+gap."* It defaults to **ticked**, and while it is ticked **Duration** and **Time
+between matches** are both disabled - `disabled: isSubmitting ||
+watch("sameStartTimePerRound")` in the bundle.
+
+The server is not at fault. `PUT /tournament-groups/:id` with
+`sameStartTimePerRound: true` **and** a `timeBetweenMatches` does exactly what
+the help text says: rounds share a kick-off and the next starts one gap later.
+Verified on the wire - 09:00, 09:25, 09:50, 10:15 on a 25-minute gap. The form
+just will not let you send it.
+
+So through the UI, ticking the box always collapses **every fixture in the group
+onto one kick-off time**. On football it is worse, because a football group has
+no rounds at all: the whole group counts as one. Six fixtures at 10:00 with one
+team needed in three of them.
+
+That is 14.6's clash, and it is the dialog's own default doing it. **Worth a
+ticket.** No article works around it - 14.3 tells the reader to untick the box,
+14.6 explains the state they land in if they do not.
+
+### One article retitled
+
+**14.5 "Rescheduling, rolling and deleting fixtures" is published as
+"Rescheduling fixtures, and rolling them onto the next day".** A tournament
+fixture cannot be deleted. The Schedule tab's cards carry a status chip, a View
+button and four editable cells, and no menu; View goes to `/match/:id/preview`,
+which is titled "Match Preview (View Only)" and has no menu either. The bundle
+does hold `DELETE /matches/:id` behind a **Cancel Match** action, but that action
+belongs to the general match card used elsewhere in the product and is not
+rendered for a tournament fixture. Checked on both screens.
+
+The map's own note for 14.5 already scoped the article to "SELECT MATCH TO
+UPDATE, BULK MATCH UPDATE", so deletion looks to have been speculative. The
+article says outright that fixtures cannot be deleted and points at 13.3.
+
+### Three more things the map had wrong
+
+- **The round gap is not in the bulk dialog.** It is **Gap between rounds
+  (minutes)** in the **Padel Configuration** dialog on the Format tab. 14.4
+  covers the dialog for rounds and courts and steps across to Format for the gap.
+- **The two sports are not scheduled by different machinery.** The same dialog
+  serves both and differs by one word - football says **Pitch number**, padel says
+  **Court number**. What differs is the generated default, and either can be
+  turned into the other. Both were done on the wire.
+- **14.8's dialog offers Excel as well as PDF**, and exporting needs Tournament
+  Pro (on Basic the button opens an upgrade prompt). The article keeps its mapped
+  title, names Excel, and states the Pro requirement.
+
+### Fixtures
+
+Six tournaments under `kb-organiser-14@yopmail.com`, all built and reconciled by
+`node scripts/seed-14.mjs` (idempotent - a second run makes zero writes):
+
+| Name | Game | Schedule | Used by |
+|------|------|----------|---------|
+| KB 14 Cup | Football, Group and Knockout | groups 10:00-10:50 and 11:00-11:50, bracket 12:00-13:00 | 14.1, 14.8 |
+| KB 14 League | Football, Round Robin | one group, 10:00-10:50 | 14.3, 14.5 |
+| KB 14 Padel Cup | Padel, Swiss | four rounds at 10:00 / 10:20 / 10:40 / 11:00, courts 1 and 2 | 14.2, 14.7 |
+| KB 14 Padel Open | Padel, Swiss | the same | 14.4 |
+| KB 14 Clash Cup | Football, Group and Knockout | **broken on purpose**: Group A all on one kick-off, Group B with a spare slot so four fixtures carry one team | 14.6 |
+| KB 14 Padel Clash | Padel, Swiss | **broken on purpose**: every match at 10:00 on court 1 | 14.7 |
+
+The two broken ones are seeded broken rather than broken by a spec. 14.6 and 14.7
+explain a schedule that has already gone wrong, and a spec that broke a shared
+fixture would change what three other articles photograph.
+
+### Determinism
+
+Collection 13's three rules held, and two things were added.
+
+- **14.3, 14.4 and 14.5 each restore their own fixture.** The target states and
+  the restore calls live in `lib/fixtures-14.mjs`, which the seed reads too, so a
+  spec cannot drift from what the seed expects. Confirmed after the full suite
+  ran: the seed reports every fixture already correct and makes no writes.
+- **A padel group's court numbers cannot be restored by another bulk update.**
+  The dialog's Court number field writes ONE court across every match it touches.
+  Only regenerating from the format brings back "Round 1 - Court 1" on court 1 and
+  "Round 1 - Court 2" on court 2 - and re-sending an identical configuration does
+  not regenerate, so the gap is nudged by a minute and put straight back.
+- **`scheduleReady()` gates on a fixture's own status chip**, accepting
+  `Incomplete` as well as `Scheduled`, because a knockout fixture and a one-team
+  fixture never read Scheduled. The `.first()` goes on the OUTSIDE of the `or`:
+  KB 14 Clash Cup shows both chips at once and an or of two single locators then
+  resolves to two elements and fails strictly.
+- **Upper case on this tab is CSS, not content.** GROUP A, BULK MATCH UPDATE,
+  ROUND 1 and EXPORT FIXTURES are all `text-transform: uppercase`, so their
+  accessible names are `Group A`, `Bulk Match Update`, `Round 1` and
+  `Export Fixtures`. Matching the rendered casing finds nothing. Cost two failed
+  specs before it was spotted.
+
+### Capture defects found and fixed in the specs
+
+- **14.1/04** was the same viewport frame as 14.1/01 with one outline added, so
+  the reader got the same picture twice. Clipped to the phase-tab strip instead.
+- **14.1/05** was centred on a bracket card far taller than the frame, which
+  pushed the QUARTER-FINALS heading off the top - two of the three round headings
+  the shot exists to show. Uses `alignTop()` now.
+
+### Worth a look, and worth a ticket
+
+- **The disabled gap field, above.** The clearest defect this project has found so
+  far, and it is reproducible from the API in both directions.
+- **The exported PDF is titled after the first phase only.** With all three
+  sections ticked the file came out named for the Group Phase and headed
+  "KB 14 Cup - Group Phase - Fixtures", but its table held the Knockout Phase rows
+  too. Cosmetic. 14.8 does not mention the title.
+- **A knockout fixture's date reads with a leading comma** - ", Sep 19 2026"
+  rather than "Sat, Sep 19 2026". Bracket cards only. Visible in 14.1/05. No
+  article mentions it.
+- **The pitch cell on a fixture card only responds to a dispatched click.** A real
+  mouse sequence opens and closes it. That is now the third control to behave this
+  way, after the venue add button in 12.3 and the padel player count in 12.11.
+  Firmly a house pattern.
+
+### Where to look hard in the drafts
+
+**14.8's description of the exported file.** The spec stops at the dialog and
+cancels; the file's contents were read by hand once, during step 1, by decoding
+the PDF. Excel was never exported at all, and 14.8 names it as an option without
+claiming anything about it.
+
+**14.6 and 14.7's fixes.** Both articles tell the reader how to undo a broken
+schedule. Untick-and-update was verified. Rebuilding a padel group's courts by
+saving Padel Configuration was verified over the API but not clicked through the
+dialog end to end, because saving it rebuilds the fixture three other articles
+photograph.
+
+**14.5's claim that a fixture cannot be deleted.** Checked on the Schedule tab
+and on the match page, and by searching the bundle. It is the strongest negative
+claim in the collection, and a negative is the kind of thing worth a second pair
+of eyes.
+
+No flakes. The eight specs were run repeatedly through the session and never
+failed once the selector fixes were in.
+
+Next: `/kb-brief 15`.

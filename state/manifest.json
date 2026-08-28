@@ -439,6 +439,139 @@
       ],
       "published_at": "2026-08-28T14:44:29.000Z",
       "status": "draft"
+    },
+    "14.1": {
+      "intercom_id": "16736750",
+      "collection": "14",
+      "intercom_collection_id": "19733983",
+      "brief": "briefs/14.md",
+      "spec": "specs/14/14.1.spec.ts",
+      "commit_sha": "56e7a37",
+      "screenshots": [
+        "screenshots/14/14.1/01-schedule-tab.b979bed0.png",
+        "screenshots/14/14.1/02-group-a-fixtures.d5b8a12a.png",
+        "screenshots/14/14.1/03-fixture-card.c562e834.png",
+        "screenshots/14/14.1/04-phase-tabs.267dcb92.png",
+        "screenshots/14/14.1/05-knockout-fixtures.60198bfe.png"
+      ],
+      "published_at": "2026-08-28T17:08:18.000Z",
+      "status": "draft"
+    },
+    "14.2": {
+      "intercom_id": "16736752",
+      "collection": "14",
+      "intercom_collection_id": "19733983",
+      "brief": "briefs/14.md",
+      "spec": "specs/14/14.2.spec.ts",
+      "commit_sha": "55d7723",
+      "screenshots": [
+        "screenshots/14/14.2/01-schedule-tab.9e0e83b6.png",
+        "screenshots/14/14.2/02-round-sections.b7837d0b.png",
+        "screenshots/14/14.2/03-round-one-shared-time.0667cfa3.png",
+        "screenshots/14/14.2/04-court-number.64cbfee5.png",
+        "screenshots/14/14.2/05-swiss-rules.cf151035.png"
+      ],
+      "published_at": "2026-08-28T17:08:23.000Z",
+      "status": "draft"
+    },
+    "14.3": {
+      "intercom_id": "16736753",
+      "collection": "14",
+      "intercom_collection_id": "19733983",
+      "brief": "briefs/14.md",
+      "spec": "specs/14/14.3.spec.ts",
+      "commit_sha": "20abd3e",
+      "screenshots": [
+        "screenshots/14/14.3/01-bulk-match-update-button.a10ebca0.png",
+        "screenshots/14/14.3/02-dialog-as-it-opens.f2ed539f.png",
+        "screenshots/14/14.3/03-gap-fields-enabled.5ebe727d.png",
+        "screenshots/14/14.3/04-dialog-filled.96c326a8.png",
+        "screenshots/14/14.3/05-new-kick-off-times.c9f9a116.png"
+      ],
+      "published_at": "2026-08-28T17:08:28.000Z",
+      "status": "draft"
+    },
+    "14.4": {
+      "intercom_id": "16736755",
+      "collection": "14",
+      "intercom_collection_id": "19733983",
+      "brief": "briefs/14.md",
+      "spec": "specs/14/14.4.spec.ts",
+      "commit_sha": "835cf7d",
+      "screenshots": [
+        "screenshots/14/14.4/01-court-number-field.a643d434.png",
+        "screenshots/14/14.4/02-same-start-time-per-round.3d9651ab.png",
+        "screenshots/14/14.4/03-dialog-filled.d55c4bae.png",
+        "screenshots/14/14.4/04-rounds-after-update.fbe9fe27.png",
+        "screenshots/14/14.4/05-gap-between-rounds.45d2c294.png"
+      ],
+      "published_at": "2026-08-28T17:08:32.000Z",
+      "status": "draft"
+    },
+    "14.5": {
+      "intercom_id": "16736756",
+      "collection": "14",
+      "intercom_collection_id": "19733983",
+      "brief": "briefs/14.md",
+      "spec": "specs/14/14.5.spec.ts",
+      "commit_sha": "679f8c9",
+      "screenshots": [
+        "screenshots/14/14.5/01-fixture-card-fields.eb04db88.png",
+        "screenshots/14/14.5/02-time-picker-open.d702f2db.png",
+        "screenshots/14/14.5/03-pitch-number-input.48081787.png",
+        "screenshots/14/14.5/04-select-matches.da8e11e3.png",
+        "screenshots/14/14.5/05-last-allowed-start-time.6e58796e.png",
+        "screenshots/14/14.5/06-rolled-across-days.04557b80.png"
+      ],
+      "published_at": "2026-08-28T17:08:38.000Z",
+      "status": "draft"
+    },
+    "14.6": {
+      "intercom_id": "16736757",
+      "collection": "14",
+      "intercom_collection_id": "19733983",
+      "brief": "briefs/14.md",
+      "spec": "specs/14/14.6.spec.ts",
+      "commit_sha": "7623051",
+      "screenshots": [
+        "screenshots/14/14.6/01-group-a-all-one-time.9c1a04ba.png",
+        "screenshots/14/14.6/02-same-start-time-ticked.cecba88f.png",
+        "screenshots/14/14.6/03-fixture-with-one-team.0c02b064.png",
+        "screenshots/14/14.6/04-empty-slot-on-format.e8389dec.png"
+      ],
+      "published_at": "2026-08-28T17:08:42.000Z",
+      "status": "draft"
+    },
+    "14.7": {
+      "intercom_id": "16736759",
+      "collection": "14",
+      "intercom_collection_id": "19733983",
+      "brief": "briefs/14.md",
+      "spec": "specs/14/14.7.spec.ts",
+      "commit_sha": "11b79d9",
+      "screenshots": [
+        "screenshots/14/14.7/01-round-one-two-courts.0667cfa3.png",
+        "screenshots/14/14.7/02-court-number-outlined.dd497f18.png",
+        "screenshots/14/14.7/03-every-match-court-one.e24c4ed9.png",
+        "screenshots/14/14.7/04-courts-in-configuration.3f17fe99.png"
+      ],
+      "published_at": "2026-08-28T17:08:48.000Z",
+      "status": "draft"
+    },
+    "14.8": {
+      "intercom_id": "16736763",
+      "collection": "14",
+      "intercom_collection_id": "19733983",
+      "brief": "briefs/14.md",
+      "spec": "specs/14/14.8.spec.ts",
+      "commit_sha": "ff82913",
+      "screenshots": [
+        "screenshots/14/14.8/01-export-fixtures-button.a992bb2e.png",
+        "screenshots/14/14.8/02-export-dialog.69dfdf9c.png",
+        "screenshots/14/14.8/03-all-sections-selected.11ce08d9.png"
+      ],
+      "published_at": "2026-08-28T17:08:52.000Z",
+      "status": "draft"
     }
   }
 }
