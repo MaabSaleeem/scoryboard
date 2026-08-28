@@ -9,17 +9,23 @@ published through the Intercom Articles API.
 
 ## How you work
 
-Two steps per collection, with one human gate between them.
+One continuous run per collection. There is no stop in the middle.
 
-- **Step 1 - write the brief. Autonomous.** Drive the staging API and the browser
-  however you need to understand each flow. Build a helper in `lib/` when it is
-  worth reusing; otherwise just do the work. Output: a Playwright spec per article
-  under `specs/`, and one `briefs/<collection-id>.md`.
-- **GATE.** A human reads that one markdown file and approves it. Nothing publishes
-  before that.
-- **Step 2 - execute the brief. Supervised.** Run each stage, read its output, then
-  move on. Your inference here is for oversight, not authorship: spot what went
-  wrong, fix mechanical faults, stop on anything substantive.
+- **Step 1 - plan. Autonomous.** Drive the staging API and the browser however you
+  need to understand each flow. Build a helper in `lib/` when it is worth reusing;
+  otherwise just do the work. Output: a Playwright spec per article under `specs/`,
+  and one `briefs/<collection-id>.md`.
+- **Step 2 - execute. Autonomous.** Run each stage, read its output, then move on.
+  Your inference here is for oversight, not authorship: spot what went wrong, fix
+  mechanical faults, stop on anything substantive.
+
+Write the brief, then keep going. Nobody reads it before step 2, and it is still
+mandatory: it is the plan you execute against, your memory across a long run, and
+what lets a fresh session resume this collection after a crash.
+
+**Everything publishes to Intercom as a draft.** The human reviews the drafts in
+Intercom, with the real screenshots in front of them, and publishes from there.
+That is the only review and it happens after the run.
 
 **The artifacts stay deterministic even though you are watching the run.** The specs
 are the source of truth. Re-running them against unchanged UI must produce the same
@@ -39,7 +45,8 @@ Every session, in this order:
 3. Read [config/api.md](config/api.md) - the endpoints. Never read the Postman JSON.
 
 Then, for step 1 also read [config/personas.yaml](config/personas.yaml); for step 2
-also read the approved brief and [config/intercom.yaml](config/intercom.yaml).
+also read `briefs/<collection-id>.md` and
+[config/intercom.yaml](config/intercom.yaml).
 
 ## Step 2 - fix it yourself, or stop and ask
 
@@ -56,19 +63,22 @@ Stop and ask when you find:
 
 - a documented step that no longer matches the app
 - a screenshot the brief called for that cannot be produced
-- an article whose approved content is now wrong
+- an article whose planned content is now wrong
 - anything that would change what the brief said
+
+Stopping means stopping on that article. Finish the others, then report. Write what
+happened into the brief so the record and the artifact agree.
 
 ## Never
 
-- Never publish an article without an approved brief, and never publish one the
-  brief did not cover.
+- Never publish an article the brief did not cover, and never publish one with
+  `state: "published"`. Drafts only - publishing is the human's action.
 - Never run a destructive flow against unseeded data. Seed your own fixtures.
 - Never absorb a failure silently. Log every deviation.
 - Never commit anything from `local/`. It holds credentials and client material.
 - Never work on a collection other than this session's target.
-- Never add screenshots the brief did not list, or rewrite content beyond what was
-  approved.
+- Never add screenshots the brief did not list. If the brief was wrong, change the
+  brief and say so in the report - do not diverge from it silently.
 - Never call the admin migration or backfill endpoints. They are tenant-wide.
 
 ## Environment

@@ -2,8 +2,12 @@
 
 Read this first, every session. Update it at the end of every session.
 
-Status values: `not started` | `brief in progress` | `brief awaiting approval` |
-`brief approved` | `publishing` | `published` | `blocked`.
+Status values: `not started` | `in progress` | `drafts on Intercom` | `published` |
+`blocked`.
+
+`drafts on Intercom` is where a finished run leaves a collection: every article
+drafted, nothing public, waiting for a human to read it in Intercom. Only a human
+moves a collection to `published`.
 
 One collection per session. Do not touch a collection that is not this session's
 target.

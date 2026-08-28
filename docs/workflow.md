@@ -1,6 +1,7 @@
 # The workflow
 
-Two steps per collection. One human gate between them. One collection per session.
+Two steps per collection, run back to back with no stop between them. One
+collection per session. Review happens at the end, on Intercom, on the drafts.
 
 The rule that governs everything below: **the specs are the source of truth, and the
 artifacts must be deterministic.** Step 1 decides what a screenshot shows and writes
@@ -13,8 +14,13 @@ spec, not the screenshot.
 
 ## Step 1 - produce a Category Brief
 
-Autonomous. No approval needed for anything in this step, because nothing here is
-published and nothing here is destructive to real data.
+Autonomous. Nothing here is published and nothing here is destructive to real data.
+
+The brief is not a submission for approval. Nobody reads it before step 2. It exists
+because you need it: it is the plan you execute against, it survives context being
+compacted halfway through a sixty-screenshot collection, and it is how a fresh
+session picks this collection up if this one dies. Write it as if the next reader
+were a stranger, because it probably is.
 
 1. **Read the target collection** in `config/articles.yaml`. Note the article list,
    `persona_default`, per-article `persona` overrides, flags and shot estimates.
@@ -56,7 +62,7 @@ published and nothing here is destructive to real data.
      gives them
    - obeys the capture settings in `docs/style-guide.md`
 6. **Write one file, `briefs/<collection-id>.md`,** using the template below.
-7. Stop. Tell the human the brief is ready. Do not start step 2.
+7. Go straight into step 2. Do not wait, do not ask.
 
 If a flow turns out to be unreachable, do not quietly drop the article. Write it in
 the brief under "Unreachable" with what blocked you.
@@ -77,7 +83,8 @@ Articles in map: <n>   Articles in brief: <n>   Screenshots planned: <n>
 | 07.x | <added article> | - | - | 4 | ADDED - <why> |
 | 07.y | <dropped article> | - | 5 | - | DROPPED - <why> |
 
-Anything added or dropped needs a reason here. The human is approving this table.
+Anything added or dropped needs a reason here. This table is what the end-of-run
+report is checked against.
 
 ## Personas used
 
@@ -133,14 +140,23 @@ What you could not get to, and why.
 
 ---
 
-## GATE
+## Where the review happens
 
-The human reads `briefs/<collection-id>.md` and approves it. One file, one decision.
+At the end, in Intercom, on the drafts. Not here.
 
-Approval covers exactly what the brief says: those articles, those steps, those
-screenshots. Anything beyond it needs a new approval.
+Every article is published with `state: "draft"`, so it sits in the Intercom
+collection, images rendered, invisible to the public. The human reads the drafts
+there and publishes the ones they are happy with. That is the review, and that
+click is the approval.
 
-Record the approval in `state/progress.md` before starting step 2.
+Two things follow from this.
+
+- **The human never has to open the brief.** So do not write it as a pitch. Write it
+  as a plan, and put anything the human genuinely needs to decide in the
+  end-of-session report instead, where they will actually see it.
+- **A wrong draft costs almost nothing.** Re-run the article; the publish is
+  idempotent by article id and overwrites the draft. That is what buys the removal
+  of the mid-run gate - not a claim that the model is more accurate without it.
 
 ---
 
@@ -160,9 +176,11 @@ The Intercom workspace starts empty. Once, before any collection is published:
 
 ---
 
-## Step 2 - execute the approved brief, supervised
+## Step 2 - execute the brief
 
-Run each stage, read the output, and only then move on. Never chain stages blindly.
+Follows step 1 immediately, in the same session. Run each stage, read the output,
+and only then move on. Never chain stages blindly. Nobody else is watching this
+run, so reading the output of each stage is the only oversight there is.
 
 Per article, in order:
 
@@ -185,12 +203,15 @@ Per article, in order:
    permanently broken article.** Do not skip this stage. Intercom rehosts images on
    publish, so these URLs are transitional - but they must resolve at publish time.
 7. **Build the article JSON** under `articles/<article-id>.json`.
-8. **Publish to Intercom.** POST to the Articles API with `author_id`,
+8. **Publish to Intercom as a draft.** POST to the Articles API with `author_id`,
    `parent_id` (the collection id from `config/intercom.yaml`),
-   `parent_type: "collection"` and `state: "published"` - articles default to
-   `draft`, and an article outside a collection is invisible in the help centre.
-   If the article already has an Intercom ID in `state/manifest.json`, PUT instead
-   of POST. **Idempotent by article ID. Safe to re-run.**
+   `parent_type: "collection"` and `state: "draft"`. The parent matters even for a
+   draft - an article outside a collection is hard to find in the Intercom UI, and
+   invisible in the help centre once published. If the article already has an
+   Intercom ID in `state/manifest.json`, PUT instead of POST.
+   **Idempotent by article ID. Safe to re-run.** `scripts/publish-article.mjs`
+   sends `draft` unless you pass `--state published`, which is the human's call,
+   not yours.
 9. **Record the ID** in `state/manifest.json`.
 
 Order matters and does not bend: capture, inspect, optimise, commit, push, verify,
@@ -212,24 +233,38 @@ the fix in the spec, that is a substantive problem - stop.
 
 - a documented step that no longer matches the app
 - a screenshot the brief called for that cannot be produced
-- an article whose approved content is now wrong
+- an article whose planned content is now wrong
 - anything that would change what the brief said
 
-Stop means stop on that article. Finish the others, then report.
+Stop means stop on that article. Finish the others, then report. Nobody vetted the
+brief, so you are the only thing standing between a misunderstanding in step 1 and a
+draft that documents the product wrongly. When a flow does not behave the way the
+brief says it does, that is the signal - do not reason your way past it.
+
+Changing the brief mid-run is allowed, and sometimes right. What is not allowed is
+changing it quietly: update the file, and say what changed and why in the report.
 
 ### Never
 
 - Never silently absorb a failure.
 - Never add a screenshot the brief did not list.
-- Never rewrite content beyond what was approved.
 - Never publish an article the brief did not cover.
+- Never publish with `state: "published"`. Drafts only.
 
 ### End-of-session report
 
-Write it into `state/progress.md` and say it in chat:
+This is the only thing the human is guaranteed to read, so it carries everything a
+gate used to carry. Write it into `state/progress.md` and say it in chat:
 
-- what published, with Intercom IDs
+- what is now sitting in Intercom as a draft, with article IDs and the collection
+  it landed in, so the reviewer can go straight there
 - what differed from the brief, and why
 - what was skipped, and why
+- **anything you were unsure about** - a step you could not fully verify, a screen
+  you interpreted rather than confirmed, a flow that behaved oddly. Name the
+  article. A reviewer who knows where to look hard is worth more than a clean
+  report.
 - flakes seen, and which specs they were in
 - the commit SHA the image URLs are pinned to
+
+Say plainly that the drafts are unreviewed and nothing is published.

@@ -1,30 +1,39 @@
 ---
-description: Step 2 - execute an approved brief and publish the collection
+description: Re-run or resume step 2 for a collection whose brief already exists
 argument-hint: <collection-id>  e.g. 07
 ---
 
 Target collection: **$ARGUMENTS**
 
-This is step 2. It is supervised: run one stage, read its output, then move on.
-Your inference here is for oversight, not authorship. Work on this collection only.
+Step 2 on its own. Use this to resume a collection whose brief and specs already
+exist - a session that died partway, a re-capture after the product changed, or a
+re-publish after fixing an article. For a collection that has not been started,
+use `/kb-brief` instead; it runs both steps.
 
-First, check the gate:
+Work on this collection only.
 
-1. `state/progress.md` must show this collection as `brief approved`. If it does
-   not, stop. Nothing publishes without an approved brief.
-2. `briefs/$ARGUMENTS.md` must exist. Read it in full. It is the contract.
-3. `config/intercom.yaml` must have a non-empty id for this collection. If it is
+First:
+
+1. `briefs/$ARGUMENTS.md` must exist. Read it in full. It is the plan.
+2. `config/intercom.yaml` must have a non-empty id for this collection. If it is
    empty, stop and ask.
+3. Read `state/manifest.json` to see which articles already have Intercom IDs.
+   Those get updated, not recreated.
 4. Read `config/api.md` and the step 2 section of `docs/workflow.md`.
 
 Then, per article in the brief, in this order and no other:
 
 capture -> inspect every screenshot -> optimise -> commit -> push -> HEAD each URL
-for 200 and `image/*` -> build the article JSON -> POST or PUT to Intercom ->
-record the ID in `state/manifest.json`.
+for 200 and `image/*` -> build the article JSON -> POST or PUT to Intercom as a
+**draft** -> record the ID in `state/manifest.json`.
 
-Publish is idempotent by article ID: if `state/manifest.json` already has an
-Intercom ID, update instead of creating. The command is safe to re-run.
+Publish is idempotent by article ID: if `state/manifest.json` already holds an
+Intercom ID, update instead of creating. Safe to re-run.
+
+Everything lands as `state: "draft"`. Publishing is the human's action, in Intercom.
+Never send `state: "published"` - including for an article that is already published,
+where a re-run would otherwise silently overwrite live content. If an article needs
+re-publishing rather than re-drafting, say so in the report and let the human do it.
 
 Fix these yourself, then log the fix in the spec and in the report:
 
@@ -39,13 +48,13 @@ Stop and ask when you find:
 
 - a documented step that no longer matches the app
 - a screenshot the brief called for that cannot be produced
-- an article whose approved content is now wrong
+- an article whose planned content is now wrong
 - anything that would change what the brief said
 
 Never absorb a failure silently. Never add a screenshot the brief did not list.
-Never rewrite content beyond what was approved. Never publish an article the brief
-did not cover.
+Never publish an article the brief did not cover.
 
-Finish by updating `state/progress.md` and reporting: what published with its
-Intercom IDs, what differed from the brief, what was skipped and why, flakes seen,
-and the commit SHA the image URLs are pinned to.
+Finish by updating `state/progress.md` and reporting: which articles are drafts in
+Intercom with their IDs, what differed from the brief, what was skipped and why,
+anything you were unsure about, flakes seen, and the commit SHA the image URLs are
+pinned to.

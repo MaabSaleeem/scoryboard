@@ -5,14 +5,16 @@ articles across 24 collections, each with step-by-step screenshots captured from
 the live staging app with Playwright and published through the Intercom Articles
 API.
 
-The work is done by Claude Code sessions, one collection at a time, following a
-fixed two-step process with a human approval gate in the middle. The screenshots
-are regenerable: the Playwright specs are the source of truth, so when the product
-changes the affected specs are re-run rather than re-shot by hand.
+The work is done by Claude Code sessions, one collection at a time. A session runs
+end to end without stopping, and leaves every article in Intercom as a draft. You
+review the drafts there, where the screenshots are rendered, and publish the ones
+you are happy with. The screenshots are regenerable: the Playwright specs are the
+source of truth, so when the product changes the affected specs are re-run rather
+than re-shot by hand.
 
 ## How to run a session
 
-Two commands, one collection:
+One command, one collection:
 
 ```bash
 claude
@@ -20,13 +22,18 @@ claude
 
 Then, inside the session:
 
-- `/kb-brief 07` - step 1. Claude seeds personas, explores the flows, writes a
-  Playwright spec per article and produces `briefs/07.md`. Autonomous.
-- **You read `briefs/07.md` and approve it.** Mark the collection
-  `brief approved` in `state/progress.md`. Nothing publishes before this.
-- `/kb-publish 07` - step 2. Claude captures, inspects, optimises, commits,
-  pushes, verifies every image URL, then publishes to Intercom and records the
-  article IDs. Supervised, and safe to re-run.
+- `/kb-brief 07` - the whole collection. Claude seeds personas, explores the flows,
+  writes a Playwright spec and a brief per article, then captures, commits, pushes,
+  verifies every image URL, and drafts each article into Intercom. No stop in the
+  middle.
+- **You review the drafts in Intercom** and publish what you are happy with. That
+  click is the approval; nothing goes live without it.
+- `/kb-publish 07` - step 2 on its own, to resume a run that died or to re-capture
+  after the product changes. Safe to re-run.
+
+`briefs/07.md` exists for Claude, not for you - it is the plan and the memory that
+survives a long run. You never have to open it. Everything you need is in the
+end-of-session report in [state/progress.md](state/progress.md).
 
 Start by reading [state/progress.md](state/progress.md) to see where the project
 is. The full process is in [docs/workflow.md](docs/workflow.md); the house style
@@ -36,7 +43,7 @@ and screenshot rules are in [docs/style-guide.md](docs/style-guide.md).
 
 | Path | What |
 |---|---|
-| `CLAUDE.md` | Loaded every session: how the agent works, the gate, the never-list |
+| `CLAUDE.md` | Loaded every session: how the agent works, and the never-list |
 | `docs/` | The process in full, and the style guide |
 | `config/articles.yaml` | The article map: 24 collections, 146 articles, flags, shot estimates, personas |
 | `config/api.md` | Every staging endpoint, grouped by resource. Read this, not the Postman JSON |
@@ -45,7 +52,7 @@ and screenshot rules are in [docs/style-guide.md](docs/style-guide.md).
 | `lib/` | Shared helpers, built as needed |
 | `scripts/` | One-off bootstraps, e.g. creating the Intercom collections |
 | `specs/` | Generated Playwright specs, one per article |
-| `briefs/` | One Category Brief per collection - the thing a human approves |
+| `briefs/` | One Category Brief per collection - the plan Claude executes against |
 | `articles/` | Article JSON as sent to Intercom |
 | `screenshots/` | Committed captures, served to Intercom from jsDelivr |
 | `state/progress.md` | Status of all 24 collections, plus the session log |
