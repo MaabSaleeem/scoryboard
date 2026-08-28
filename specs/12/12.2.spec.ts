@@ -21,11 +21,7 @@ test.describe('12.2 Creating a tournament', () => {
 
     const newButton = page.getByRole('button', { name: 'New Tournament' }).first();
     await shot(page, '12.2', '01-tournament-list', {
-      mask: [
-        headerIdentity(page),
-        page.getByText(/^Created on /),
-        page.getByText(/Your next \d+ tournaments/),
-      ],
+      mask: [headerIdentity(page)],
       annotate: newButton,
     });
 

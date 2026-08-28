@@ -22,14 +22,11 @@ test.describe('12.1 Tournaments explained', () => {
     const heading = page.getByText('Your Tournaments (2)', { exact: true });
     await heading.waitFor();
 
+    // Mask the header name and nothing else, per the brief's screenshot table.
+    // "Created on <date>" is the tournament's stored creation date, not today's,
+    // so it is already stable; masking it only put a black bar across each card.
     await shot(page, '12.1', '01-tournament-list-both-states', {
-      // "Created on <date>" is today's date and the allowance count falls every
-      // time anyone creates a tournament. Neither is what this shot is about.
-      mask: [
-        headerIdentity(page),
-        page.getByText(/^Created on /),
-        page.getByText(/Your next \d+ tournaments/),
-      ],
+      mask: [headerIdentity(page)],
     });
 
     // KB New Cup has no format, so its Format tab still shows the chooser.
