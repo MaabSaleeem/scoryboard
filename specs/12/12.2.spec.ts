@@ -9,7 +9,7 @@
 // Role: only the signed-in creator sees this. There is no role variation to show.
 
 import { test, expect } from '@playwright/test';
-import { signIn, quiet, shot, fixtures, headerIdentity, freezeClock } from '../../lib/kb';
+import { signIn, quiet, shot, fixtures, headerIdentity, freezeClock, tournamentListReady } from '../../lib/kb';
 
 test.describe('12.2 Creating a tournament', () => {
   test('the Create Tournament modal, field by field', async ({ page }) => {
@@ -18,7 +18,7 @@ test.describe('12.2 Creating a tournament', () => {
     await signIn(page, 'organiser', '/tournaments');
     await freezeClock(page);
     await quiet(page);
-    await page.getByText('Your Tournaments (2)', { exact: true }).waitFor();
+    await tournamentListReady(page);
 
     const newButton = page.getByRole('button', { name: 'New Tournament' }).first();
     await shot(page, '12.2', '01-tournament-list', {

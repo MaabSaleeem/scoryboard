@@ -9,7 +9,7 @@
 // seeded venues on every run.
 
 import { test, expect } from '@playwright/test';
-import { signIn, quiet, shot, fixtures, headerIdentity, asUser, freezeClock } from '../../lib/kb';
+import { signIn, quiet, shot, fixtures, headerIdentity, asUser, freezeClock, tournamentListReady } from '../../lib/kb';
 
 const SCRATCH = 'KB 12 Scratch Pitch';
 
@@ -28,7 +28,7 @@ test.describe('12.6 Venues on a tournament', () => {
     await signIn(page, 'organiser', '/tournaments');
     await freezeClock(page);
     await quiet(page);
-    await page.getByText('Your Tournaments (2)', { exact: true }).waitFor();
+    await tournamentListReady(page);
     await page.getByRole('button', { name: 'New Tournament' }).first().click();
 
     const modal = page.getByRole('dialog').filter({ hasText: 'Create Tournament' });

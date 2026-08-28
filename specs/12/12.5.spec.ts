@@ -13,7 +13,7 @@
 // is collection 16, not this one.
 
 import { test, expect } from '@playwright/test';
-import { signIn, quiet, shot, fixtures, headerIdentity, onScreen } from '../../lib/kb';
+import { signIn, quiet, shot, fixtures, headerIdentity, onScreen, tournamentListReady } from '../../lib/kb';
 
 test.describe('12.5 Adding teams and owners', () => {
   test('from an empty participant list to a team with an owner', async ({ page }) => {
@@ -84,9 +84,7 @@ test.describe('12.5 Adding teams and owners', () => {
     await allowance.waitFor();
     // The panel renders before the tournament cards do, and capturing there
     // catches them as grey skeletons. Wait for the list itself to arrive.
-    await expect(page.getByText('Your Tournaments (2)', { exact: true })).toBeVisible();
-    await expect(page.getByText('KB Cup', { exact: true })).toBeVisible();
-    await expect(page.getByText('KB New Cup', { exact: true })).toBeVisible();
+    await tournamentListReady(page);
 
     // The brief masks the remaining count because it drops whenever anyone
     // creates a tournament. The number appears twice - in the sentence and in

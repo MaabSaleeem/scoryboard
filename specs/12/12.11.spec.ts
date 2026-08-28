@@ -12,7 +12,7 @@
 // modal closes.
 
 import { test, expect } from '@playwright/test';
-import { signIn, quiet, shot, fixtures, headerIdentity, freezeClock, onScreen } from '../../lib/kb';
+import { signIn, quiet, shot, fixtures, headerIdentity, freezeClock, onScreen, tournamentListReady } from '../../lib/kb';
 
 test.describe('12.11 Creating a padel tournament', () => {
   test('the game type, and the three fields it adds', async ({ page }) => {
@@ -21,7 +21,7 @@ test.describe('12.11 Creating a padel tournament', () => {
     await signIn(page, 'organiser', '/tournaments');
     await freezeClock(page);
     await quiet(page);
-    await page.getByText('Your Tournaments (4)', { exact: true }).waitFor();
+    await tournamentListReady(page);
     await page.getByRole('button', { name: 'New Tournament' }).first().click();
 
     const modal = page.getByRole('dialog').filter({ hasText: 'Create Tournament' });

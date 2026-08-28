@@ -8,7 +8,7 @@
 // open question 1.
 
 import { test } from '@playwright/test';
-import { signIn, quiet, shot, fixtures, headerIdentity } from '../../lib/kb';
+import { signIn, quiet, shot, fixtures, headerIdentity, tournamentListReady } from '../../lib/kb';
 
 test.describe('12.1 Tournaments explained', () => {
   test('states a tournament moves through', async ({ page }) => {
@@ -17,10 +17,9 @@ test.describe('12.1 Tournaments explained', () => {
     await signIn(page, 'organiser', '/tournaments');
     await quiet(page);
 
-    // Wait for the list to settle. It renders "Your Tournaments (0)" first and
-    // fills in after the fetch, so asserting on the count is the only safe gate.
-    const heading = page.getByText('Your Tournaments (2)', { exact: true });
-    await heading.waitFor();
+    // Wait for the list to settle before capturing: it renders a count of zero
+    // and grey skeletons until the fetch lands.
+    await tournamentListReady(page);
 
     // Mask the header name and nothing else, per the brief's screenshot table.
     // "Created on <date>" is the tournament's stored creation date, not today's,

@@ -17,7 +17,7 @@
 // second admin the next run would have to clean up.
 
 import { test, expect } from '@playwright/test';
-import { signIn, quiet, shot, fixtures, headerIdentity } from '../../lib/kb';
+import { signIn, quiet, shot, fixtures, headerIdentity, tournamentListReady } from '../../lib/kb';
 
 test.describe('12.8 Settings and admins', () => {
   test('what the owner can change', async ({ page }) => {
@@ -26,10 +26,7 @@ test.describe('12.8 Settings and admins', () => {
     // Reach settings the way a reader does: the card menu on the tournament list.
     await signIn(page, 'organiser', '/tournaments');
     await quiet(page);
-    await page.getByText('Your Tournaments (2)', { exact: true }).waitFor();
-    // Both cards, not just the count: the heading updates before the cards do.
-    await expect(page.getByText('KB Cup', { exact: true })).toBeVisible();
-    await expect(page.getByText('KB New Cup', { exact: true })).toBeVisible();
+    await tournamentListReady(page);
 
     const cardMenu = page.getByRole('button').filter({ has: page.locator('svg.lucide-ellipsis-vertical') }).last();
     await cardMenu.click();

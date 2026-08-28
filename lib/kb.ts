@@ -58,6 +58,26 @@ export async function signIn(page: Page, persona: PersonaKey, to = '/tournaments
  * float over the page and all of them change between runs. Hiding them in the
  * page (rather than masking them) keeps the layout identical.
  */
+// The tournament list renders "Your Tournaments (0)" with a row of grey skeleton
+// cards before its fetch lands, so the heading alone is not a safe gate for a
+// capture.
+//
+// Do NOT gate on the count. It is global state for the persona: every collection
+// that seeds a tournament for this organiser changes it. Six of collection 12's
+// specs waited for "Your Tournaments (2)" and stopped running the day the padel
+// fixtures took it to four. Wait for cards that are always present instead, which
+// proves the fetch landed without caring how many other tournaments exist.
+// Takes the titles so a later collection can name its own fixtures rather than
+// copy this with different strings baked in.
+export async function tournamentListReady(
+  page: Page,
+  titles: string[] = ['KB Cup', 'KB New Cup'],
+) {
+  for (const title of titles) {
+    await expect(page.getByText(title, { exact: true })).toBeVisible();
+  }
+}
+
 export async function quiet(page: Page) {
   await page.addStyleTag({
     content: `
