@@ -33,8 +33,25 @@ Nothing is invented. Gaps are listed under [Not in the collection](#not-in-the-c
 Do not paste tokens. Mint them:
 
 1. `POST /admins/users` - create the user (skips email verification).
-2. `POST /admins/generate-signin-token` with `{"data":{"email":"..."}}` - returns a
-   Firebase custom token for that user.
+2. `POST /admins/generate-signin-token` with `{"data":{"email":"..."}}`.
+
+   **(observed in app, 2026-08-28)** It does not return a bare custom token. It
+   returns a sign-in **URL**:
+
+   ```
+   {"status":"OK","data":"https://staging-sb.app.scoryboard.com/signin?token=<outer JWT>"}
+   ```
+
+   The outer JWT is HS256 and its payload carries the real Firebase custom token:
+
+   ```
+   {"customLoginToken":"<firebase custom token>","iat":...}
+   ```
+
+   Two ways to use it. For API seeding, base64url-decode the outer JWT payload and
+   exchange `customLoginToken` at the Identity Toolkit (step 3). For browser
+   capture, just navigate to the URL - the app signs itself in. `lib/api.mjs`
+   does both (`mintSession`, `signinUrl`).
 3. Exchange the custom token for an ID token through the Firebase Identity Toolkit,
    then send the `idToken` as `Authorization: Bearer`:
 
@@ -107,7 +124,7 @@ most of step 1.
 | PUT | `/teams/:teamId` | Update a team | `name`, `bio`, `avatarToken`, `bannerToken` |
 | DELETE | `/teams/:teamId` | Delete a team | - |
 | POST | `/teams/:teamId/claim` | Claim an unowned or dummy team | - |
-| GET | `/teams/:teamId/players?includeFans=true` | Team members. Fans are excluded unless the flag is set | - |
+| GET | `/teams/:teamId/players?includeFans=true` | Team members. Fans are excluded unless the flag is set. **(observed 2026-08-28)** It also returns removed members, flagged `isDeleted: true` - filter them or a seed script will keep re-deleting rows the API then answers `500 "not found or already deleted"` for | - |
 | GET | `/teams/:teamId/matches` | Team fixtures | `limit`, `skip`, `scheduleType`, `includeIncomplete`, `startDate`, `endDate` |
 | GET | `/teams/:teamId/shareCode` | The team join code | - |
 
@@ -326,6 +343,17 @@ There are no push-notification endpoints. Do not document push.
 | POST | `/club-locations/avatar` | Upload a venue logo, returns `avatarToken` | multipart, field `avatar` |
 | GET | `/club-locations/:clubLocationId/avatar?v=` | Fetch the logo | - |
 
+**(observed in app, 2026-08-28.)** Two things the table above does not say.
+
+- `POST /club-locations` also takes `saveForFutureTournaments` (boolean) and
+  `isTournament` (boolean). The tournament wizard's club picker calls
+  `GET /club-locations?tournamentSelectionOnly=true` with **no** `query`
+  parameter, and a venue only appears in that list when it was created with
+  **both** flags true. A venue created without them is invisible to the wizard.
+- The two listings are **disjoint**. `?query=<term>` returns only venues with
+  `isTournament` false; `?tournamentSelectionOnly=true` returns only those with it
+  true. Searching for a venue by name will not find a tournament venue.
+
 ## Payments (Stripe Connect) - REAL MONEY
 
 Only collections 16 and 17 touch these. Stripe test mode only.
@@ -350,7 +378,7 @@ Feature flag: `TOURNAMENT_FEATURE_ENABLED`.
 
 | Method | Path | For | Body / notes |
 |---|---|---|---|
-| POST | `/tournaments` | Create a tournament (Draft) | `title`, `startDate`, `endDate`, `isOnline`; optional `description` |
+| POST | `/tournaments` | Create a tournament | `title`, `startDate`, `endDate`, `isOnline`; optional `description` |
 | GET | `/tournaments/:tournamentId/config` | Read the setup state | - |
 | PATCH | `/tournaments/:tournamentId/config` | Wizard steps 1 and 2 | `startDate`, `endDate`, `clubLocationIds[]`, `teamIds[]`, `teamCount`, `format` (e.g. `RoundRobin`), `groupCount`, `teamsPerGroup`, `matchesPerTeam`, `isComplete` |
 | GET | `/tournaments/:tournamentId/schedule` | The fixture list | - |
@@ -360,6 +388,71 @@ Feature flag: `TOURNAMENT_FEATURE_ENABLED`.
 
 The collection's "Get Tournament Matches" request points at `/stats/teams`. That is
 a copy-paste error in the source, not a second endpoint.
+
+### Tournament setup - what the app actually calls
+
+**(observed in app, 2026-08-28, while writing the collection 12 brief.)**
+
+Two rows above are wrong for this build. `GET /tournaments/:id/config` returns
+**404** - the path does not exist. The wizard does not `PATCH .../config` either;
+it `PUT`s the tournament itself. Read the table below in preference to the two
+`config` rows, which are kept only because they are in the Postman export.
+
+| Method | Path | For | Body / notes |
+|---|---|---|---|
+| GET | `/tournaments` | Your tournaments, newest first | Each row carries `isOwner`, `isAdmin`, `isMember`, `isReferee`, `pricingPlan`, `publicSlug`, `config{}` |
+| GET | `/tournaments/:id` | One tournament, with `teams[]`, `clubLocations[]`, `groups[]`, `brackets[]`, `phases[]` | - |
+| POST | `/tournaments` | Create. The **Create Tournament** modal sends exactly this | `title`, `gameType` (`Football`\|`Padel`\|`Other Sports`), `startDate` (`YYYY-MM-DD`), `duration` (`"10 min"`), `clubLocationIds[]`, `isAutoStartEnable`, `startTime` (`"HH:MM"`, 24-hour), `timeZone` (IANA, **read from the browser** - pin it in a spec) |
+| PUT | `/tournaments/:id` | Save the format, and save the settings page | Format save sends `teamCount`, `teamSize`, `teamIds[]`, `isComplete`, `format` (`RoundRobin`\|`GroupAndKnockout`\|`KnockoutOnly`), `groupCount`, `teamsPerGroup`, `matchesPerTeam`, `autoScheduleMatchesNextDay`, `status` |
+| POST | `/tournaments/:id/teams/bulk` | Add tournament teams by name | `teamNames[]`. Creates **new** teams with `isTournament: true` and `teamLifecycle: "TournamentDraft"`; it does not link existing teams |
+| GET | `/tournaments/:id/participants` | Teams, players and referees on the tournament | - |
+| DELETE | `/tournaments/:id` | Delete a tournament | Answers `{"message":"Tournament deleted successfully"}` |
+| POST | `/tournaments/:id/admin` | Add a tournament admin | `email` |
+| DELETE | `/tournaments/:id/admin` | Remove a tournament admin | `email` |
+| POST | `/tournaments/:id/referee` | Add one referee | `name`, `canStartEndMatches`; the dialog's "Save for future tournaments" toggle maps to `saveForFutureTournaments`. The **Multiple referees** tab fires one POST per line, not a bulk call |
+| DELETE | `/tournaments/:id/referee/:playerId` | Remove a referee | - |
+| GET | `/tournaments/:id/follow` | Am I following this tournament | - |
+| GET | `/tournaments/:id/chat/settings` | Tournament chat settings | - |
+| GET | `/tournament-phases?tournamentId=&includeCompletion=false` | Phases | - |
+| GET | `/tournament-groups?tournamentId=` | Groups | - |
+
+Notes worth keeping:
+
+- A new tournament is created with `status: "Published"`. There is **no `Draft`
+  status** in this build - the string does not appear in the app bundle.
+- `PUT /tournaments/:id {"status":"Live"}` answers `200` but does not change the
+  status. Before the format is saved it answers `400 "Tournament config is
+  incomplete"`. Live is reached by running a match, not by setting a field.
+- Adding a tournament team owner reuses `POST /team-players` with
+  `{name, email, teamId, role: "Owner"}`.
+- `GET /tournaments/:id` carries the role lists the settings page renders:
+  `ownerUser`, `adminPlayers[]`, `refereePlayers[]` (each with `canStartEndMatches`
+  and `saveForFutureTournaments`), plus the caller's own `isOwner`, `isAdmin`,
+  `isReferee` and `canRefereeStartEndMatches`.
+- Uploading a tournament crest and uploading a tournament banner still have **no
+  captured request**. The bundle names hooks for them
+  (`useDeleteTournamentAvatarMutation`, `useDeleteTournamentBannerMutation`) but a
+  hook name is not a path. Do not write one down until it is seen on the wire.
+
+Route literals found in the app bundle but not yet exercised, listed as evidence of
+existence only: `/tournament-brackets`, `/tournament-brackets/:id/schedule`,
+`/tournament-brackets/:id/matches/:matchId/participants`,
+`/tournament-brackets/:id/matches/:matchId/title`, `/tournament-groups/:id`,
+`/tournament-phases`, `/tournaments/:id/selection-label-variant`,
+`/tournaments/token`, `/tournaments/:id/presentation/:x/:filename`,
+`/tournament-subscription/*` (cancel, portal, resume, finalize-session,
+payment-method/setup-intent, payment-method/finalize).
+
+### App routes - singular and plural are different pages
+
+**(observed in app, 2026-08-28.)** This trips you up if you skim.
+
+- `/tournaments` - your tournament list.
+- `/tournaments/:id/<tab>` - the **organiser board**. Tabs: `participants`,
+  `format`, `schedule`, `results`, `leaderboard`, `sponsor`, `presentation`,
+  `prizes`, `chat`, plus `settings`, which has no tab and is reached by URL.
+- `/tournament/:id/<tab>` - the **public page**. Tabs: `info`, `participants`,
+  `standings`, `matches`, `leaderboard`, `chat`. Signed-out visitors land here.
 
 ### Tournament sponsors
 
@@ -421,7 +514,7 @@ These four are the seeding surface this project depends on:
 | POST | `/admins/users` | Create a persona, skipping email verification | `name`, `lastName`, `email` |
 | POST | `/admins/generate-signin-token` | Mint a session for any user | `email` |
 | POST | `/admins/change-user-membership/:id` | Flip that user Free / Pro | `membership`: `Free` or `Pro` |
-| POST | `/admins/users/tournament-free-pro/grant` | Grant Tournament Pro, no Stripe | `email`, `plan` (`Pro`), `quantity` |
+| POST | `/admins/users/tournament-free-pro/grant` | Grant Tournament Pro, no Stripe | `email`, `plan` (`Pro`), `quantity`. **(observed 2026-08-28)** The grant is **additive, not a set** - calling it twice with `quantity: 2` leaves an allowance of 4. There is no revoke. Read `freeTournamentProAllowanceRemaining` from `GET /users/me` and only top up the shortfall |
 
 Also available:
 
