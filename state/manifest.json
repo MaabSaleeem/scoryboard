@@ -590,7 +590,7 @@
         "screenshots/01/01.1/07-password-too-short.00ddf284.png",
         "screenshots/01/01.1/08-email-already-in-use.5552e5c2.png"
       ],
-      "published_at": "2026-08-28T19:21:53.000Z",
+      "published_at": "2026-08-28T20:07:11.000Z",
       "status": "draft"
     },
     "01.2": {
@@ -606,7 +606,7 @@
         "screenshots/01/01.2/03-email-not-valid.2dd9f95a.png",
         "screenshots/01/01.2/04-signed-in.290c1b3a.png"
       ],
-      "published_at": "2026-08-28T19:22:14.000Z",
+      "published_at": "2026-08-28T20:07:15.000Z",
       "status": "draft"
     },
     "01.3": {
@@ -646,8 +646,8 @@
         "screenshots/01/01.4/11-setup-my-team.15c4738a.png",
         "screenshots/01/01.4/12-home-after-skip.eaa27a1d.png"
       ],
-      "published_at": "2026-08-28T19:23:05.000Z",
-      "status": "draft"
+      "published_at": "2026-08-28T19:57:57.000Z",
+      "status": "published"
     },
     "01.5": {
       "intercom_id": "16738278",
@@ -666,8 +666,8 @@
         "screenshots/01/01.5/07-create-leaderboard-dialog.e5249fc3.png",
         "screenshots/01/01.5/08-leaderboard-created.c6c48f5f.png"
       ],
-      "published_at": "2026-08-28T19:23:35.000Z",
-      "status": "draft"
+      "published_at": "2026-08-28T19:57:57.000Z",
+      "status": "published"
     },
     "01.6": {
       "intercom_id": "16738281",
@@ -681,8 +681,8 @@
         "screenshots/01/01.6/02-personal-details-highlighted.e21dcaed.png",
         "screenshots/01/01.6/03-my-bio-highlighted.f10c2ddf.png"
       ],
-      "published_at": "2026-08-28T19:23:47.000Z",
-      "status": "draft"
+      "published_at": "2026-08-28T19:57:58.000Z",
+      "status": "published"
     },
     "01.7": {
       "intercom_id": "16738286",
@@ -697,8 +697,8 @@
         "screenshots/01/01.7/03-signed-out.1c28b016.png",
         "screenshots/01/01.7/04-credential-error.0a0d9151.png"
       ],
-      "published_at": "2026-08-28T19:24:04.000Z",
-      "status": "draft"
+      "published_at": "2026-08-28T20:08:47.000Z",
+      "status": "published"
     }
   }
 }

@@ -14,7 +14,7 @@ target.
 
 | # | Collection | Articles | Shots (est.) | Persona default | Status | Brief | Notes |
 |---|---|---|---|---|---|---|---|
-| 01 | Getting started & onboarding | 7 | 44 | fresh | drafts on Intercom | [briefs/01.md](../briefs/01.md) | 7 drafts, 43 screenshots. 01.3 retitled "Resetting your password" - the invited-account half was dropped. Seven accounts, all `kb-fresh-01@` or `kb-01-*@`; two now unused |
+| 01 | Getting started & onboarding | 7 | 44 | fresh | drafts on Intercom | [briefs/01.md](../briefs/01.md) | 43 screenshots. **01.4-01.7 published by the reviewer 2026-08-28; 01.1-01.3 still drafts.** 01.3 retitled "Resetting your password" - the invited-account half was dropped. Seven accounts, all `kb-fresh-01@` or `kb-01-*@`; two now unused |
 | 02 | Finding your way around | 6 | 25 | manager_free | not started | - | - |
 | 03 | Your profile & settings | 6 | 30 | player | not started | - | - |
 | 04 | Plans & membership | 3 | 17 | manager_free | not started | - | Pro is a free self-serve toggle during beta. No payment step. Flag for rewrite when beta ends. |
@@ -944,3 +944,59 @@ table. Drop them from `scripts/seed-01.mjs` when somebody confirms.
 and sends nothing, while the app shows "Check Your Email". Anybody invited to a
 team by email is in exactly that state. It is in `config/api.md` and in this log,
 and it is still worth a ticket.
+
+### 2026-08-29 - collection 01, Google/Apple wording, and four articles were published by the reviewer
+
+**Wording, at the repo owner's request.** 01.1's "Signing up with Google or Apple"
+section is gone; the two providers are named in step 1 instead, with the note that
+they rejoin the procedure at step 4. 01.2's equivalent section was rewritten as a
+short list. Both republished by PUT against their existing ids - `16738263` and
+`16738266` - so their screenshots keep their URLs and stay pinned to `e7f99e3` and
+`7e42a7d`.
+
+Also fixed while in those files: 01.1 and 01.2 both linked to 01.3 under its old
+title. Both now say "Resetting your password".
+
+### The reviewer published 01.4, 01.5, 01.6 and 01.7 - and the manifest did not know
+
+Checking the drafts after the republish showed four of the seven reading
+`state: published`. **Nothing in this session published them.** The evidence:
+
+- all seven were created 19:21-19:24, by the step-2 run;
+- 01.4 to 01.7 were updated at **19:57:57-19:57:58**, four articles inside one
+  second, with no call from here at that time - a bulk publish in the Intercom UI;
+- 01.1 to 01.3 were updated at 20:03 and 20:07, which are this session's PUTs.
+
+That is the intended workflow: the human reads the drafts in Intercom and publishes
+the ones they are happy with. Nothing needs undoing and nothing was undone.
+
+**But it left a live hazard.** `state/manifest.json` still recorded those four as
+`draft`. `scripts/publish-article.mjs` only omits `state` from its PUT when the
+manifest says `published` - so the next `/kb-publish 01`, or any re-run of one of
+those four, would have sent `state: "draft"` and **knocked four live articles off
+the help centre**. The script's guard was working exactly as designed; it was
+reading a stale record.
+
+The manifest now records what Intercom actually holds. Verified by re-running
+`node scripts/publish-article.mjs 01.7`: it printed *"01.7 is already published;
+leaving its state untouched"* and the article came back `state=published`.
+
+**Worth carrying into every later collection.** A run that finishes, and a human
+who starts reviewing before the next session, is the normal case - so the manifest
+is stale by default, not by accident. Step 2 should reconcile the manifest against
+Intercom before it publishes anything, rather than trusting what it wrote last
+time.
+
+### Where collection 01 stands
+
+| Article | Intercom ID | State |
+|---|---|---|
+| 01.1 Creating your Scoryboard account | 16738263 | draft |
+| 01.2 Signing in, and common sign-in problems | 16738266 | draft |
+| 01.3 Resetting your password | 16738270 | draft |
+| 01.4 The setup wizard - what each step does | 16738275 | **published by the reviewer** |
+| 01.5 Setting up your first team and leaderboard | 16738278 | **published by the reviewer** |
+| 01.6 The profile checklist in your sidebar | 16738281 | **published by the reviewer** |
+| 01.7 Deleting your account, and why an account may be disabled | 16738286 | **published by the reviewer** |
+
+43 images across the seven, all still 200 `image/*`, none carrying `<ol start=`.
