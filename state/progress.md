@@ -14,7 +14,7 @@ target.
 
 | # | Collection | Articles | Shots (est.) | Persona default | Status | Brief | Notes |
 |---|---|---|---|---|---|---|---|
-| 01 | Getting started & onboarding | 8 | 46 | fresh | not started | - | - |
+| 01 | Getting started & onboarding | 7 | 44 | fresh | not started | - | Verification folded into 01.1; 01.2-01.7 renumbered. Account: kb-fresh-01@yopmail.com |
 | 02 | Finding your way around | 6 | 25 | manager_free | not started | - | - |
 | 03 | Your profile & settings | 6 | 30 | player | not started | - | - |
 | 04 | Plans & membership | 3 | 17 | manager_free | not started | - | Pro is a free self-serve toggle during beta. No payment step. Flag for rewrite when beta ends. |
@@ -39,7 +39,7 @@ target.
 | 23 | Powerleague & CentreNet bookings | 4 | 16 | manager_free | not started | - | Partner-initiated records. High ticket volume because the user did not start the action. |
 | 24 | Troubleshooting & policies | 4 | 13 | manager_free | not started | - | - |
 
-Totals: 154 articles, 844 screenshots estimated across 24 collections. These count
+Totals: 153 articles, 842 screenshots estimated across 24 collections. These count
 what `config/articles.yaml` lists and still exclude collection 12's two padel
 articles, which are published but never went back into the map.
 

@@ -7,8 +7,8 @@
 
 meta:
   collections: 24
-  articles: 154
-  screenshots: 844
+  articles: 153
+  screenshots: 842
   # 13, 14 and 15 were split by sport on 2026-08-28 after walking both game
   # types through every tab. These totals count what this file lists: they do
   # not yet include collection 12's two padel articles, which are published
@@ -20,14 +20,13 @@ collections:
     name: Getting started & onboarding
     persona_default: fresh
     articles:
-      - {id: "01.1", title: "Creating your Scoryboard account", shots: 6}
-      - {id: "01.2", title: "Verifying your email address", shots: 4}
-      - {id: "01.3", title: "Signing in, and common sign-in problems", shots: 4}
-      - {id: "01.4", title: "Resetting your password, and setting one on an invited account", shots: 5}
-      - {id: "01.5", title: "The setup wizard - what each step does", shots: 12}
-      - {id: "01.6", title: "Setting up your first team and leaderboard", shots: 8}
-      - {id: "01.7", title: "The profile checklist in your sidebar", shots: 3}
-      - {id: "01.8", title: "Deleting your account, and why an account may be disabled", shots: 4}
+      - {id: "01.1", title: "Creating your Scoryboard account", shots: 8, note: "email + password is the documented path; Google and Apple get a sentence each and no provider screenshots. Ends at the screen asking for the verification code - the code being entered and the success state are deliberately not captured."}
+      - {id: "01.2", title: "Signing in, and common sign-in problems", shots: 4}
+      - {id: "01.3", title: "Resetting your password, and setting one on an invited account", shots: 5}
+      - {id: "01.4", title: "The setup wizard - what each step does", shots: 12}
+      - {id: "01.5", title: "Setting up your first team and leaderboard", shots: 8}
+      - {id: "01.6", title: "The profile checklist in your sidebar", shots: 3}
+      - {id: "01.7", title: "Deleting your account, and why an account may be disabled", shots: 4}
 
   - id: "02"
     name: Finding your way around
