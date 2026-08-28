@@ -1,0 +1,61 @@
+<!-- title: Rescheduling fixtures, and rolling them onto the next day -->
+<!-- description: Moving one fixture, moving several, and spreading a group across more than one day. -->
+
+<p>Every fixture can be moved after it has been generated. Only the tournament <strong>Owner</strong> and an <strong>Administrator</strong> can do it; everyone else sees the read-only public page.</p>
+
+<h2>Moving one fixture</h2>
+
+<ol>
+  <li>Open the tournament and select <strong>Schedule</strong>.</li>
+  <li>Find the fixture. The bottom of its card has four cells you can change: the date, the kick-off time, the pitch and the referee.
+    {{shot:01|One fixture card with its four editable cells outlined as a block: date, time, pitch and referee.}}
+  </li>
+  <li>Select the time. Choose the hour, the minutes and AM or PM.
+    {{shot:02|The time picker open on one fixture, showing hours, minutes and AM or PM.}}
+  </li>
+  <li>Select the pitch cell and type a pitch number.
+    {{shot:03|The pitch cell turned into a text input reading Pitch #, outlined.}}
+  </li>
+</ol>
+
+<p>Each change saves as you make it. There is no separate save button.</p>
+
+<h2>Moving several fixtures</h2>
+
+<ol>
+  <li>Select <strong>SELECT MATCH TO UPDATE</strong> on the group.</li>
+  <li>Tick the fixtures you want. The button counts them.
+    {{shot:04|The group in selection mode with two fixtures ticked and UPDATE SELECTED MATCHES (2) outlined.}}
+  </li>
+  <li>Select <strong>UPDATE SELECTED MATCHES</strong>. It opens the same dialog <strong>BULK MATCH UPDATE</strong> does, but it only changes the fixtures you ticked.</li>
+</ol>
+
+<h2>Rolling fixtures onto the next day</h2>
+
+<p>A group that will not fit into one day can spill over into the next.</p>
+
+<ol>
+  <li>Select <strong>BULK MATCH UPDATE</strong> on the group.</li>
+  <li>Set the <strong>Match date</strong> and the <strong>First match start time</strong>.</li>
+  <li>Set <strong>Last allowed match start time</strong>. Nothing will be scheduled to start after it.
+    {{shot:05|The dialog with Last allowed match start time outlined and set to 11:00 AM, alongside a 10:00 AM start, a 15-minute duration and a 20-minute gap.}}
+  </li>
+  <li>Clear <strong>Same start time per round</strong>, then set <strong>Duration</strong> and <strong>Time between matches</strong>.</li>
+  <li>Select <strong>Update Matches</strong>.
+    {{shot:06|Six fixtures spread two per day across Saturday 26, Sunday 27 and Monday 28 September.}}
+  </li>
+</ol>
+
+<h2>What you will see</h2>
+
+<p>Fixtures fill the first day until the next kick-off would pass your <strong>Last allowed match start time</strong>. The rest move to the next day and start again at your first start time. Two matches a day, then the next day, and so on.</p>
+
+<h2>If it does not work</h2>
+
+<ul>
+  <li><strong>You want to delete a fixture.</strong> You cannot. A tournament fixture has no delete or cancel control. The fixtures come from the group, so removing one means deleting the group - see "Editing and deleting a group in a football tournament" - or changing the format, which rebuilds the whole list.</li>
+  <li><strong>The pitch cell will not open.</strong> Select it once, directly. It turns into a text box.</li>
+  <li><strong>Everything landed on one day.</strong> No <strong>Last allowed match start time</strong> was set, so nothing was pushed over.</li>
+  <li><strong>Every fixture now starts at the same time.</strong> <strong>Same start time per round</strong> was left ticked. See "Why two football fixtures clash, and fixtures showing only one team".</li>
+  <li><strong>Nothing saved.</strong> The dialog needs at least one field filled in.</li>
+</ul>

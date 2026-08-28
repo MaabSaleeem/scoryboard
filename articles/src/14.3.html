@@ -1,0 +1,46 @@
+<!-- title: Bulk-scheduling a football group, and the gap between matches -->
+<!-- description: How to re-time a whole group at once, and the one tick box you have to clear before you can set a gap. -->
+
+<p>You can re-time every fixture in a group in one go. Only the tournament <strong>Owner</strong> and an <strong>Administrator</strong> can do it; everyone else sees the read-only public page.</p>
+
+<h2>Before you start</h2>
+
+<p>One tick box decides whether this works the way you expect. <strong>Same start time per round</strong> is ticked when the dialog opens, and while it is ticked <strong>Duration</strong> and <strong>Time between matches</strong> are both greyed out. A football group has no rounds, so leaving it ticked puts every fixture in the group on the same kick-off time.</p>
+
+<h2>Re-timing a group</h2>
+
+<ol>
+  <li>Open the tournament, select <strong>Schedule</strong>, and find the group.</li>
+  <li>Select <strong>BULK MATCH UPDATE</strong>. This covers every fixture in that group.
+    {{shot:01|The Group A header with SELECT MATCH TO UPDATE and BULK MATCH UPDATE, the second one outlined.}}
+  </li>
+  <li>Read the dialog as it opens. <strong>Duration</strong> and <strong>Time between matches</strong> are greyed out.
+    {{shot:02|The Bulk Match Updates dialog with Same start time per round ticked and the two greyed-out fields above it.}}
+  </li>
+  <li>Clear <strong>Same start time per round</strong>. Both fields become editable.
+    {{shot:03|The same dialog with the tick box cleared and the Time between matches field outlined and now editable.}}
+  </li>
+  <li>Set the <strong>Match date</strong> and the <strong>First match start time</strong>.</li>
+  <li>Set <strong>Duration</strong> and <strong>Time between matches</strong>, both in minutes.
+    {{shot:04|The dialog filled in: 26-09-2026, 10:00 AM, 15 minutes duration and 20 minutes between matches.}}
+  </li>
+  <li>Select <strong>Update Matches</strong>.
+    {{shot:05|The group re-timed, kicking off at 10:00, 10:35, 11:10, 11:45, 12:20 and 12:55.}}
+  </li>
+</ol>
+
+<h2>What you will see</h2>
+
+<p>Each kick-off is the one before it plus the duration plus the gap. A 15-minute match with a 20-minute gap puts 35 minutes between kick-offs: 10:00, then 10:35, then 11:10.</p>
+
+<p>You do not have to fill everything in. Only the fields you set are applied, so you can move a group to a new date and leave its times alone.</p>
+
+<h2>If it does not work</h2>
+
+<ul>
+  <li><strong>Duration and Time between matches are greyed out.</strong> Clear <strong>Same start time per round</strong>. That is what unlocks them.</li>
+  <li><strong>Every match now starts at the same time.</strong> The tick box was left on. Clear it, set a gap, and update the group again. See "Why two football fixtures clash, and fixtures showing only one team".</li>
+  <li><strong>Nothing saved.</strong> The dialog needs at least one field filled in before it will save.</li>
+  <li><strong>Fixtures moved to another day.</strong> You set a <strong>Last allowed match start time</strong>. See "Rescheduling fixtures, and rolling them onto the next day".</li>
+  <li><strong>You only want to move some matches.</strong> Use <strong>SELECT MATCH TO UPDATE</strong> instead. It opens the same dialog.</li>
+</ul>

@@ -508,6 +508,61 @@ from `padelMinPlayers` and names them "Player 1 & Player 2" and so on. Re-sendin
 the same call with different values is what the **Padel Configuration** dialog
 does, and it resets and regenerates the scheduled matches.
 
+### The fixture schedule
+
+**(observed in app, 2026-08-28, while writing the collection 14 brief.)** Every
+row below was read off the wire on the tournament Schedule tab.
+
+| Method | Path | For | Body / notes |
+|---|---|---|---|
+| GET | `/tournaments/:id/schedule/brackets/:bracketId/matches` | One bracket's fixtures | answers `{matches:[...]}`. The group equivalent, `.../schedule/groups/:groupId/matches`, answers a bare array |
+| GET | `/tournaments/:id/schedule/groups/:groupId/matches?export=true` | The same list, for the fixture export | **EXPORT FIXTURES** refetches every ticked section this way and builds the file in the browser. `?export=true` works on the bracket path too |
+| PUT | `/tournament-groups/:groupId` | Bulk-update a group's fixtures | see the payload below. This is the same path that edits a group's name and draw |
+| PUT | `/tournament-brackets/:bracketId` | Bulk-update a bracket's fixtures | the same payload. Also the path that renames a bracket |
+| PUT | `/matches/:matchId` | Change one fixture | `{"date":"<ISO>"}` from a card's own date or time cell; `pitchNumber` and `refereePlayerId` from the other two cells |
+| DELETE | `/matches/:matchId` | Delete a match | in the bundle as `deleteMatch`, behind a **Cancel Match** action on the GENERAL match card. **Not reachable from a tournament fixture**: the Schedule tab's cards have no menu and `/match/:id/preview` is view-only |
+
+The bulk update payload, copied from the wire:
+
+```json
+PUT /tournament-groups/6a91aea7c7fe1975d4a61ad8
+{"data":{"date":"2026-09-25T23:00:00.000Z","startTime":"09:00",
+  "timeZone":"Europe/London","duration":"15 min","timeBetweenMatches":"20 min",
+  "sameStartTimePerRound":false}}
+```
+
+Every field is optional and only the ones sent are applied; sending none answers
+*"Update at least one field before saving fixtures."* The full set is `date`,
+`startTime`, `endTime`, `timeZone`, `duration`, `timeBetweenMatches`, `teamSize`,
+`clubLocationId`, `refereePlayerId`, `pitchNumber`, `isAutoStartEnable`,
+`sameStartTimePerRound`, and `matchIds[]` when the update came from **SELECT
+MATCH TO UPDATE** rather than **BULK MATCH UPDATE**. Both buttons open the same
+dialog; only `matchIds` differs.
+
+How the times come out:
+
+- **`sameStartTimePerRound: false`** - each kick-off is the previous one plus
+  `duration` + `timeBetweenMatches`.
+- **`sameStartTimePerRound: true` with a `timeBetweenMatches`** - every match in a
+  round shares a kick-off and the next round starts one gap later. The duration is
+  not added.
+- **`sameStartTimePerRound: true` with no gap** - **every** fixture in the group
+  gets the same kick-off time. A football group has no rounds, so the whole group
+  counts as one.
+- **`endTime`** is a per-day ceiling: when the next kick-off would pass it,
+  scheduling moves to the next day and restarts at `startTime`.
+
+**A UI defect worth knowing before you read that table.** The dialog defaults
+`sameStartTimePerRound` to **true** and disables both `duration` and
+`timeBetweenMatches` while it is true. So the second case above - the one the
+checkbox's own help text describes - cannot be reached through the app, only over
+the API. Through the UI, ticking the box always produces the third case.
+
+Court and pitch numbers are assigned per match by the **generator**. The bulk
+update's `pitchNumber` writes a **single** value across every match it touches, so
+it cannot restore a distributed set; only regenerating the format can. Re-sending
+an identical padel configuration does not regenerate - a value has to change.
+
 ### App routes - singular and plural are different pages
 
 **(observed in app, 2026-08-28.)** This trips you up if you skim.
@@ -650,7 +705,9 @@ It changes how chat fixtures get seeded: through the UI, not the API.
 - **Tournament groups, brackets and phases** (collection 13) - group edit and
   delete, bracket rounds, phase preview, start, end and undo. Only `PATCH /config`
   and `PATCH /schedule` exist.
-- **Fixture PDF export** (14.5).
+- ~~**Fixture PDF export**~~ - found 2026-08-28. There is no export endpoint: the
+  app refetches each section with `?export=true` and builds the PDF or Excel file
+  in the browser. See [The fixture schedule](#the-fixture-schedule).
 - **Payment request creation and editing** (17.4 to 17.7) - create, edit, cancel a
   request; fee handling.
 - **Comment edit and delete** (19.2).

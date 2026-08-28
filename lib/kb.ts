@@ -493,3 +493,194 @@ export async function fixturesReady(page: Page) {
   ).toBeVisible();
   await expect(page.locator('.animate-pulse')).toHaveCount(0);
 }
+
+// --- collection 14: the fixture schedule ------------------------------------
+
+/**
+ * Look collection 14's fixtures up by title.
+ *
+ * Never hardcode an id: `scripts/seed-14.mjs` can legitimately recreate a
+ * tournament, and a hardcoded id would then point at a deleted row.
+ */
+export async function fixtures14() {
+  const email = personaEmail('organiser', '14');
+  const session = await mintSession(email);
+  const token: string = session.idToken;
+  const list = (await asUser(token, '/tournaments')).body.data ?? [];
+  const byTitle = (t: string) => {
+    const row = list.find((x: any) => x.title === t);
+    if (!row) throw new Error(`Fixture tournament "${t}" is missing. Run: node scripts/seed-14.mjs`);
+    return String(row._id ?? row.id);
+  };
+  return {
+    email,
+    token,
+    cup: byTitle('KB 14 Cup'),
+    league: byTitle('KB 14 League'),
+    padelCup: byTitle('KB 14 Padel Cup'),
+    padelOpen: byTitle('KB 14 Padel Open'),
+    clashCup: byTitle('KB 14 Clash Cup'),
+    padelClash: byTitle('KB 14 Padel Clash'),
+    detail: async (id: string) => (await asUser(token, `/tournaments/${id}`)).body.data,
+  };
+}
+
+/**
+ * Wait for the Schedule tab to have finished loading.
+ *
+ * The tab paints its phase tabs, its EXPORT FIXTURES button and each group's
+ * header - including SELECT MATCH TO UPDATE - before the fixture cards arrive.
+ * A capture taken as soon as the group header is readable therefore catches an
+ * empty card. Gate on a fixture's own status chip instead, the same reasoning as
+ * `fixturesReady()` on the Results tab.
+ *
+ * `Incomplete` is included because a knockout fixture, and any fixture with an
+ * empty spot, never reads `Scheduled`.
+ */
+export async function scheduleReady(page: Page) {
+  // `.first()` goes on the OUTSIDE of the or: a schedule can hold both chips at
+  // once - KB 14 Clash Cup has a Scheduled group and an Incomplete one - and an
+  // or of two single locators then resolves to two elements and fails strictly.
+  await expect(
+    onScreen(page.getByText('Scheduled', { exact: true }))
+      .or(onScreen(page.getByText('Incomplete', { exact: true })))
+      .first(),
+  ).toBeVisible();
+  await expect(page.locator('.animate-pulse')).toHaveCount(0);
+}
+
+/**
+ * One group's or bracket's card on the Schedule tab.
+ *
+ * Pass the name as the DOM holds it - `Group A`, `Bracket C`. The tab renders it
+ * upper case, but that is a CSS text-transform: the accessible name is still the
+ * original casing, so `GROUP A` matches nothing.
+ *
+ * The card has no id, role or test id, and only a group's name is a real
+ * heading - a bracket's is a bare span. So the card is reached from the name
+ * text and the result is asserted to contain it, which fails loudly here rather
+ * than producing a screenshot of the wrong element.
+ */
+export async function scheduleCard(page: Page, name: string) {
+  const label = onScreen(page.getByText(name, { exact: true })).first();
+  // A group's card and a bracket's card are different components and round
+  // their corners differently - `rounded-[12px]` against `rounded-xl` - so both
+  // are accepted rather than writing two nearly identical helpers.
+  const card = label.locator(
+    'xpath=ancestor::div[contains(@class,"rounded-[12px]") or contains(@class,"rounded-xl")][1]',
+  );
+  await expect(card.getByText(name, { exact: true }).first()).toBeVisible();
+  return card;
+}
+
+/**
+ * The header strip of a group's or bracket's card: its name, SELECT MATCH TO
+ * UPDATE and BULK MATCH UPDATE.
+ *
+ * Worth having its own locator because the card itself is several screens tall
+ * on an eight-team group, and three articles want a shot of just these controls.
+ *
+ * The buttons render upper case through CSS, so their accessible names are the
+ * original casing - "Bulk Match Update", not "BULK MATCH UPDATE".
+ */
+export async function scheduleCardHeader(page: Page, name: string) {
+  const label = onScreen(page.getByText(name, { exact: true })).first();
+  const header = label.locator('xpath=ancestor::div[contains(@class,"border-b")][1]');
+  await expect(header.getByRole('button', { name: 'Bulk Match Update', exact: true })).toBeVisible();
+  return header;
+}
+
+/**
+ * One fixture's card, found by a team or pair name it shows.
+ *
+ * Same handle as collection 13's `matchCard`: the nearest ancestor carrying
+ * Tailwind's `group` marker class, which is the only stable hook on it.
+ */
+export async function fixtureCard(page: Page, teamName: string) {
+  const card = onScreen(page.getByText(teamName, { exact: true })).first()
+    .locator('xpath=ancestor::div[contains(concat(" ", @class, " "), " group ")][1]');
+  await expect(card.getByText(teamName, { exact: true })).toBeVisible();
+  return card;
+}
+
+/**
+ * Pick a time in the app's three-column time picker.
+ *
+ * The picker is hours 01-12, a colon, minutes 00-59 and AM/PM, all rendered as
+ * plain divs rather than options - so "09" is ambiguous between the hour column
+ * and the minute column and has to be addressed per column. The columns are the
+ * children of the picker's own flex row; index 0 is hours, 2 is minutes, 4 is
+ * AM/PM (1 is the colon and 3 is a spacer).
+ *
+ * `trigger` is the button that opens it - "Select time" in the bulk dialog, or a
+ * fixture card's own time.
+ */
+export async function pickTime(
+  page: Page, trigger: Locator, hour: string, minute: string, meridiem: 'AM' | 'PM',
+) {
+  await trigger.click();
+  const popper = onScreen(page.locator('[data-radix-popper-content-wrapper]')).first();
+  const columns = popper.locator('div.flex.items-start.justify-center > div');
+  await expect(columns).toHaveCount(5);
+  await columns.nth(0).getByText(hour, { exact: true }).click();
+  await columns.nth(2).getByText(minute, { exact: true }).click();
+  await popper.getByText(meridiem, { exact: true }).click();
+}
+
+/**
+ * Pick a date in the app's month calendar.
+ *
+ * The calendar opens on the current month, which is why any spec that uses it
+ * must freeze the clock first - otherwise `monthsForward` lands somewhere else
+ * next month. The two non-numeric buttons in the calendar are its previous and
+ * next month arrows; neither carries an accessible name.
+ */
+export async function pickDate(page: Page, trigger: Locator, monthsForward: number, day: string) {
+  await trigger.click();
+  const popper = onScreen(page.locator('[data-radix-popper-content-wrapper]')).first();
+  const nextMonth = popper.locator('button').filter({ hasNotText: /^\d+$/ }).last();
+  for (let i = 0; i < monthsForward; i += 1) {
+    await nextMonth.click();
+  }
+  await popper.getByText(day, { exact: true }).click();
+}
+
+/**
+ * The Bulk Match Updates dialog, opened from one group's or bracket's card.
+ *
+ * `BULK MATCH UPDATE` and `SELECT MATCH TO UPDATE` open the SAME dialog. The
+ * difference is what it is addressed to: the bulk button sends no match ids and
+ * updates every fixture in the group, the selection flow sends the ticked ones.
+ */
+export async function openBulkDialog(page: Page, card: Locator) {
+  await card.getByRole('button', { name: 'Bulk Match Update', exact: true }).click();
+  const dialog = openDialog(page);
+  await expect(dialog.getByText('Bulk Match Updates', { exact: true })).toBeVisible();
+  return dialog;
+}
+
+/**
+ * Untick "Same start time per round", which is what makes Duration and Time
+ * between matches editable.
+ *
+ * They are disabled while the box is ticked - `disabled: isSubmitting ||
+ * watch("sameStartTimePerRound")` in the bundle - and the box defaults to
+ * ticked. That is the whole subject of 14.3 and the cause 14.6 explains, so the
+ * assertions here are deliberately loud: if the default ever changes, every one
+ * of those articles is wrong and this fails first.
+ */
+export async function untickSameStartTime(dialog: Locator) {
+  const box = dialog.locator('[role="checkbox"]').first();
+  await expect(box).toHaveAttribute('data-state', 'checked');
+  await expect(dialog.locator('input[name="timeBetweenMatches"]')).toBeDisabled();
+  await box.click();
+  await expect(box).toHaveAttribute('data-state', 'unchecked');
+  await expect(dialog.locator('input[name="timeBetweenMatches"]')).toBeEnabled();
+  return box;
+}
+
+// Re-exported so a spec that changes a schedule can put it back with exactly the
+// values scripts/seed-14.mjs uses. See lib/fixtures-14.mjs for why they live in
+// one place.
+// @ts-ignore - plain JS module, no types
+export { LEAGUE_SCHEDULE, PADEL_CONFIG, restoreGroupSchedule, regeneratePadelSchedule } from './fixtures-14.mjs';

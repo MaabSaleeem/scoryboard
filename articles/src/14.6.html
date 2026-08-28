@@ -1,0 +1,47 @@
+<!-- title: Why two football fixtures clash, and fixtures showing only one team -->
+<!-- description: The two things that go wrong on a football fixture list, what causes each, and how to put them right. -->
+
+<p>Scoryboard does not warn you about either of these. Both are things you can see on the <strong>Schedule</strong> tab once you know what to look for.</p>
+
+<h2>Why fixtures clash</h2>
+
+<p>Two fixtures clash when they share a kick-off time and a pitch, or when one team is needed in both at once.</p>
+
+<ol>
+  <li>Open the tournament and select <strong>Schedule</strong>.</li>
+  <li>Read the kick-off times down the group. If they are all the same, every match is meant to start at once.
+    {{shot:01|A football group where all six fixtures kick off at 10:00 on pitch 1, with several teams appearing more than once.}}
+  </li>
+  <li>Select <strong>BULK MATCH UPDATE</strong> and look at <strong>Same start time per round</strong>. If it is ticked, that is the cause.
+    {{shot:02|The Bulk Match Updates dialog with Same start time per round ticked and outlined, and Duration and Time between matches greyed out above it.}}
+  </li>
+  <li>Clear the tick box. <strong>Duration</strong> and <strong>Time between matches</strong> become editable.</li>
+  <li>Set a duration and a gap, then select <strong>Update Matches</strong>.</li>
+</ol>
+
+<p>A football group has no rounds, so the whole group counts as one round. Leaving that box ticked puts every fixture on one kick-off time. It is ticked by default, and while it is ticked you cannot set a gap - which is why this is easy to do by accident.</p>
+
+<h2>Why a fixture shows only one team</h2>
+
+<p>A fixture with one team reads <strong>Away Team</strong> or <strong>Home Team</strong> on the empty side, and its status is <strong>Incomplete</strong> instead of <strong>Scheduled</strong>.</p>
+
+<ol>
+  <li>Find the fixture on <strong>Schedule</strong>.
+    {{shot:03|A fixture card reading KB 14 Storks versus Away Team, with the status Incomplete.}}
+  </li>
+  <li>Select <strong>Format</strong> and look at the group it belongs to. A free slot shows an <strong>Add Team</strong> row under the teams.
+    {{shot:04|The Group Phase card: Group A with four teams and no free slot, Group B with four teams and an Add Team row outlined below them.}}
+  </li>
+  <li>Either add the missing team, or open the group's <strong>Edit</strong> and lower its <strong>Number of teams</strong> to match.</li>
+</ol>
+
+<p>The group has more slots than teams. Every fixture the empty slot is drawn into has nobody on one side. Filling the slot or lowering the count rebuilds the group's fixtures.</p>
+
+<h2>If it does not work</h2>
+
+<ul>
+  <li><strong>The times are fine but two groups overlap.</strong> Each group is scheduled on its own. Re-time the second group to start after the first.</li>
+  <li><strong>Two matches share a time on purpose.</strong> If you have more than one pitch, set a <strong>Pitch number</strong> on each so it is clear they are not on the same one.</li>
+  <li><strong>Lowering the team count deleted results.</strong> Changing a group's size rebuilds its fixtures. Do it before any match is played.</li>
+  <li><strong>This is a padel tournament.</strong> Matches sharing a start time is normal there - see "Why padel matches share a start time, and when that is a clash".</li>
+</ul>

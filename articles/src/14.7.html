@@ -1,0 +1,47 @@
+<!-- title: Why padel matches share a start time, and when that is a clash -->
+<!-- description: A shared kick-off is what a round is. It is only a problem when the matches also share a court. -->
+
+<p>In a padel tournament, matches that start at the same time are normal. That is what a <strong>round</strong> is: every pair plays at once, on a court of its own.</p>
+
+<h2>When it is fine</h2>
+
+<ol>
+  <li>Open the tournament and select <strong>Schedule</strong>.</li>
+  <li>Read one round. Both matches have the same kick-off time.
+    {{shot:01|Round 1 with two fixtures, both at 10:00, one on court 1 and one on court 2.}}
+  </li>
+  <li>Read the court on each. Different courts mean nothing is wrong.
+    {{shot:02|A padel fixture card with its court number outlined, reading 2.}}
+  </li>
+</ol>
+
+<p>Scoryboard gives each match in a round its own court, counting up from 1. Two pairs at 10:00 on courts 1 and 2 is the fixture list working correctly.</p>
+
+<h2>When it is a clash</h2>
+
+<p>It is a clash when two matches share a start time <strong>and</strong> a court number. Two pairs cannot use one court at once.</p>
+
+<ol>
+  <li>Look down the court column. If every match reads the same court, they have all been written to it.
+    {{shot:03|A padel group where all eight matches kick off at 10:00 and every one is on court 1.}}
+  </li>
+  <li>Select <strong>Format</strong>, then <strong>Configuration</strong>, and check <strong>Courts</strong>.
+    {{shot:04|The Padel Configuration dialog with the Courts field outlined, set to 4.}}
+  </li>
+  <li>Save the configuration to rebuild the fixtures. Each match in a round gets its own court again.</li>
+</ol>
+
+<h2>What causes it</h2>
+
+<p>Only one thing does: a <strong>Court number</strong> typed into <strong>BULK MATCH UPDATE</strong>. That field writes the same court to every match it touches. Leave it empty unless the whole group really is on one court.</p>
+
+<p>The fixture generator will never double-book a court on its own. Lower <strong>Courts</strong> to 1 and it splits the round across two start times instead of putting both matches on court 1.</p>
+
+<h2>If it does not work</h2>
+
+<ul>
+  <li><strong>Every match is on court 1.</strong> Clear the court number and rebuild the fixtures by saving Padel Configuration.</li>
+  <li><strong>You have more courts than the rounds use.</strong> A round can only hold as many matches as there are pairs to play them. Four pairs make two matches, so only two courts are used.</li>
+  <li><strong>The rounds have become a flat list.</strong> <strong>Same start time per round</strong> was cleared in a bulk update. Tick it and update the group again.</li>
+  <li><strong>This is a football tournament.</strong> There, matches sharing a time is a genuine clash - see "Why two football fixtures clash, and fixtures showing only one team".</li>
+</ul>

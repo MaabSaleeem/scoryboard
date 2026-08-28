@@ -1,0 +1,54 @@
+<!-- title: Bulk-scheduling padel rounds, courts and the gap between rounds -->
+<!-- description: Re-timing a padel group without breaking its rounds, setting a court, and where the round gap actually lives. -->
+
+<p>Padel uses the same <strong>Bulk Match Updates</strong> dialog as football, with one field renamed. Only the tournament <strong>Owner</strong> and an <strong>Administrator</strong> can use it; everyone else sees the read-only public page.</p>
+
+<h2>Before you start</h2>
+
+<p>The three things this article covers are in two different places. Rounds and courts are in the bulk dialog. <strong>The gap between rounds is not</strong> - it is in <strong>Padel Configuration</strong> on the <strong>Format</strong> tab.</p>
+
+<h2>Re-timing the rounds</h2>
+
+<ol>
+  <li>Open the tournament, select <strong>Schedule</strong>, and select <strong>BULK MATCH UPDATE</strong> on the group.</li>
+  <li>Find <strong>Court number</strong>. This is the one field that differs from football, which calls it Pitch number.
+    {{shot:01|The Bulk Match Updates dialog on a padel tournament, with the Court number field outlined.}}
+  </li>
+  <li>Leave <strong>Same start time per round</strong> ticked. It is what keeps the matches of a round starting together.
+    {{shot:02|The Same start time per round tick box outlined, ticked, with its explanation below it.}}
+  </li>
+  <li>Set the <strong>Match date</strong> and the <strong>First match start time</strong>.
+    {{shot:03|The dialog filled in with 17-10-2026 and 09:00 AM.}}
+  </li>
+  <li>Select <strong>Update Matches</strong>. The rounds keep their shape and move to the new time.
+    {{shot:04|The four rounds after the update, each with two matches on courts 1 and 2.}}
+  </li>
+</ol>
+
+<h2>Setting a court</h2>
+
+<p><strong>Court number</strong> writes one court across every match it touches. Leave it empty to keep the courts Scoryboard assigned, which give each match in a round its own court.</p>
+
+<p>Fill it in only when the whole group really is on one court. Doing it by mistake puts every match of a round on the same court at the same time - see "Why padel matches share a start time, and when that is a clash".</p>
+
+<h2>Changing the gap between rounds</h2>
+
+<ol>
+  <li>Select <strong>Format</strong>, then <strong>Configuration</strong>.</li>
+  <li>Change <strong>Gap between rounds (minutes)</strong>.
+    {{shot:05|The Padel Configuration dialog with Gap between rounds (minutes) outlined, set to 10.}}
+  </li>
+  <li>Select <strong>Save</strong> and confirm. Saving rebuilds the fixtures with the new gap.</li>
+</ol>
+
+<p>The step from one round to the next is the match duration plus this number. With 10-minute matches and a 10-minute gap, rounds are 20 minutes apart.</p>
+
+<h2>If it does not work</h2>
+
+<ul>
+  <li><strong>Time between matches is greyed out.</strong> That is expected while <strong>Same start time per round</strong> is ticked. The round gap is in Padel Configuration, not here.</li>
+  <li><strong>The rounds have turned into a flat list.</strong> The tick box was cleared. Tick it and update the group again.</li>
+  <li><strong>Every match is now on court 1.</strong> A court number was set in the bulk dialog. Clear it and rebuild the fixtures from Padel Configuration.</li>
+  <li><strong>Saving the configuration lost your times.</strong> It rebuilds the fixtures. Re-time the group afterwards.</li>
+  <li><strong>You cannot type in a number field.</strong> Use the up and down arrows in the field instead.</li>
+</ul>

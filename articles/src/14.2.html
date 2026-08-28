@@ -1,0 +1,47 @@
+<!-- title: How the fixture list is generated for a padel tournament -->
+<!-- description: Why padel fixtures are grouped into rounds, why matches in a round start together, and where the court number comes from. -->
+
+<p>A padel fixture list is built in <strong>rounds</strong>, not in a single sequence. Matches in one round start together, on different courts.</p>
+
+<h2>Where the fixtures are</h2>
+
+<ol>
+  <li>Open the tournament and select <strong>Schedule</strong>.
+    {{shot:01|The Schedule tab of a padel tournament, showing Round 1 to Round 4.}}
+  </li>
+  <li>Read the list. Each round has its own heading.
+    {{shot:02|The Group A card with four rounds, kicking off at 10:00, 10:20, 10:40 and 11:00.}}
+  </li>
+  <li>Read one round. Both its matches have the same kick-off time.
+    {{shot:03|Round 1 with two fixtures, both at 10:00, one on court 1 and one on court 2.}}
+  </li>
+  <li>Read one fixture. The third cell is the <strong>court</strong>.
+    {{shot:04|One padel fixture card with its court number outlined.}}
+  </li>
+  <li>Read <strong>Rules and regulations</strong> below the list. It explains how the pairs are drawn.
+    {{shot:05|The Swiss rules panel, listing seven rules about fixed teams, a set number of rounds and pairing by ranking.}}
+  </li>
+</ol>
+
+<h2>How the times are worked out</h2>
+
+<ul>
+  <li>Every match in a round shares one kick-off time.</li>
+  <li>The next round starts a <strong>match duration</strong> plus a <strong>gap between rounds</strong> later. With 10-minute matches and a 10-minute gap, the rounds are 20 minutes apart.</li>
+  <li>The gap is set in <strong>Format</strong> &gt; <strong>Configuration</strong>. See "Bulk-scheduling padel rounds, courts and the gap between rounds".</li>
+</ul>
+
+<h2>How the courts are chosen</h2>
+
+<p>Scoryboard gives each match in a round its own court, counting up from 1. Four pairs make two matches per round, so only courts 1 and 2 are used even when the tournament has four.</p>
+
+<p>The number of courts is what limits how many matches a round can hold. Set it lower and the round is split across two start times instead - Scoryboard will not put two matches on one court at once.</p>
+
+<h2>If it does not work</h2>
+
+<ul>
+  <li><strong>There are no fixtures.</strong> The format has not been saved yet. See "Choosing a format for a padel tournament".</li>
+  <li><strong>Two matches share a start time.</strong> That is what a round is. It is only a problem if they also share a court - see "Why padel matches share a start time, and when that is a clash".</li>
+  <li><strong>You see a flat list instead of rounds.</strong> A bulk update has turned the rounds off. Tick <strong>Same start time per round</strong> and update the group again.</li>
+  <li><strong>You expected a pitch, not a court.</strong> Pitch is the football wording - see "How the fixture list is generated for a football tournament".</li>
+</ul>
