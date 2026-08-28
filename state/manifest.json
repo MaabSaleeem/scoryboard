@@ -63,6 +63,25 @@
       ],
       "published_at": "2026-08-28T09:28:55.000Z",
       "status": "published"
+    },
+    "12.3": {
+      "intercom_id": "16733190",
+      "collection": "12",
+      "intercom_collection_id": "19733981",
+      "brief": "briefs/12.md",
+      "spec": "specs/12/12.3.spec.ts",
+      "commit_sha": "c5fae3a0fa70221c50602f908eef8b7d54f9de07",
+      "screenshots": [
+        "screenshots/12/12.3/01-start-date-field.207b2dae.png",
+        "screenshots/12/12.3/02-start-date-picker-open.8b2bf3f3.png",
+        "screenshots/12/12.3/03-kick-off-time-picker.f09f2593.png",
+        "screenshots/12/12.3/04-venue-picker-saved-venues.0b8ff9d1.png",
+        "screenshots/12/12.3/05-add-venue-form-blank.17b5c2b0.png",
+        "screenshots/12/12.3/06-add-venue-form-filled.3fcee56e.png",
+        "screenshots/12/12.3/07-teams-are-added-on-the-board.27098b3b.png"
+      ],
+      "published_at": "2026-08-28T09:32:04.000Z",
+      "status": "published"
     }
   }
 }

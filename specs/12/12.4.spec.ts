@@ -7,7 +7,7 @@
 // already configured as Round Robin, 2 groups of 4, one encounter.
 
 import { test, expect } from '@playwright/test';
-import { signIn, quiet, shot, fixtures, headerIdentity, onScreen } from '../../lib/kb';
+import { signIn, quiet, shot, fixtures, headerIdentity, onScreen, centre } from '../../lib/kb';
 
 test.describe('12.4 Choosing a format', () => {
   test('templates, groups, teams per group and encounters', async ({ page }) => {
@@ -38,6 +38,10 @@ test.describe('12.4 Choosing a format', () => {
     // on :visible picks the one actually on screen.
     const groupCount = page.locator('input[placeholder="Select number of groups"]:visible');
     await groupCount.fill('2');
+    // The three format fields sit below the template cards. Without centring
+    // them they land flush against the bottom edge and the annotation outline is
+    // cut off by the viewport.
+    await centre(groupCount);
     await shot(page, '12.4', '03-how-many-groups', {
       mask: [headerIdentity(page)],
       annotate: groupCount,
@@ -45,6 +49,7 @@ test.describe('12.4 Choosing a format', () => {
 
     const teamsPerGroup = page.locator('input[placeholder="Select teams per group"]:visible');
     await teamsPerGroup.fill('4');
+    await centre(teamsPerGroup);
     await shot(page, '12.4', '04-teams-in-each-group', {
       mask: [headerIdentity(page)],
       annotate: teamsPerGroup,
@@ -57,6 +62,9 @@ test.describe('12.4 Choosing a format', () => {
     // teams per group are set, it fills itself in with the default encounter and
     // the placeholder is gone. On this format it is the only combobox on screen.
     const encounters = page.locator('[role="combobox"]:visible').first();
+    // Centre before opening: the option list is portalled and positioned once,
+    // so scrolling afterwards would leave it detached from its trigger.
+    await centre(encounters);
     await encounters.click();
     // Assert the list opened, not one label: "Play all teams in pool once" is
     // both the first option and the selected value, so matching on it is
@@ -68,6 +76,7 @@ test.describe('12.4 Choosing a format', () => {
     const overflow = onScreen(
       page.getByText('Automatically schedule overflow matches on the next day'),
     ).first();
+    await centre(overflow);
     await shot(page, '12.4', '06-overflow-matches-toggle', {
       mask: [headerIdentity(page)],
       annotate: overflow,
@@ -81,6 +90,7 @@ test.describe('12.4 Choosing a format', () => {
     await knockoutOnly.click();
     await expect(knockoutTeams).toBeVisible();
     await expect(page.locator('input[name="groupCount"]:visible')).toHaveCount(0);
+    await centre(knockoutTeams);
     await shot(page, '12.4', '07-knockout-phase-only', {
       mask: [headerIdentity(page)],
       annotate: knockoutOnly,
@@ -90,6 +100,10 @@ test.describe('12.4 Choosing a format', () => {
     await groupAndKnockout.click();
     await expect(page.locator('input[name="groupCount"]:visible')).toBeVisible();
     await expect(knockoutTeams).toBeVisible();
+    // Centre the first field rather than the knockout one: this format shows two
+    // rows of fields, and centring the lower row pushes the annotated card off
+    // the top of the viewport.
+    await centre(page.locator('input[name="groupCount"]:visible'));
     await shot(page, '12.4', '08-group-and-knockout', {
       mask: [headerIdentity(page)],
       annotate: groupAndKnockout,

@@ -95,6 +95,22 @@ export async function freezeClock(page: Page) {
   await page.clock.setFixedTime(FROZEN_NOW);
 }
 
+/**
+ * Scroll `target` to the middle of the viewport.
+ *
+ * scrollIntoViewIfNeeded only moves an element just far enough to be technically
+ * in view, which on these pages leaves it flush against the bottom edge with its
+ * annotation outline half cut off. Centring gives the capture room around the
+ * subject.
+ *
+ * Call it before opening a popover, never after: the popovers here are portalled
+ * and positioned once, so scrolling the page underneath them leaves them
+ * pointing at the wrong place.
+ */
+export async function centre(target: Locator) {
+  await target.evaluate((el) => el.scrollIntoView({ block: 'center', behavior: 'instant' }));
+}
+
 /** Wait for a tournament board tab to be the selected one. */
 export async function openBoardTab(page: Page, tab: string) {
   await page.getByRole('button', { name: tab, exact: true }).click();
