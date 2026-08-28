@@ -100,6 +100,85 @@ most of step 1.
 | POST | `/users/verify-email/resend` | Resend the OTP | - |
 | POST | `/users/verify-email` | Submit the OTP | `otp` |
 
+**(observed in app, 2026-08-28)** The code is six digits and arrives by email, from
+`noreply@scoryboard.com`, subject "Your ScoryBoard verification code". Nothing
+returns it over the API, so a script that needs it has to read the inbox -
+`lib/mail.mjs` does. `/users/verify-email/request` is fired by the app itself at
+the end of the Personal information step, not by the code screen.
+
+### Signing up - what the app actually calls
+
+**(observed in app, 2026-08-28.)** Creating an account is three calls across two
+systems, and the Scoryboard user does not exist until the second one.
+
+| Step | Screen | Call |
+|---|---|---|
+| 1 | `/signup` | `POST identitytoolkit accounts:signUp` with `email`, `password`, `returnSecureToken`. Creates the **Firebase** user only |
+| 2 | `/personalInfo` | `POST /users` with `name`, `lastName`, `email`, `gender`, `sports[]`, `position`, `isMarketingOpted`. Creates the **Scoryboard** user, its player, and two teams |
+| 3 | `/personalInfo` | `POST /users/verify-email/request`, fired straight after step 2 when Firebase says the address is unverified |
+| 4 | `/email-verification` | `POST /users/verify-email` with the six-digit `otp` |
+
+Consequences worth knowing before seeding anything:
+
+- **Between steps 1 and 2 the account has no Scoryboard row.**
+  `POST /admins/generate-signin-token` answers `404 "User not found or unable to
+  generate token"` for it, so `mintSession` cannot reach it and
+  `DELETE /admins/user-delete/:id` has no id to take. Delete it through Firebase
+  instead: `accounts:signInWithPassword` then `accounts:delete`. `lib/api.mjs`
+  does both in `deleteAccount()`.
+- **`POST /users` creates two teams**, named from the account: `Fresh K FC` and
+  `Fresh K FC Away` for Fresh KB. A brand-new account is therefore never
+  team-less.
+- **`POST /admins/users` is not the same account.** It also creates
+  `<Name>'s leaderboard`, and a Free account may hold exactly one leaderboard -
+  so an admin-created account can never reach the create-leaderboard form. It
+  also leaves `gender`, `sports` and `position` empty, which a real signup always
+  fills in.
+- **`DELETE /admins/user-delete/:id` removes the Firebase user too.** It answers
+  `"User account deleted successfully and email anonymized"`, the password stops
+  working, and the address on any team-player row the account left behind is
+  rewritten to `<id>@scoryboard.com`.
+- **`POST /users/reset-password` answers 200 for an address with no Firebase
+  user, and sends nothing.** A person invited to a team by email is in exactly
+  that state: they have a player row, not an account. The app still shows them
+  "Check Your Email". Confirmed by watching the inbox - the invitation arrived,
+  the reset never did.
+
+### Onboarding routes, and the guard that orders them
+
+**(observed in app, 2026-08-28.)** Read out of the app's own route enum and its
+auth guard, then walked end to end.
+
+| Route | Screen | Reachable when |
+|---|---|---|
+| `/signup` | Create your account | signed out |
+| `/signin` | Sign in to Scoryboard | signed out. `?token=<jwt>` pre-fills the address - that is what a team invitation link opens |
+| `/personalInfo` | **Step 1** Personal information | Firebase user exists and `playerId` does **not**. Once `POST /users` has run, the guard sends you to `/email-verification` and you can never see this screen again |
+| `/email-verification` | the six-digit code | `isEmailVerified === false`. Once verified, the guard sends you on to `/createLeaderboard` |
+| `/padel-level` | Padel self-rating | `sports` includes Padel and `rating7` is null. `?padelSkip=true` skips it |
+| `/createLeaderboard` | Create Leaderboard | any time. `POST /leaderboards`, then pushes `/setupYourTeam` |
+| `/setupYourTeam` | **Step 3** Set up your team | any time. Join -> `/team/join`, Setup -> `/match/create`, Skip -> `/` |
+| `/selectClubLocation` | **Step 4** Select Club Location | any time by URL, but **nothing navigates to it** - the route name appears once in the bundle, in the enum that defines it |
+| `/checkEmail`, `/resetPassword` | the password-reset pair | signed out or in; both are on the guard's allow-list |
+| `/passwordUpdated` | "Password updated!" | never seen: `Reset Password` signs you in and lands on `/` |
+
+The wizard's step labels are `Step 1`, `Step 3` and `Step 4` on screen. There is
+no screen labelled Step 2, and the message catalogue defines `step1` to `step6`.
+
+### Firebase auth messages the app shows
+
+**(observed in app, 2026-08-28.)** Read off the bundle's error map and confirmed
+on screen. Worth having written down because the first two are the same message:
+
+| What the reader did | On screen |
+|---|---|
+| wrong password | `The credential is invalid or has expired.` |
+| address with no account, or a deleted one | `The credential is invalid or has expired.` |
+| address that is not an address | `Email must be valid.` (client-side, before Firebase) |
+| signed up with an address already in use | `This email is already in use. Please use a different one.` |
+| signed up with a password under six characters | `Password must be at least 6 characters` (client-side) |
+| account disabled in Firebase | `This user account has been disabled.` - no endpoint reaches this state, so it cannot be produced on staging |
+
 ## Friends
 
 | Method | Path | For | Body / notes |

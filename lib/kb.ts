@@ -684,3 +684,356 @@ export async function untickSameStartTime(dialog: Locator) {
 // one place.
 // @ts-ignore - plain JS module, no types
 export { LEAGUE_SCHEDULE, PADEL_CONFIG, restoreGroupSchedule, regeneratePadelSchedule } from './fixtures-14.mjs';
+
+// --- collection 01: getting started and onboarding --------------------------
+
+// @ts-ignore - plain JS module, no types
+import { firebaseSignUp, firebaseSetPassword, deleteAccount } from './api.mjs';
+// @ts-ignore - plain JS module, no types
+import { ACCOUNTS as KB01, PASSWORD as KB01_PASSWORD, PERSONAL_INFO as KB01_INFO, INVITE as KB01_INVITE } from './fixtures-01.mjs';
+// @ts-ignore - plain JS module, no types
+import { verificationCode, passwordResetLink, firstLink, emptyInbox } from './mail.mjs';
+
+export { KB01, KB01_PASSWORD, KB01_INFO, KB01_INVITE, firebaseSignUp, firebaseSetPassword, deleteAccount };
+export { verificationCode, passwordResetLink, firstLink, emptyInbox };
+
+/**
+ * Stop the home page's promotional campaign from reaching the browser.
+ *
+ * `GET /promo-campaigns/active?screen=Home` returns whatever campaign is
+ * running - "Summer competition" today, something else next month - and it
+ * renders as a full-width banner that pushes the page down. It is not part of
+ * any collection-01 screen, and collection 02.5 is the article about it.
+ *
+ * Blocked rather than dismissed: the dismiss control writes the dismissal to
+ * the account, which would make the first run of a spec differ from the second.
+ *
+ * Call before the first navigation - a route added after the fetch has gone out
+ * does nothing.
+ */
+export async function blockPromos(page: Page) {
+  await page.route('**/promo-campaigns/active**', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ status: 'OK', data: null }),
+    }),
+  );
+}
+
+/**
+ * Sign in the way the article tells the reader to: the form, with a password.
+ *
+ * Not signInAs(), which uses a minted token. Two reasons. The password path is
+ * what 01.2 documents. And the token path leaves Firebase's `providerData`
+ * empty, which makes Profile settings replace Change Password with "You signed
+ * in with Unknown" - a screen no reader ever sees.
+ */
+export async function signInWithPassword(page: Page, email: string, to?: string) {
+  if (!KB01_PASSWORD) throw new Error('KB01_PASSWORD missing from .env - see .env.example');
+  await page.goto('/signin');
+  await page.getByPlaceholder('Email').fill(email);
+  await page.getByPlaceholder('Password').fill(KB01_PASSWORD as string);
+  await page.getByRole('button', { name: 'Login', exact: true }).click();
+  await page.waitForURL((u) => !u.pathname.startsWith('/signin'), { timeout: 40_000 });
+
+  // Prove the session on the home page, then go wherever the spec asked. The
+  // wizard screens - Create Leaderboard, Set up your team - render without the
+  // sidebar, so the session cannot be proved on them.
+  await page.goto('/');
+  await expect(page.locator('a[href="/teams"]').first()).toBeVisible();
+  if (to && to !== '/') await page.goto(to);
+}
+
+/**
+ * Everything collection 01 needs off-screen before a capture.
+ *
+ * quiet() covers the messenger and the animations; this adds the two things
+ * that are specific to these screens. The TRENDING feed on the home page is
+ * global activity - other people's teams and other collections' tournaments -
+ * so no capture may include it (docs/style-guide.md: never another persona's
+ * data). It is hidden rather than masked, because a black block the height of
+ * the page is not a screenshot anybody can read.
+ */
+export async function quiet01(page: Page) {
+  await quiet(page);
+  await page.addStyleTag({
+    content: `
+      [class*="promo"], #kb-trending-hidden { display: none !important; }
+    `,
+  });
+  const trending = page.getByText('TRENDING', { exact: true });
+  if (await trending.count()) {
+    await trending.first().evaluate((el) => {
+      const panel = el.closest('div');
+      if (panel) (panel as HTMLElement).style.visibility = 'hidden';
+    });
+  }
+}
+
+/** The fresh persona's Scoryboard user, with a token, looked up by address. */
+export async function fresh01() {
+  const session = await mintSession(KB01.fresh);
+  const token: string = session.idToken;
+  const me = (await asUser(token, '/users/me')).body?.data;
+  if (!me?.playerId) {
+    throw new Error(`${KB01.fresh} is not seeded. Run: node scripts/seed-01.mjs`);
+  }
+  return { email: KB01.fresh as string, token, me };
+}
+
+/**
+ * Put the fresh persona back the way scripts/seed-01.mjs leaves it.
+ *
+ * 01.5 creates a team and a leaderboard on purpose, and a Free account may hold
+ * exactly one leaderboard - so a run that did not clean up would make the next
+ * one open "Leaderboard Limit Reached" instead of the create form. Called at the
+ * START of that spec as well as the end, because the state a crashed run leaves
+ * behind is exactly what has to be cleared.
+ *
+ * Only touches names beginning "KB 01". The two teams the account was born with
+ * are not ours to delete.
+ */
+export async function restoreFresh01(token: string) {
+  const teams = (await asUser(token, '/teams?all=true')).body?.data ?? [];
+  for (const t of teams.filter((x: any) => x.name.startsWith('KB 01'))) {
+    await asUser(token, `/teams/${t.teamId}`, { method: 'DELETE' });
+  }
+  const boards = (await asUser(token, '/leaderboards')).body?.data ?? [];
+  for (const l of boards) {
+    await asUser(token, `/leaderboards/${l.id}`, { method: 'DELETE' });
+  }
+}
+
+/**
+ * Recreate the account 01.7 deletes.
+ *
+ * POST /admins/users on purpose: 01.7 photographs the delete panel, its confirm
+ * dialog and the signed-out screen that follows, and none of those show the
+ * profile fields that make an admin-created account differ from a reader's.
+ * Rebuilding it the real way would put an inbox read inside a capture spec.
+ */
+export async function recreateDoomed01() {
+  const r = await admin('/admins/users', {
+    method: 'POST',
+    body: { name: 'Dee', lastName: 'KB', email: KB01.doomed },
+  });
+  // 409 "User with this email already exists" is the normal answer when the
+  // account is still there - which it is at the start of the run, before the
+  // spec deletes it. Only a real failure should stop the spec.
+  if (!r.ok && r.status !== 409) {
+    throw new Error(`Could not rebuild ${KB01.doomed}: ${r.status} ${JSON.stringify(r.body)}`);
+  }
+  return r;
+}
+
+/**
+ * Fill the wizard's Personal information step.
+ *
+ * Every control on it is a Radix combobox with a hidden <select> beside it, so
+ * the option has to be picked from the open list rather than set on the select.
+ * Sports is a multi-select and stays open after a choice - hence the Escape.
+ */
+export async function fillPersonalInfo(
+  page: Page,
+  info: { name: string; lastName: string; gender: string; sports: string[]; position: string },
+) {
+  await page.locator('input[name="name"]').fill(info.name);
+  await page.locator('input[name="lastName"]').fill(info.lastName);
+  await pickFromList(page, 'Gender *', info.gender);
+  for (const sport of info.sports) await pickFromList(page, 'Sports *', sport);
+  await page.keyboard.press('Escape');
+  await pickFromList(page, 'Preferred position *', info.position);
+}
+
+/** Open the combobox that follows `label` and choose `value` from it. */
+export async function pickFromList(page: Page, label: string, value: string) {
+  await page.locator('label', { hasText: label }).locator('xpath=following-sibling::button[1]').click();
+  await page.getByRole('option', { name: value, exact: true }).click();
+}
+
+/**
+ * The countdown on the verification screen.
+ *
+ * It reads "Didn't receive an email? 00:57" and ticks every second, so it is
+ * masked in every capture that includes it. Once it reaches zero the digits are
+ * replaced by a Resend link, which is stable and is not masked.
+ */
+export function resendCountdown(page: Page) {
+  return page.getByText(/^\d\d:\d\d$/).first();
+}
+
+/**
+ * The bordered card the signed-out and wizard screens are drawn inside.
+ *
+ * Personal information and Create Leaderboard are both taller than the 900px
+ * viewport, and a full-page capture of either comes out wrong: the app's header
+ * is `position: sticky`, so Playwright stitches it into the MIDDLE of the image,
+ * on top of the First name field. Clipping to the card avoids the stitch
+ * entirely and frames the step rather than the browser.
+ *
+ * The card is the only element on these screens with a rounded 20px border, and
+ * it is asserted to contain the heading so a DOM change fails here rather than
+ * producing a screenshot of the wrong box.
+ */
+export async function authCard(page: Page, heading: string) {
+  // Matched on the class attribute rather than as a CSS class: Tailwind's
+  // arbitrary-value classes carry brackets, and `div.rounded-\[20px\]` needs
+  // escaping that does not survive a JavaScript string. Collection 14 reaches
+  // its schedule cards the same way.
+  const card = page.locator('div[class*="rounded-[20px]"]').first();
+  await expect(card.getByText(heading, { exact: true }).first()).toBeVisible();
+  return card;
+}
+
+/**
+ * Stop the app's header floating over a clipped capture.
+ *
+ * The header is `position: sticky`, so on any screen taller than the viewport it
+ * paints itself over whatever is scrolled underneath - including the top of the
+ * card a clipped capture is aimed at. The first run of 01.1 lost the "Step 1"
+ * label to it.
+ *
+ * Sticky elements already occupy their space in normal flow, so switching to
+ * static moves nothing. Call it after quiet01(), before a tall capture.
+ */
+export async function unstickHeader(page: Page) {
+  await page.addStyleTag({ content: 'header { position: static !important; }' });
+}
+
+/**
+ * The profile header at the top of the home page: banner, avatar, name,
+ * position and the Followers / Following / Leaderboard / Views counters.
+ *
+ * Two articles want a picture of "you are signed in", and the home page below
+ * this block carries a TRENDING feed of everybody else's activity - other
+ * people's teams, other collections' tournaments - which no capture may show.
+ * Clipping here is simpler and safer than masking a column.
+ *
+ * Reached from the Followers counter, because the block itself has no id, role
+ * or heading. The result is asserted to hold the counter, so a DOM change fails
+ * here rather than producing a screenshot of the wrong box.
+ */
+export async function profileHeader(page: Page) {
+  const counter = onScreen(page.getByText('Followers', { exact: true })).first();
+  const header = counter.locator(
+    'xpath=ancestor::div[contains(@class,"bg-white") and contains(@class,"border-b")][1]',
+  );
+  await expect(header.getByText('Followers', { exact: true }).first()).toBeVisible();
+  return header;
+}
+
+/**
+ * "Joined Since August 2026" in the profile header.
+ *
+ * The account's own join date, so it does not drift between runs - but it does
+ * change whenever the seed has to rebuild the persona, and it is not what either
+ * capture that includes it is about. docs/style-guide.md: mask absolute dates
+ * that are not the point of the screenshot.
+ */
+export function joinedSince(page: Page) {
+  return onScreen(page.getByText(/^Joined Since /)).first();
+}
+
+/**
+ * The block at the top of the sidebar: your name and address, Edit User Profile
+ * with its "Complete your profile (n)" warning, and Sign out.
+ *
+ * Collapsed until you select your name, which is step 1 of 01.6. Reached from
+ * the warning line, because that is the only text in the block that appears
+ * nowhere else - "Edit User Profile" is also the page heading of Profile
+ * settings, and matching it picks the heading first.
+ */
+export async function sidebarUserBlock(page: Page) {
+  const warning = onScreen(page.getByText(/^Complete your profile \(/)).first();
+  await expect(warning).toBeVisible();
+  const block = warning.locator('xpath=ancestor::div[contains(@class,"border-y")][1]');
+  await expect(block.getByText('Sign out', { exact: true })).toBeVisible();
+  return block;
+}
+
+/** The "Complete your profile (n)" line itself, for the annotation. */
+export function profileChecklistLine(page: Page) {
+  return onScreen(page.getByText(/^Complete your profile \(/)).first();
+}
+
+/**
+ * One labelled row of Profile settings - "Personal Details", "My Bio",
+ * "Change Password" - as a clip: the label column on the left and its fields on
+ * the right.
+ *
+ * The page is 2800px tall and nothing on it has an id, so each row is reached
+ * from its own heading. The result is asserted to still contain that heading.
+ */
+export async function settingsRow(page: Page, label: string) {
+  const heading = onScreen(page.getByText(label, { exact: true })).first();
+  const row = heading.locator('xpath=ancestor::div[contains(@class,"lg:flex-row")][1]');
+  await expect(row.getByText(label, { exact: true }).first()).toBeVisible();
+  return row;
+}
+
+/**
+ * "Created on 28/08/2026" on a leaderboard card.
+ *
+ * Today's date, so it differs on every run. Masked wherever it appears - the
+ * card's subject is the leaderboard, not the day it was made.
+ */
+export function createdOn(page: Page) {
+  return onScreen(page.getByText(/^Created on /)).first();
+}
+
+/**
+ * Build an account in the state a reader is in the moment their email is
+ * verified: verified, with a password, with Step 1's fields filled in, and with
+ * no leaderboard.
+ *
+ * This is scripts/seed-01.mjs's own recipe, in a form a spec can call. 01.4
+ * needs it because the wizard cannot be walked end to end in one pass: Step 1
+ * and the code screen are only visible on an account that has never been
+ * verified, and Create Leaderboard and Step 3 only open once it has. Nothing
+ * returns the six-digit code over the API, and the inbox is not something a
+ * capture may depend on - so the spec photographs the first half on a real
+ * signup, then rebuilds the same address on the far side of verification and
+ * photographs the rest.
+ *
+ * Deletes whatever is at the address first, so it is safe to call at any point.
+ */
+export async function rebuildVerified01(
+  email: string,
+  info: { name: string; lastName: string; gender: string; sports: string[]; position: string },
+) {
+  await deleteAccount(email, KB01_PASSWORD);
+
+  const made = await admin('/admins/users', {
+    method: 'POST', body: { name: info.name, lastName: info.lastName, email },
+  });
+  if (!made.ok) throw new Error(`POST /admins/users ${email}: ${JSON.stringify(made.body)}`);
+
+  let session = await mintSession(email);
+  // A password change revokes every token Firebase has issued, so the session
+  // has to be minted again afterwards.
+  const set = await firebaseSetPassword(session.idToken, KB01_PASSWORD);
+  if (!set.ok) throw new Error(`accounts:update ${email}: ${JSON.stringify(set.body)}`);
+  session = await mintSession(email);
+
+  const me = (await asUser(session.idToken, '/users/me')).body?.data;
+  await asUser(session.idToken, `/users/${me.id}`, {
+    method: 'PUT',
+    body: {
+      name: info.name,
+      lastName: info.lastName,
+      gender: info.gender,
+      sports: info.sports,
+      position: info.position,
+      isMarketingOpted: false,
+    },
+  });
+
+  // POST /admins/users makes "<Name>'s leaderboard". A reader who has just
+  // verified their email has none, and Create Leaderboard is the next screen
+  // they see - so it has to go.
+  for (const board of (await asUser(session.idToken, '/leaderboards')).body?.data ?? []) {
+    await asUser(session.idToken, `/leaderboards/${board.id}`, { method: 'DELETE' });
+  }
+  return { token: session.idToken as string, me };
+}
