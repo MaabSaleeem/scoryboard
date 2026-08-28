@@ -140,9 +140,40 @@ async function ensureTournament(title, startDate) {
   return res.body.data.id;
 }
 
+// Padel needs three fields Football does not: playMode, padelEnrollmentType and
+// isFriendlyTournament. Observed on the wire 2026-08-28 from the create modal.
+async function ensurePadelTournament(title, startDate) {
+  const found = existing.find((t) => t.title === title);
+  if (found) {
+    const id = found._id ?? found.id;
+    note('GET', '/tournaments', 200, `${title} exists ${id}`);
+    return id;
+  }
+  const res = await asUser(T, '/tournaments', {
+    method: 'POST',
+    body: {
+      title,
+      gameType: 'Padel',
+      playMode: 'Score',
+      padelEnrollmentType: 'Doubles',
+      isFriendlyTournament: false,
+      startDate,
+      duration: '10 min',
+      clubLocationIds: [ids.venues['KB 12 Astro Park']],
+      isAutoStartEnable: false,
+      startTime: '10:00',
+      timeZone: 'Europe/London',
+    },
+  });
+  note('POST', '/tournaments', res.status, `${title} (Padel) = ${res.body.data.id}`);
+  return res.body.data.id;
+}
+
 ids.tournaments = {};
 ids.tournaments['KB Cup'] = await ensureTournament('KB Cup', '2026-09-19');
 ids.tournaments['KB New Cup'] = await ensureTournament('KB New Cup', '2026-09-26');
+ids.tournaments['KB Padel Cup'] = await ensurePadelTournament('KB Padel Cup', '2026-10-03');
+ids.tournaments['KB New Padel Cup'] = await ensurePadelTournament('KB New Padel Cup', '2026-10-10');
 
 const cup = ids.tournaments['KB Cup'];
 let cupState = (await asUser(T, `/tournaments/${cup}`)).body.data;
@@ -258,6 +289,29 @@ if ((fresh.teams ?? []).length || fresh.format) {
 
 ids.referees = Object.fromEntries(
   ((await asUser(T, `/tournaments/${cup}`)).body.data.refereePlayers ?? []).map((x) => [x.name, x.id]));
+
+// --- 5. the padel fixtures --------------------------------------------------
+// KB Padel Cup must carry a saved Swiss format; KB New Padel Cup must not.
+// The padel format is saved through a two-step screen whose request was never
+// captured on the wire, so this seed can only CHECK that state, not build it.
+// If the check fails, set the format by hand on the Format tab and re-run.
+const padelCup = (await asUser(T, `/tournaments/${ids.tournaments['KB Padel Cup']}`)).body.data;
+if (padelCup.padelFormat === 'Swiss') {
+  note('GET', `/tournaments/${padelCup.id}`, 200,
+    `KB Padel Cup Swiss, rounds=${padelCup.padelRoundCount} courts=${padelCup.padelCourtCount} ` +
+    `scoring=${padelCup.padelScoringPoints} pairs=${(padelCup.teams ?? []).length}`);
+} else {
+  console.log(`WARNING: "KB Padel Cup" has padelFormat=${padelCup.padelFormat ?? 'none'}, expected Swiss.`);
+  console.log(`  Open /tournaments/${padelCup.id}/format, choose Swiss, pick 8 players, then Next.`);
+}
+
+const padelNew = (await asUser(T, `/tournaments/${ids.tournaments['KB New Padel Cup']}`)).body.data;
+if (padelNew.padelFormat) {
+  console.log(`WARNING: "KB New Padel Cup" has a format (${padelNew.padelFormat}) and must not.`);
+  console.log(`  It is the untouched padel fixture. Delete it and re-run: DELETE /tournaments/${padelNew.id}`);
+} else {
+  note('GET', `/tournaments/${padelNew.id}`, 200, 'KB New Padel Cup has no format - correct');
+}
 
 console.log('\n--- IDs ---');
 console.log(j(ids));

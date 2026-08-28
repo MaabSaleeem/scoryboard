@@ -266,6 +266,8 @@ export async function fixtures(persona: PersonaKey = 'organiser') {
     token,
     cup: byTitle('KB Cup'),
     newCup: byTitle('KB New Cup'),
+    padelCup: byTitle('KB Padel Cup'),
+    newPadelCup: byTitle('KB New Padel Cup'),
     detail: async (id: string) => (await asUser(token, `/tournaments/${id}`)).body.data,
   };
 }
