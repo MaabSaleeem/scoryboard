@@ -572,6 +572,133 @@
       ],
       "published_at": "2026-08-28T17:08:52.000Z",
       "status": "draft"
+    },
+    "01.1": {
+      "intercom_id": "16738263",
+      "collection": "01",
+      "intercom_collection_id": "19733970",
+      "brief": "briefs/01.md",
+      "spec": "specs/01/01.1.spec.ts",
+      "commit_sha": "e7f99e335b64dc78e761386e18433b1b577bf14e",
+      "screenshots": [
+        "screenshots/01/01.1/01-sign-up-form.99ce5aec.png",
+        "screenshots/01/01.1/02-sign-up-filled.d35ef8d2.png",
+        "screenshots/01/01.1/03-personal-information.3cbea1de.png",
+        "screenshots/01/01.1/04-personal-information-filled.d433f11b.png",
+        "screenshots/01/01.1/05-email-verification.f9745057.png",
+        "screenshots/01/01.1/06-verification-resend.db1aef64.png",
+        "screenshots/01/01.1/07-password-too-short.00ddf284.png",
+        "screenshots/01/01.1/08-email-already-in-use.5552e5c2.png"
+      ],
+      "published_at": "2026-08-28T19:21:53.000Z",
+      "status": "draft"
+    },
+    "01.2": {
+      "intercom_id": "16738266",
+      "collection": "01",
+      "intercom_collection_id": "19733970",
+      "brief": "briefs/01.md",
+      "spec": "specs/01/01.2.spec.ts",
+      "commit_sha": "7e42a7d1260f623036d3c9270403748f20a025c3",
+      "screenshots": [
+        "screenshots/01/01.2/01-sign-in-form.dcc533fc.png",
+        "screenshots/01/01.2/02-credential-error.8fb846e1.png",
+        "screenshots/01/01.2/03-email-not-valid.2dd9f95a.png",
+        "screenshots/01/01.2/04-signed-in.290c1b3a.png"
+      ],
+      "published_at": "2026-08-28T19:22:14.000Z",
+      "status": "draft"
+    },
+    "01.3": {
+      "intercom_id": "16738270",
+      "collection": "01",
+      "intercom_collection_id": "19733970",
+      "brief": "briefs/01.md",
+      "spec": "specs/01/01.3.spec.ts",
+      "commit_sha": "89ab3a1daf9bf6541fba4d0c652b764a8b8e698e",
+      "screenshots": [
+        "screenshots/01/01.3/01-forgot-password-link.3cdcad02.png",
+        "screenshots/01/01.3/02-forgot-password-form.6a16e1d7.png",
+        "screenshots/01/01.3/03-check-your-email.e07489e8.png",
+        "screenshots/01/01.3/04-reset-password-form.b7916857.png"
+      ],
+      "published_at": "2026-08-28T19:22:34.000Z",
+      "status": "draft"
+    },
+    "01.4": {
+      "intercom_id": "16738275",
+      "collection": "01",
+      "intercom_collection_id": "19733970",
+      "brief": "briefs/01.md",
+      "spec": "specs/01/01.4.spec.ts",
+      "commit_sha": "ad60ed9788521b72c7a805303a4c2395552b2552",
+      "screenshots": [
+        "screenshots/01/01.4/01-step-1-personal-information.42c6cf29.png",
+        "screenshots/01/01.4/02-gender-list.84796da9.png",
+        "screenshots/01/01.4/03-sports-list.6d308e85.png",
+        "screenshots/01/01.4/04-position-list.8b61cf6e.png",
+        "screenshots/01/01.4/05-step-1-filled.d99d25f2.png",
+        "screenshots/01/01.4/06-email-verification.9b9e6624.png",
+        "screenshots/01/01.4/07-create-leaderboard.be60ea14.png",
+        "screenshots/01/01.4/08-create-leaderboard-filled.f8b249bd.png",
+        "screenshots/01/01.4/09-step-3-set-up-your-team.59ed8b66.png",
+        "screenshots/01/01.4/10-join-a-team.119db428.png",
+        "screenshots/01/01.4/11-setup-my-team.15c4738a.png",
+        "screenshots/01/01.4/12-home-after-skip.eaa27a1d.png"
+      ],
+      "published_at": "2026-08-28T19:23:05.000Z",
+      "status": "draft"
+    },
+    "01.5": {
+      "intercom_id": "16738278",
+      "collection": "01",
+      "intercom_collection_id": "19733970",
+      "brief": "briefs/01.md",
+      "spec": "specs/01/01.5.spec.ts",
+      "commit_sha": "9b84df47391dbd74a87476286e347c16f2d216ad",
+      "screenshots": [
+        "screenshots/01/01.5/01-teams-list.39623c7d.png",
+        "screenshots/01/01.5/02-add-team-dialog.1b060118.png",
+        "screenshots/01/01.5/03-add-team-size-list.d9328179.png",
+        "screenshots/01/01.5/04-add-team-filled.c44f5864.png",
+        "screenshots/01/01.5/05-team-created.af825e13.png",
+        "screenshots/01/01.5/06-leaderboards-empty.2258a707.png",
+        "screenshots/01/01.5/07-create-leaderboard-dialog.e5249fc3.png",
+        "screenshots/01/01.5/08-leaderboard-created.c6c48f5f.png"
+      ],
+      "published_at": "2026-08-28T19:23:35.000Z",
+      "status": "draft"
+    },
+    "01.6": {
+      "intercom_id": "16738281",
+      "collection": "01",
+      "intercom_collection_id": "19733970",
+      "brief": "briefs/01.md",
+      "spec": "specs/01/01.6.spec.ts",
+      "commit_sha": "fe7fff8c21fd7e369ef595e0dde618c0e3139dd4",
+      "screenshots": [
+        "screenshots/01/01.6/01-sidebar-checklist.b611653b.png",
+        "screenshots/01/01.6/02-personal-details-highlighted.e21dcaed.png",
+        "screenshots/01/01.6/03-my-bio-highlighted.f10c2ddf.png"
+      ],
+      "published_at": "2026-08-28T19:23:47.000Z",
+      "status": "draft"
+    },
+    "01.7": {
+      "intercom_id": "16738286",
+      "collection": "01",
+      "intercom_collection_id": "19733970",
+      "brief": "briefs/01.md",
+      "spec": "specs/01/01.7.spec.ts",
+      "commit_sha": "4936e45162980738ea8356d03319e926a4373829",
+      "screenshots": [
+        "screenshots/01/01.7/01-delete-account-panel.899f35b8.png",
+        "screenshots/01/01.7/02-delete-account-dialog.7a85092b.png",
+        "screenshots/01/01.7/03-signed-out.1c28b016.png",
+        "screenshots/01/01.7/04-credential-error.0a0d9151.png"
+      ],
+      "published_at": "2026-08-28T19:24:04.000Z",
+      "status": "draft"
     }
   }
 }

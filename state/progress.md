@@ -14,7 +14,7 @@ target.
 
 | # | Collection | Articles | Shots (est.) | Persona default | Status | Brief | Notes |
 |---|---|---|---|---|---|---|---|
-| 01 | Getting started & onboarding | 7 | 44 | fresh | not started | - | Verification folded into 01.1; 01.2-01.7 renumbered. Account: kb-fresh-01@yopmail.com |
+| 01 | Getting started & onboarding | 7 | 44 | fresh | drafts on Intercom | [briefs/01.md](../briefs/01.md) | 7 drafts, 43 screenshots. 01.3 is one short - the invitation screen needs an inbox and yopmail now demands a CAPTCHA. Seven accounts, all `kb-fresh-01@` or `kb-01-*@` |
 | 02 | Finding your way around | 6 | 25 | manager_free | not started | - | - |
 | 03 | Your profile & settings | 6 | 30 | player | not started | - | - |
 | 04 | Plans & membership | 3 | 17 | manager_free | not started | - | Pro is a free self-serve toggle during beta. No payment step. Flag for rewrite when beta ends. |
@@ -708,3 +708,205 @@ No flakes. The eight specs were run repeatedly through the session and never
 failed once the selector fixes were in.
 
 Next: `/kb-brief 15`.
+
+### 2026-08-29 - collection 01 complete. Seven articles, all drafts.
+
+| Article | Intercom ID | Shots | Pinned commit |
+|---|---|---|---|
+| 01.1 | 16738263 | 8 | e7f99e3 |
+| 01.2 | 16738266 | 4 | 7e42a7d |
+| 01.3 | 16738270 | 4 | 89ab3a1 |
+| 01.4 | 16738275 | 12 | ad60ed9 |
+| 01.5 | 16738278 | 8 | 9b84df4 |
+| 01.6 | 16738281 | 3 | fe7fff8 |
+| 01.7 | 16738286 | 4 | 4936e45 |
+
+43 screenshots, all in Intercom collection `19733970`. Every image URL embedded in
+the stored bodies was re-fetched at the end: all 43 return 200 with an `image/*`
+content type. No article carries `<ol start=`. **Every one is a draft. Nothing is
+published and nothing has been reviewed.**
+
+The commit column is filled in from `state/manifest.json`, which carries the exact
+SHA each article's images are pinned to.
+
+### The finding that shaped the seed
+
+**`POST /admins/users` does not make the account a reader has**, and collection 01
+is the first collection where that matters. It also creates
+`<Name>'s leaderboard`, and a Free account may hold exactly one - so an
+admin-created persona opens **Leaderboard Limit Reached** where a reader opens the
+create form, which is half of 01.5. It also leaves `gender`, `sports` and
+`position` empty, so Profile settings reads *4 highlighted fields are still
+missing* instead of the *1* a reader sees, which is the whole of 01.6.
+
+`scripts/seed-01.mjs` creates the account that way and then brings it to a
+reader's state: a password through Identity Toolkit's `accounts:update`, Step 1's
+fields through `PUT /users/:id`, and the leaderboard deleted. Compared against a
+real signup on screen afterwards: same two default teams, same
+`1 highlighted field is still missing.` on both sections, same Change Password
+panel.
+
+**Every collection that photographs a leaderboard or a profile checklist should
+read that paragraph before seeding.**
+
+### CHANGED mid-run - yopmail started demanding a CAPTCHA
+
+Three of these flows finish in the reader's inbox: the signup verification code,
+the password-reset link, and a team invitation. `config/personas.yaml` anticipated
+that and put every persona on yopmail. It worked - `lib/mail.mjs` reads a yopmail
+inbox, and the first version of this seed signed the persona up for real and read
+the six-digit code back.
+
+Partway through exploration **yopmail began answering "Complete the CAPTCHA to
+continue"**, and every mail-reading path stopped at once. Completing a CAPTCHA is
+not something this project may do. Three consequences, all written into
+`briefs/01.md`:
+
+- **The seed no longer touches a mailbox.** It reaches the same state over the API.
+  This is strictly better and should stay that way even if yopmail recovers.
+- **01.4 photographs the wizard in two passes on one address.** Step 1 and the code
+  screen are only visible while the account is unverified; Create Leaderboard and
+  Step 3 only open once it is verified; nothing returns the code over the API. So
+  the spec signs the address up for real, photographs the first six screens, then
+  rebuilds the same address on the far side of verification and photographs the
+  rest. Every frame is a frame a reader sees, in the order they see it. What the
+  spec no longer proves is that typing the code is what moves between them.
+- **01.3 lost a screenshot.** Planned shot 05 was the screen an invitation link
+  opens. That link exists only inside the invitation email. The article keeps that
+  half as prose, and the prose is verified - see below.
+
+**`lib/mail.mjs` is kept.** It works, the flows it reads are real, and 20.2 will
+want it. Nothing depends on it now.
+
+### What 01.3 says without a screenshot, and how it was verified
+
+Somebody added to a team by email has a player row and **no account**.
+`POST /users/reset-password` answers 200 for that address and **sends nothing**,
+while the app still shows "Check Your Email". Watched on the inbox during step 1:
+the invitation arrived, the reset never did. The invitation link opens
+`/signin?token=<jwt>` with the address filled in from the token, and the way
+through is **Create an account** with that same address - after which the
+invitation is waiting at Step 3. Confirmed end to end by signing an invited address
+up and reading `GET /team-invitations` back.
+
+01.3's fourth capture is the real reset form, opened by its own path rather than by
+following the link: `/resetPassword` renders identically with no code, with an
+invalid one and with a real one, checked all three ways. The spec does not submit
+it. What happens after submitting was watched twice by hand: you are signed in and
+land on the home page, and `/passwordUpdated` - which exists, and reads "Password
+updated!" - is never rendered.
+
+### Six things the map or the reference had wrong
+
+- **The verification screen is not reached from `/signup`.** Signing up lands on
+  **Step 1, Personal information**, and the code screen only opens once Step 1 is
+  submitted. 01.1 therefore has to show Step 1 to reach its own end point. It gives
+  it two shots and points at 01.4.
+- **A brand-new account already owns two teams.** `POST /users` creates
+  `<First> <LastInitial> FC` and `... Away`. The Teams screen is never empty, and
+  01.5 says so in its first line.
+- **A wrong password and an unknown address give the same message** -
+  *The credential is invalid or has expired.* Firebase does not distinguish them.
+  01.2 says so rather than promising a message the reader will not get.
+- **The profile checklist really is in the sidebar**, as the map's title says.
+  Select your name and the block opens to show **Complete your profile (2)**.
+  Selecting it lands on `/profile-settings#date-of-birth-field` - the app jumps you
+  to the first outstanding field.
+- **Team size has no default.** The `5 VS 5` on the Add Team dialog is placeholder
+  text; submitting without choosing gives *This field is required.*
+- **There is no screen labelled Step 2.** The screens say Step 1, Step 3 and Step 4;
+  the message catalogue defines step1 to step6; the code screen carries no label.
+
+### Fixtures
+
+Seven accounts under `kb-fresh-01@` and `kb-01-*@`, all built and reconciled by
+`node scripts/seed-01.mjs` (idempotent - a second run makes no writes to the
+persona):
+
+| Account | State | Used by |
+|---|---|---|
+| kb-fresh-01@ | verified, password set, Step 1 fields set, two default teams, **no leaderboard** | 01.2, 01.5, 01.6 |
+| kb-01-signup@ | **must not exist** - 01.1 signs it up and leaves it unverified | 01.1 |
+| kb-01-wizard@ | **must not exist** - 01.4 signs it up, then rebuilds it | 01.4 |
+| kb-01-reset@ | exists with **no password**, rebuilt every run | 01.3 |
+| kb-01-owner@ | owns `Ola K FC`, one invitation out | 01.3 (prose) |
+| kb-01-invited@ | **must not exist**, invitation waiting | 01.3 (prose) |
+| kb-01-delete@ | exists; 01.7 deletes it and recreates it | 01.7 |
+
+`kb-01-reset@` is torn down and remade every run on purpose: Firebase refuses a
+reset that does not change the password, so it has to start with none.
+
+### Determinism
+
+Collections 13 and 14's rules held. Five things are specific to these screens and
+live in `lib/kb.ts`:
+
+- **The promotional banner is blocked, not dismissed.** `blockPromos()` fulfils
+  `GET /promo-campaigns/active` with empty data. Dismissing it writes the
+  dismissal to the account, which would make the first run differ from the second.
+- **The home page's TRENDING feed is never in a capture.** It is global activity -
+  other people's teams, other collections' tournaments. Both home captures are
+  clipped to the profile header.
+- **`unstickHeader()` before any tall clip.** The header is `position: sticky`, so
+  on a page taller than 900px it paints over the top of the clip. The first run of
+  01.1 lost the "Step 1" label to it. A full-page capture is worse - the header
+  lands in the middle of the image.
+- **A list that opens is captured as a viewport, not clipped.** Every dropdown here
+  is portalled outside its dialog and several open upwards, so a clip to the dialog
+  is a floating list over a box the reader cannot see.
+- **`accounts:update` revokes every token Firebase has issued for that user.** The
+  session that set the password is dead immediately afterwards. Cost one failed
+  seed run.
+
+Masked: the verification countdown, "Joined Since ..." in the profile header, and
+"Created on ..." on a leaderboard card. **Not** masked: the persona's name and
+address in 01.6's sidebar capture, because that block is the article's subject.
+
+### Capture defects found and fixed in the specs
+
+- **01.1/03 and 01.1/04** were full-page captures with the sticky header stitched
+  into the middle of the image, on top of the First name field. Clipped to the card
+  and `unstickHeader()` added.
+- **01.1/02** carried the "This email is already in use" line from the error state
+  captured just before it - the message stays until the page is reloaded. The spec
+  reloads.
+- **01.5/03** clipped to the dialog and caught a floating list over a blank box.
+  Captured as a viewport.
+- **01.5/05** caught the new team's row before its Leaderboards, Matches and Members
+  counts arrived. The spec reloads first.
+- **01.7** matched `DELETE ACCOUNT` as text. The capitals are a CSS
+  text-transform - the same trap collection 14 hit on GROUP A. Matched by role.
+
+### Worth a look, and worth a ticket
+
+- **Forgot password on an address with no account reports success and sends
+  nothing.** `POST /users/reset-password` answers 200 and the app shows "Check Your
+  Email". Anybody invited to a team by email is in exactly that state. The clearest
+  defect this collection found.
+- **`/selectClubLocation` is labelled Step 4 and nothing navigates to it.** The
+  route name occurs once in the whole bundle, in the enum that defines it. Either a
+  step was dropped from the wizard, or the screen should go.
+- **`/passwordUpdated` is never rendered.** The route exists and reads "Password
+  updated! ... Go to Login". Resetting signs you in and lands on the home page.
+- **`/padel-level` sits in the onboarding chain for padel players** and was not
+  walked. 01.4 documents the football path only. A padel wizard article may be
+  wanted, the way collection 12 needed 12.11 and 12.12.
+
+### Where to look hard in the drafts
+
+**01.3.** It is the article with the least mechanical backing: one of its five
+planned captures is missing, its fourth was reached by URL rather than by the link,
+and everything it says about the invited half is prose. All of it was verified by
+hand, none of it by a spec.
+
+**01.4's step 6.** The spec no longer types the verification code, so the join
+between the first six screens and the last six is asserted rather than replayed.
+
+**01.2 and 01.7's claim that a disabled account says something different.** The
+message text comes from the bundle's error map and was never seen on screen - no
+endpoint on staging can disable an account.
+
+No flakes. The seven specs were run repeatedly through the session and never failed
+once the selector fixes were in.
+
+Next: `/kb-brief 02`.
