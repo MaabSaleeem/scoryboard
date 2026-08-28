@@ -142,6 +142,24 @@
       ],
       "published_at": "2026-08-28T09:44:45.000Z",
       "status": "published"
+    },
+    "12.8": {
+      "intercom_id": "16733354",
+      "collection": "12",
+      "intercom_collection_id": "19733981",
+      "brief": "briefs/12.md",
+      "spec": "specs/12/12.8.spec.ts",
+      "commit_sha": "29c1d3871e743db1362316da9be37d1b691c54a0",
+      "screenshots": [
+        "screenshots/12/12.8/01-settings-from-the-card-menu.1f9875b6.png",
+        "screenshots/12/12.8/02-edit-tournament-page.9ad1f5d9.png",
+        "screenshots/12/12.8/03-roles-and-administration.010ee193.png",
+        "screenshots/12/12.8/04-add-admin-dialog.4593ef51.png",
+        "screenshots/12/12.8/05-an-admin-on-the-tournament.8fbabe07.png",
+        "screenshots/12/12.8/06-no-role-goes-to-the-public-page.a7bc437c.png"
+      ],
+      "published_at": "2026-08-28T09:48:59.000Z",
+      "status": "published"
     }
   }
 }
