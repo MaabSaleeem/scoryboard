@@ -1,13 +1,13 @@
-// 12.7 - Tournament crest and phase names.
+// 12.7 - Tournament crest, banner and phase names.
 //
-// The map titles this "Tournament crest, banner and phase names". There is no
-// tournament banner in this build - the settings page offers a crest only
-// ("PROFILE APPEARANCE", JPG/GIF/PNG, 3MB max) and no banner control appears on
-// the board, the settings page or the public page. See briefs/12.md, open
-// question 4.
+// The tournament has BOTH a banner and a crest, side by side under PROFILE
+// APPEARANCE on the settings page. Each has its own edit and delete control.
+// Neither is an <img>: the banner is a CSS background and the crest is a div of
+// initials, which is why the first pass through this page - reading it as text -
+// found only the crest and concluded there was no banner.
 //
-// Nothing is uploaded and no name is saved. The crest input is shown, and the
-// phase and group rename controls are opened, then dismissed.
+// Nothing is uploaded and no name is saved. The two upload targets are shown,
+// and the phase and group rename dialogs are opened, then dismissed.
 
 import { test, expect } from '@playwright/test';
 import { signIn, quiet, shot, fixtures, headerIdentity } from '../../lib/kb';
@@ -22,16 +22,23 @@ test.describe('12.7 Crest and phase names', () => {
 
     // The section headings are upper-cased by CSS. The DOM text is title case,
     // and Playwright matches the DOM, so match case-insensitively.
-    const appearance = page.getByText(/profile appearance/i);
+    await expect(page.getByText(/profile appearance/i)).toBeVisible();
+
+    // The banner is a background image on a fixed-height panel, and the crest is
+    // a circle of initials sitting on top of it. Neither carries an accessible
+    // name, so both are matched on the layout class that makes them what they
+    // are. If those change, this spec is the first place to look.
+    const banner = page.locator('main div[class*="min-h-[280px]"]');
+    const crest = page.locator('main div[class*="self-start"]');
+
     await shot(page, '12.7', '01-profile-appearance', {
       mask: [headerIdentity(page)],
-      annotate: appearance,
+      annotate: banner,
     });
 
-    const limits = page.getByText('JPG, GIF or PNG. 3MB max.');
     await shot(page, '12.7', '02-crest-upload-and-limits', {
       mask: [headerIdentity(page)],
-      annotate: limits,
+      annotate: crest,
     });
 
     // Phase and group names live on the Format tab once a format is saved.
