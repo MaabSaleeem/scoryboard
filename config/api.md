@@ -435,13 +435,78 @@ Notes worth keeping:
   hook name is not a path. Do not write one down until it is seen on the wire.
 
 Route literals found in the app bundle but not yet exercised, listed as evidence of
-existence only: `/tournament-brackets`, `/tournament-brackets/:id/schedule`,
-`/tournament-brackets/:id/matches/:matchId/participants`,
-`/tournament-brackets/:id/matches/:matchId/title`, `/tournament-groups/:id`,
-`/tournament-phases`, `/tournaments/:id/selection-label-variant`,
-`/tournaments/token`, `/tournaments/:id/presentation/:x/:filename`,
-`/tournament-subscription/*` (cancel, portal, resume, finalize-session,
-payment-method/setup-intent, payment-method/finalize).
+existence only: `/tournaments/:id/selection-label-variant`, `/tournaments/token`,
+`/tournaments/:id/presentation/:x/:filename`, `/tournament-subscription/*`
+(cancel, portal, resume, finalize-session, payment-method/setup-intent,
+payment-method/finalize), `/tournament-phases/:id/king-next-round`,
+`/tournament-phases/:id/king-playoffs`, `/tournament-phases/:id/padel-next-round`
+(the three padel and King-of-the-Court round runners), and
+`/tournament-brackets/:id/schedule`.
+
+### Groups, brackets and phases
+
+**(observed in app, 2026-08-28, while writing the collection 13 brief.)** Every
+row below was read off the wire on the tournament Format and Results tabs. They
+are what the format board and the phase banner call.
+
+| Method | Path | For | Body / notes |
+|---|---|---|---|
+| GET | `/tournament-groups?tournamentId=&phaseId=` | Groups in one phase | - |
+| POST | `/tournament-groups` | Add a group to a phase | the board's **Group** button |
+| PUT | `/tournament-groups/:groupId` | Edit a group, and set its draw | `name`, `teamCount`, `encounters`, `phaseId`, `order`, `teamIds[]`, `teamSources[]`, plus three that only appear from the padel board: `autofillStrategy` (`StrongestFirstCourt`\|`EvenlyMatched`\|`Random`), `replaceExistingDraw`, `clearAssignments`, each sent with `applyToPhase: true` |
+| DELETE | `/tournament-groups/:groupId` | Delete a group and its matches | - |
+| POST | `/tournament-brackets` | Add a bracket to a phase | the board's **Bracket** button |
+| PUT | `/tournament-brackets/:bracketId` | Rename a bracket, change its size | `name`, `teamCount` (2, 4 or 8) |
+| DELETE | `/tournament-brackets/:bracketId` | Delete a bracket and its matches | - |
+| PATCH | `/tournament-brackets/:bracketId/matches/:tournamentMatchId/participants` | Fill or clear one bracket slot | `{"homeTeamId":"<id>"}` for a real team, `{"homeTeamId":""}` to clear, or `{"homeSource":{...}}` for a placeholder. `awayTeamId` / `awaySource` for the other side |
+| PATCH | `/tournament-brackets/:bracketId/matches/:tournamentMatchId/title` | Rename a knockout match | the **Edit match title** dialog |
+| GET | `/tournament-phases?tournamentId=&includeCompletion=true` | Phases, with `started` and `canEndPhase` | `canEndPhase` is true when every match in that phase has a score |
+| POST | `/tournament-phases` | Add a phase | one click, no dialog. There is no undo - delete the phase instead |
+| PUT | `/tournament-phases/:phaseId` | Rename a phase | `name` |
+| DELETE | `/tournament-phases/:phaseId` | Delete a phase | only the last phase offers a Delete control in the UI |
+| POST | `/tournament-phases/:phaseId/next-phase-preview` | What the next phase would look like | answers `{tieBreakPoints[], assignments[], groupAssignments[]}` |
+| POST | `/tournament-phases/:phaseId/start-next-phase` | Start the next phase | - |
+| POST | `/tournament-phases/:phaseId/undo-next-phase-start` | Undo that start | restores the placeholder slots and blocks score entry again |
+| POST | `/tournament-phases/:phaseId/end-phase` | End the last phase | marks every match in the phase finished |
+| GET | `/tournaments/:id/schedule?phaseId=` | Standings for one phase | array of groups, each with `teams[]` carrying `played`, `won`, `points`, `goalsFor` ... and `phaseStarted`, `phaseEnded`, `canEditScores` |
+| GET | `/tournaments/:id/schedule/groups/:groupId/matches` | The matches of one group | - |
+
+The `homeSource` object a placeholder slot sends, copied from the wire:
+
+```json
+{"homeSource":{"type":"GroupRank","label":"1st Group A","groupId":"<id>",
+  "groupName":"Group A","groupLabel":"Group A","rank":1,
+  "phaseOrder":0,"groupOrder":1,"swapKey":"rank-1","swapCategory":"group"}}
+```
+
+### Recording a tournament result
+
+**(observed in app, 2026-08-28.)**
+
+| Method | Path | For | Body / notes |
+|---|---|---|---|
+| POST | `/matches/:matchId/status` | Move a match on | `{"status":"Live"}`, then `{"status":"Finished"}` |
+| PUT | `/matches/:matchId/score` | Record the score | `homeTeamTotalGoals`, `awayTeamTotalGoals`. Answers `400 "Match must be Live or Finished before tournament results can be entered"` on a Scheduled match, so set the status first |
+
+### The padel format save - it is not a separate endpoint
+
+**(observed in app, 2026-08-28.)** Collection 12 recorded that the two-step padel
+Format screen "was never captured on the wire" and left its seed unable to build a
+padel fixture. It is a plain `PUT /tournaments/:id`, the same call football's
+format save uses, with the padel fields instead:
+
+```json
+{"teamIds":[],"teamCount":4,"isComplete":true,
+ "padelFormat":"Swiss","padelStandingType":"Team","padelScoringPoints":24,
+ "padelRestingPoints":0,"padelWinPoints":3,"padelLossPoints":0,"padelDrawPoints":2,
+ "padelMinPlayers":8,"padelMaxPlayers":8,
+ "padelRoundCount":4,"padelCourtCount":4,"padelRoundGapMinutes":10}
+```
+
+`teamIds` is empty on a first save: the server generates one pair per two players
+from `padelMinPlayers` and names them "Player 1 & Player 2" and so on. Re-sending
+the same call with different values is what the **Padel Configuration** dialog
+does, and it resets and regenerates the scheduled matches.
 
 ### App routes - singular and plural are different pages
 

@@ -163,19 +163,19 @@ export async function openBoardTab(page: Page, tab: string) {
  * 4px radius, no fill, around `target`. Drawn in the page before the capture, so
  * a re-run reproduces it exactly.
  */
-export async function annotate(page: Page, target: Locator) {
+export async function annotate(page: Page, target: Locator, pad = 4) {
   const box = await target.boundingBox();
   if (!box) throw new Error('annotate(): target has no bounding box');
   await page.evaluate(
-    ({ x, y, width, height }) => {
+    ({ x, y, width, height, pad: p }) => {
       const el = document.createElement('div');
       el.id = 'kb-annotation';
       Object.assign(el.style, {
         position: 'absolute',
-        left: `${x + window.scrollX - 4}px`,
-        top: `${y + window.scrollY - 4}px`,
-        width: `${width + 8}px`,
-        height: `${height + 8}px`,
+        left: `${x + window.scrollX - p}px`,
+        top: `${y + window.scrollY - p}px`,
+        width: `${width + p * 2}px`,
+        height: `${height + p * 2}px`,
         border: '3px solid #E5202A',
         borderRadius: '4px',
         boxSizing: 'border-box',
@@ -184,7 +184,7 @@ export async function annotate(page: Page, target: Locator) {
       });
       document.body.appendChild(el);
     },
-    box,
+    { ...box, pad },
   );
 }
 
@@ -199,6 +199,13 @@ export type ShotOptions = {
   mask?: Locator[];
   /** Draw the red outline around this element. */
   annotate?: Locator;
+  /**
+   * How far outside the annotated element to draw the outline. 4px by default.
+   * Use a negative value when the target sits flush against the edge of a
+   * clipped capture - a positive pad would put the outline outside the clip and
+   * only its inner edge would survive.
+   */
+  annotatePad?: number;
 };
 
 /**
@@ -257,7 +264,21 @@ export async function shot(
   const file = path.join(dir, `${name}.png`);
 
   await imagesPainted(page);
-  if (opts.annotate) await annotate(page, opts.annotate);
+
+  // Clipped captures only: put the page back to the top first.
+  //
+  // Playwright scrolls a clipped element into view itself, but where it lands
+  // depends on where the page was scrolled to when the capture started - and
+  // that varies with what the spec did beforehand. A fractional difference in
+  // the element's device-pixel alignment re-renders every glyph's antialiasing,
+  // which is enough to change the file's content hash and therefore its URL.
+  // Measured at 1.5% of pixels on the padel bracket board.
+  if (opts.clip) {
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await page.waitForFunction(() => window.scrollY === 0);
+  }
+
+  if (opts.annotate) await annotate(page, opts.annotate, opts.annotatePad);
   const common = {
     path: file,
     animations: 'disabled' as const,
@@ -309,4 +330,166 @@ export async function fixtures(persona: PersonaKey = 'organiser') {
     newPadelCup: byTitle('KB New Padel Cup'),
     detail: async (id: string) => (await asUser(token, `/tournaments/${id}`)).body.data,
   };
+}
+
+// --- collection 13 and later: sign in by address, not by a hardcoded key -----
+
+/**
+ * Sign a persona in by email address and land on `path`.
+ *
+ * `signIn` above takes a key from collection 12's PERSONAS map. Every later
+ * collection addresses its own accounts with personaEmail(role, collection), so
+ * this variant takes the address itself. Same flow otherwise: a freshly minted
+ * signin URL, never a pasted token.
+ */
+export async function signInAs(page: Page, email: string, to = '/tournaments') {
+  const url: string = await signinUrl(email);
+  await page.goto(url);
+  await page.waitForURL((u) => !u.pathname.startsWith('/signin'), { timeout: 30_000 });
+  await page.goto(to);
+  await expect(page.locator('a[href="/tournaments"]').first()).toBeVisible();
+}
+
+/**
+ * Look collection 13's fixtures up by title.
+ *
+ * Never hardcode an id: `scripts/seed-13.mjs` can legitimately recreate a
+ * tournament, and a hardcoded id would then point at a deleted row.
+ */
+export async function fixtures13() {
+  const email = personaEmail('organiser', '13');
+  const session = await mintSession(email);
+  const token: string = session.idToken;
+  const list = (await asUser(token, '/tournaments')).body.data ?? [];
+  const byTitle = (t: string) => {
+    const row = list.find((x: any) => x.title === t);
+    if (!row) throw new Error(`Fixture tournament "${t}" is missing. Run: node scripts/seed-13.mjs`);
+    return String(row._id ?? row.id);
+  };
+  return {
+    email,
+    token,
+    cup: byTitle('KB 13 Cup'),
+    summerCup: byTitle('KB 13 Summer Cup'),
+    league: byTitle('KB 13 League'),
+    sundayLeague: byTitle('KB 13 Sunday League'),
+    padelCup: byTitle('KB 13 Padel Cup'),
+    padelOpen: byTitle('KB 13 Padel Open'),
+    detail: async (id: string) => (await asUser(token, `/tournaments/${id}`)).body.data,
+  };
+}
+
+/**
+ * Wait for the tournament board to have finished loading.
+ *
+ * The Format and Results tabs render their chrome - header, tab strip - before
+ * the fetch lands, so the tab strip alone is not a safe gate for a capture.
+ * Wait for something only the loaded board has.
+ */
+export async function boardReady(page: Page, marker: Locator) {
+  await expect(marker).toBeVisible();
+  await expect(page.locator('.animate-pulse')).toHaveCount(0);
+}
+
+/** The dialog that is actually on screen. Radix leaves closed ones mounted. */
+export function openDialog(page: Page) {
+  return onScreen(page.locator('[role="dialog"]')).first();
+}
+
+/** Close whatever dialog is open, without confirming anything. */
+export async function cancelDialog(page: Page) {
+  const dlg = openDialog(page);
+  const cancel = dlg.getByRole('button', { name: 'Cancel', exact: true });
+  if (await cancel.count()) await cancel.first().click();
+  else await dlg.getByRole('button', { name: 'Close' }).first().click();
+  await expect(page.locator('[role="dialog"]').locator('visible=true')).toHaveCount(0);
+}
+
+/**
+ * One phase's card on the Format board.
+ *
+ * The board gives each card `id="phase-card-<phaseId>"`, which is the only
+ * stable hook on it - the headings are plain text and the cards are otherwise
+ * unlabelled divs. Take the phase id from GET /tournaments/:id, never from the
+ * order the cards happen to render in.
+ */
+export function phaseCard(page: Page, phaseId: string) {
+  return page.locator(`#phase-card-${phaseId}`);
+}
+
+/**
+ * The Phases board on the Format tab: the heading, the "+ Phase" button and
+ * every phase card.
+ *
+ * Clipped rather than captured as a viewport, because the board is taller than
+ * 900px on an eight-team tournament and a viewport shot cuts the second group
+ * off. There is no id or role on the wrapper, so it is reached from the one
+ * element that does have an id - a phase card - and the result is asserted to
+ * contain the heading, which fails loudly if the DOM moves.
+ */
+export async function phasesBoard(page: Page, anyPhaseId: string) {
+  const board = phaseCard(page, anyPhaseId).locator('xpath=ancestor::div[4]');
+  await expect(board.getByText('Phases', { exact: true })).toBeVisible();
+  return board;
+}
+
+/**
+ * Text on the Format board, narrowed to the copy that is on screen.
+ *
+ * Every card on this board is rendered twice - a wide layout and a mobile one -
+ * and the mobile copy comes first in the DOM with a zero-sized box. A plain
+ * getByText is therefore both ambiguous and, with .first(), usually the
+ * invisible one.
+ */
+export function boardText(page: Page, text: string) {
+  return onScreen(page.getByText(text, { exact: true })).first();
+}
+
+/**
+ * The card for one bracket match, by its title.
+ *
+ * The card is the nearest ancestor carrying Tailwind's `group` marker class -
+ * the only stable handle on it, since the card has no id, role or test id. The
+ * result is asserted to contain the title, so a DOM change fails here rather
+ * than producing a screenshot of the wrong element.
+ */
+export async function matchCard(page: Page, title: string) {
+  const card = boardText(page, title)
+    .locator('xpath=ancestor::div[contains(concat(" ", @class, " "), " group ")][1]');
+  await expect(card.getByText(title, { exact: true })).toBeVisible();
+  return card;
+}
+
+/**
+ * Scroll `target` to just below the top of the viewport.
+ *
+ * centre() is right for most captures, but a control that opens a tall popover
+ * downwards needs the room below it: the position menu on a bracket slot is
+ * nine items and gets cut off when its trigger sits mid-screen. Like centre(),
+ * call this before opening the popover, never after.
+ */
+export async function alignTop(target: Locator) {
+  await target.evaluate((el) => {
+    el.scrollIntoView({ block: 'start', behavior: 'instant' });
+    window.scrollBy(0, -140);
+  });
+}
+
+/**
+ * Wait for the fixtures list under a standings table to have rendered.
+ *
+ * The Results tab paints its table and the FIXTURES heading before the match
+ * cards arrive, so a capture taken as soon as the table is readable catches a
+ * half-built list in the bottom third of the frame. That was three screenshots
+ * differing between two runs of the collection-13 suite.
+ *
+ * Gate on a card's own status chip, not on the FIXTURES heading: the heading is
+ * there before the list has anything in it.
+ */
+export async function fixturesReady(page: Page) {
+  await expect(
+    onScreen(page.getByText('Ended', { exact: true })).first()
+      .or(onScreen(page.getByText('Scheduled', { exact: true })).first()),
+  ).toBeVisible();
+  await expect(page.locator('.animate-pulse')).toHaveCount(0);
 }
