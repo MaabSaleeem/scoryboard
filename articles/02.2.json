@@ -1,0 +1,17 @@
+{
+  "id": "02.2",
+  "title": "Searching for players and teams",
+  "description": "One box at the top of the sidebar finds players, teams and leaderboards. What the chips under each result mean, and why three characters are the minimum.",
+  "collection": "02",
+  "intercom_collection_id": "19733971",
+  "author_id": "11443412",
+  "state": "published",
+  "spec": "specs/02/02.2.spec.ts",
+  "commit_sha": "2000806a276fe05ecc19821ed91a3f135a369fc4",
+  "screenshots": [
+    "screenshots/02/02.2/01-search-teams.a5e310c4.png",
+    "screenshots/02/02.2/02-search-all-types.cdffe001.png",
+    "screenshots/02/02.2/03-too-few-characters.ed4956ed.png"
+  ],
+  "body": "<p>The search box at the top of the sidebar finds players, teams and leaderboards across the whole of Scoryboard.</p>\n\n<h2>Search</h2>\n\n<ol>\n  <li>Select the search box at the top of the sidebar.</li>\n  <li>Type at least three characters. Results appear as you type. A chip under each one says whether it is a <strong>Team</strong>, a <strong>Player</strong> or a <strong>Leaderboard</strong>.\n    <p><img src=\"https://cdn.jsdelivr.net/gh/MaabSaleeem/scoryboard@2000806a276fe05ecc19821ed91a3f135a369fc4/screenshots/02/02.2/01-search-teams.a5e310c4.png\" alt=\"Two team results for &quot;KB 02&quot;. The second chip on one of them, External, is outlined.\"></p>\n  </li>\n  <li>Read the second chip on a team. <strong>External</strong> means you are not a member of that team.</li>\n  <li>Search a name to see all three kinds at once.\n    <p><img src=\"https://cdn.jsdelivr.net/gh/MaabSaleeem/scoryboard@2000806a276fe05ecc19821ed91a3f135a369fc4/screenshots/02/02.2/02-search-all-types.cdffe001.png\" alt=\"Results for &quot;Pru&quot;: two teams, a player and a leaderboard, each with its own chip.\"></p>\n  </li>\n  <li>Select a result to open it.</li>\n</ol>\n\n<h2>What you will see</h2>\n\n<p>Results are ordered with teams first, then players, then leaderboards. The list scrolls if there are more than fit.</p>\n\n<p>Search covers everybody on Scoryboard, not only the people you play with. You will find teams you have never heard of, and that is expected.</p>\n\n<h2>If it does not work</h2>\n\n<ul>\n  <li><strong>Nothing happens as you type.</strong> Scoryboard needs three characters before it searches. Under three it says \"Please enter at least 3 characters\" and the list says \"No results found\".\n    <p><img src=\"https://cdn.jsdelivr.net/gh/MaabSaleeem/scoryboard@2000806a276fe05ecc19821ed91a3f135a369fc4/screenshots/02/02.2/03-too-few-characters.ed4956ed.png\" alt=\"The search box with two characters typed. The message &quot;Please enter at least 3 characters&quot; is outlined, and the list says No results found.\"></p>\n  </li>\n  <li><strong>You cannot find a team mate.</strong> A person only appears here once they have an account. Somebody added to a team by name alone has a player record, not an account.</li>\n  <li><strong>You find several teams with the same name.</strong> Team names are not unique. Use the chips and the crest to tell them apart, or ask the owner for the team's join code.</li>\n</ul>\n\n<h2>Related</h2>\n\n<ul>\n  <li>\"The main navigation and your home feed\"</li>\n  <li>\"What your public player profile shows\"</li>\n  <li>\"Comparing your stats with other players\"</li>\n</ul>"
+}

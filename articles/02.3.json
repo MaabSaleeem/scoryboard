@@ -1,0 +1,17 @@
+{
+  "id": "02.3",
+  "title": "Getting help and contacting support",
+  "description": "Where the FAQ is, how to write to the Scoryboard team, and what the contact form needs before it will send.",
+  "collection": "02",
+  "intercom_collection_id": "19733971",
+  "author_id": "11443412",
+  "state": "published",
+  "spec": "specs/02/02.3.spec.ts",
+  "commit_sha": "2000806a276fe05ecc19821ed91a3f135a369fc4",
+  "screenshots": [
+    "screenshots/02/02.3/01-help-links.8680893d.png",
+    "screenshots/02/02.3/02-contact-form.1206db58.png",
+    "screenshots/02/02.3/03-contact-form-filled.7bf2617e.png"
+  ],
+  "body": "<p>Two links sit at the foot of the sidebar. <strong>FAQ</strong> answers the common questions. <strong>Contact Us</strong> writes to the Scoryboard team.</p>\n\n<h2>Get help</h2>\n\n<ol>\n  <li>Scroll to the foot of the sidebar. <strong>FAQ</strong> and <strong>Contact Us</strong> are below the navigation.\n    <p><img src=\"https://cdn.jsdelivr.net/gh/MaabSaleeem/scoryboard@2000806a276fe05ecc19821ed91a3f135a369fc4/screenshots/02/02.3/01-help-links.8680893d.png\" alt=\"The sidebar with FAQ and Contact Us outlined at the foot of it.\"></p>\n  </li>\n  <li>Select <strong>FAQ</strong> first. It opens the Scoryboard help pages in a new tab.</li>\n  <li>Select <strong>Contact Us</strong> if the answer is not there.\n    <p><img src=\"https://cdn.jsdelivr.net/gh/MaabSaleeem/scoryboard@2000806a276fe05ecc19821ed91a3f135a369fc4/screenshots/02/02.3/02-contact-form.1206db58.png\" alt=\"The Contact Us page: Feature Request and Get In Touch on the left, and a form on the right with Name, Email, Subject, Message and Submit.\"></p>\n  </li>\n  <li>Fill in your name, your email address and a subject. The form does not know who you are, so type the address you want a reply on.</li>\n  <li>Write your message. It must be at least ten characters.\n    <p><img src=\"https://cdn.jsdelivr.net/gh/MaabSaleeem/scoryboard@2000806a276fe05ecc19821ed91a3f135a369fc4/screenshots/02/02.3/03-contact-form-filled.7bf2617e.png\" alt=\"The same form filled in, with Submit outlined.\"></p>\n  </li>\n  <li>Select <strong>Submit</strong>.</li>\n</ol>\n\n<h2>What you will see</h2>\n\n<p>One form serves both headings on the page. Use it for a feature request or for a problem; say which in the subject.</p>\n\n<h2>If it does not work</h2>\n\n<ul>\n  <li><strong>\"Name is required\" or \"Subject is required\".</strong> Every field on the form is needed. None of them may be left empty.</li>\n  <li><strong>\"Invalid email address\".</strong> Scoryboard checks the shape of the address before it sends. Check for a missing @ or a typed domain.</li>\n  <li><strong>\"Message must be at least 10 characters\".</strong> Write a little more. A one-word message is refused.</li>\n</ul>\n\n<h2>Related</h2>\n\n<ul>\n  <li>\"The main navigation and your home feed\"</li>\n  <li>\"Profile settings - what you can change\"</li>\n</ul>"
+}

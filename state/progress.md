@@ -15,7 +15,7 @@ target.
 | # | Collection | Articles | Shots (est.) | Persona default | Status | Brief | Notes |
 |---|---|---|---|---|---|---|---|
 | 01 | Getting started & onboarding | 7 | 44 | fresh | drafts on Intercom | [briefs/01.md](../briefs/01.md) | 43 screenshots. **01.4-01.7 published by the reviewer 2026-08-28; 01.1-01.3 still drafts.** 01.3 retitled "Resetting your password" - the invited-account half was dropped. Seven accounts, all `kb-fresh-01@` or `kb-01-*@`; two now unused |
-| 02 | Finding your way around & your profile | 8 | 36 | player | not started | - | 03 merged in 2026-08-29; four articles dropped. Account: kb-player-02@yopmail.com |
+| 02 | Finding your way around & your profile | 8 | 36 | player | drafts on Intercom | [briefs/02.md](../briefs/02.md) | 36 screenshots, all eight drafted. 03 merged in 2026-08-29; four articles dropped. Accounts: `kb-player-02@`, `kb-02-owner@`, `kb-02-pro@` |
 | 04 | Plans & membership | 3 | 17 | manager_free | not started | - | Pro is a free self-serve toggle during beta. No payment step. Flag for rewrite when beta ends. |
 | 05 | Friends | 4 | 20 | manager_free | not started | - | - |
 | 06 | Following | 1 | 6 | player | not started | - | - |
@@ -1019,3 +1019,145 @@ time.
 | 01.7 Deleting your account, and why an account may be disabled | 16738286 | **published by the reviewer** |
 
 43 images across the seven, all still 200 `image/*`, none carrying `<ol start=`.
+
+### 2026-08-29 - collection 02, complete. Eight drafts on Intercom.
+
+| Article | Intercom ID | Shots | State |
+|---|---|---|---|
+| 02.1 The main navigation and your home feed | 16738968 | 6 | draft |
+| 02.2 Searching for players and teams | 16738970 | 3 | draft |
+| 02.3 Getting help and contacting support | 16738971 | 3 | draft |
+| 02.4 Profile settings - what you can change | 16738974 | 5 | draft |
+| 02.5 Your profile photo, banner and bio | 16738975 | 7 | draft |
+| 02.6 What your public player profile shows | 16738976 | 4 | draft |
+| 02.7 Your teams, rankings and match history | 16738977 | 4 | draft |
+| 02.8 Comparing your stats with other players | 16738979 | 4 | draft |
+
+36 screenshots, matching `briefs/02.md` and the map exactly - nothing added,
+nothing dropped. All eight sit in Intercom collection **19733971**. The retired
+`19733972` was checked at the end of the run and holds nothing.
+
+Image URLs are pinned to **`2000806a276fe05ecc19821ed91a3f135a369fc4`** on branch
+`kb/collection-02`, pushed. All 36 were re-checked inside the published article
+bodies afterwards: 36/36 return `200 image/*`, and no article carries `<ol start=`.
+
+**Nothing is published. The eight drafts are unreviewed.**
+
+#### Three tooling faults found here that affect every collection
+
+- **`page.route()` has never worked.** The app registers a service worker, and a
+  request a service worker makes does not reach Playwright's route handler.
+  `playwright.config.ts` now sets `serviceWorkers: 'block'`. Until today,
+  collection 01's `blockPromos()` had never blocked a promo campaign - what hid
+  the banner was `quiet01()`'s stylesheet. Any collection whose specs rely on an
+  interception should be re-checked.
+- **URL globs do not reach past a query string.** `'**/promo-campaigns/active**'`
+  never matched `.../active?screen=Home`. `blockPromos()` and
+  `onlyOurActivities()` now take a URL predicate.
+- **`imagesPainted()` could hang for ever.** A hidden duplicate of
+  `registered.svg` on a player profile reports `complete: false` permanently while
+  still having a `naturalWidth`. It now ignores images with a zero-sized box.
+
+#### A product defect this collection had to document
+
+**Changing your profile photo deletes your bio.** The settings page saves a new
+photo with `PUT /users/:userId {"avatarToken": "..."}` and nothing else, and that
+PUT is a full replace for optional fields, so `bio` comes back `""`. Gender, date
+of birth, sports and position survive because they are required. Isolated on
+staging: read the bio, change nothing but the photo, read the bio again. The
+banner does the same.
+
+02.5 is written around it - photo, then banner, then bio - and both 02.4 and 02.5
+carry an "If it does not work" bullet for it. It is in `config/api.md`. It is
+worth a ticket.
+
+#### Five more behaviours now recorded in config/api.md
+
+1. `POST /players/avatar` and `POST /players/:playerId/banner` accept **WebP
+   only**. A PNG is refused `415 "Unsupported file type"`, even though the page
+   says "JPG, GIF or PNG" - its cropper re-encodes in the browser first.
+2. **A finished match is permanent.** It cannot be reopened, edited or deleted,
+   and the player statistics it wrote survive even deleting the team it was played
+   for. A match dated in the past also auto-starts a second or two after creation,
+   so an event written too early is lost for good.
+3. Match event `teamType` is `HomeTeam` / `AwayTeam`. Lineup positions are the
+   app's enum - `CenterBack`, `CentralMidfielder` - not the labels the profile
+   form shows.
+4. Player statistics are written **asynchronously** after a match finishes: zeroes
+   a second later, correct a minute later. The seed and three specs poll.
+5. On the Free plan a team owner may add each friend to **one** team only -
+   `400 ONE_FRIEND_PER_TEAM`.
+
+#### What differed from the brief
+
+Three shots were re-scoped after looking at them. The brief was edited and says so:
+
+- **02.4/03** clips the whole Basic information card rather than the My bio row.
+  Discard and Save Changes belong to the form, not to either row, and there is no
+  wrapper holding My bio and the buttons without Personal details - so a clip to
+  the row put the annotation outside the capture.
+- **02.6/03** clips the column holding My bio, the tiles, Team rank and Teams
+  rather than the tile grid alone. The grid on its own was the same picture as
+  02.1's.
+- **02.6/04** switches to Past Matches first. The panel opens on Upcoming, and a
+  capture of that is a tall empty box reading "No matches yet, stay tuned!" - it
+  showed the missing Create Match button only by absence and read as an error.
+
+Also corrected in the brief: the compare arrows mark the **larger** number, not
+the better one. A higher Loss count gets a green arrow.
+
+#### One documented departure from personas.yaml
+
+`personas.yaml` says the player persona belongs to "two teams she does not own".
+She belongs to one, because a Free owner may add a friend to only one of his teams
+and the owner here is Free on purpose. Her Teams panel still holds three.
+
+#### Deliberately not produced
+
+- **The Contact Us confirmation.** `POST /contacts` emails Scoryboard support, and
+  a spec meant to be re-run must not send one every run. 02.3 fills the form and
+  stops; the spec aborts the request if a later edit ever adds the click. The four
+  validation messages the article quotes were produced by selecting Submit on an
+  empty form, which sends nothing.
+- **The Pro upgrade from inside the Compare gate.** Selecting it would make the
+  persona Pro and break the other seven articles.
+
+#### Two devices in the specs worth knowing about
+
+- **02.1's Trending shot is filtered.** `GET /activities` is a global feed -
+  other collections' fixtures and other people's accounts - which
+  `docs/style-guide.md` forbids in a capture and which drifts every run. The spec
+  routes the call and keeps only entries naming this collection's own fixtures.
+  Real payload, narrowed; nothing invented. The relative timestamps are masked.
+- **02.5 restores the images it changed.** The page's cropper stores a zoomed
+  centre band rather than the file it was given, so the spec re-uploads the seed's
+  own copies at the end. Without that, the persona's banner looked one way in the
+  articles captured before 02.5 and another way after it, purely by run order.
+
+#### Where to look hard in the drafts
+
+- **02.4 and 02.6 carry two sentences that were reasoned, not seen.** 02.4 says
+  the Change Password box is replaced by a line naming your sign-in method when
+  you did not use a password - that comes from collection 01's observation, not
+  from this run. 02.6 says your email address and date of birth are not on your
+  public profile - true of the capture, but nothing was found that guarantees it.
+- **02.2's result lists are global.** Both search terms were chosen to match only
+  this collection's fixtures, but nothing stops another account creating a team
+  called "KB 02 something" and appearing in a re-run.
+- **The Views counter** was masked everywhere. It rose from 0 to 1 the moment
+  another account opened the profile, so it counts visits, but whether it counts
+  unique visitors was not established.
+- **`/profile-view`** is in the app's route list and nothing navigated to it. The
+  public profile documented here is `/player/:playerId`.
+
+#### Flakes
+
+None. The nine specs were run repeatedly through the session - the full suite four
+times - and never failed once the selector fixes were in.
+
+#### Not committed to master
+
+Everything is on `kb/collection-02`, pushed. The image URLs resolve from that
+branch's commits. Merging is the human's call.
+
+Next: `/kb-brief 04`.
