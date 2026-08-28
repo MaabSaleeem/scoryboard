@@ -21,7 +21,7 @@ target.
 | 09 | Creating & scheduling matches | 8 | 50 | manager_pro | not started | - | - |
 | 10 | Match day | 11 | 65 | manager_pro | not started | - | - |
 | 11 | Match insights & statistics | 3 | 9 | player | not started | - | - |
-| 12 | Tournaments - setting one up | 10 | 65 | organiser | published | [briefs/12.md](../briefs/12.md) | 10/10 published, 65 screenshots. 12.2 and 12.4 are scoped to Football; Padel needs its own articles |
+| 12 | Tournaments - setting one up | 10 (+2) | 80 | organiser | published | [briefs/12.md](../briefs/12.md) | 12 published, 80 screenshots. 12.11 and 12.12 added for Padel; not in the map |
 | 13 | Tournaments - groups, brackets & phases | 6 | 32 | organiser | not started | - | flag: TOURNAMENT_FEATURE_ENABLED |
 | 14 | Tournaments - the fixture schedule | 5 | 23 | organiser | not started | - | flag: TOURNAMENT_FEATURE_ENABLED |
 | 15 | Tournaments - publishing & running | 9 | 60 | organiser | not started | - | flag: TOURNAMENT_FEATURE_ENABLED |
@@ -194,3 +194,64 @@ set, not seen on screen. Confirm it before writing the Padel articles, because
 the Football articles now assert it.
 
 Next: `/kb-brief 13`, and a Padel pass over collection 12.
+
+**2026-08-28 - collection 12, padel pass. Two articles added, twelve published.**
+
+| Article | Intercom ID | Shots | Pinned commit |
+|---|---|---|---|
+| 12.1 | 16733150 | 3 | 0ed9dd4 |
+| 12.2 | 16733171 | 8 | 0ec3021 |
+| 12.3 | 16733190 | 7 | c5fae3a |
+| 12.4 | 16733249 | 9 | eca5179 |
+| 12.5 | 16733298 | 9 | 3730425 |
+| 12.6 | 16733318 | 6 | f1e3512 |
+| 12.7 | 16733486 | 5 | 7f0e122 |
+| 12.8 | 16733354 | 6 | 29c1d38 |
+| 12.9 | 16733367 | 6 | 3e3ad46 |
+| 12.10 | 16733381 | 6 | 4fa083f |
+| 12.11 | 16734124 | 7 | 2b0b16c |
+| 12.12 | 16734128 | 8 | 2b0b16c |
+
+80 screenshots. Every image URL embedded in the published bodies re-checked at
+the end: all 80 return 200 with an `image/*` content type. Committed straight to
+`master` from here on, as instructed.
+
+**12.11 "Creating a padel tournament"** and **12.12 "Choosing a format for a
+padel tournament"** are new. Neither is in `config/articles.yaml` - the map has
+no padel coverage at all, which is why scoping 12.2 and 12.4 to Football last
+session exposed a gap rather than closing one.
+
+Padel is a genuinely different surface, verified in the rendered app:
+
+- Its create form adds **Play mode**, **Enrollment type** (required) and a
+  **Friendly Tournament** toggle. `POST /tournaments` gains `playMode`,
+  `padelEnrollmentType` and `isFriendlyTournament`.
+- Its Format tab offers **five** formats - Swiss, Americano, Mexicano, King of
+  the Court, Round Robin - behind a **Next** button rather than football's
+  **Save**, with a configuration step for standings type, scoring, player count,
+  rounds, courts and the gap between rounds, and a rules panel alongside.
+- **Other Sports adds nothing.** Its create form is Football's, which settles
+  the open question left last session about whether the two really match. The
+  Other Sports *Format* tab is still unseen, so that half stands.
+
+12.12 documents **Swiss** end to end, as asked, and names the other four.
+
+**Fixtures.** Two padel tournaments seeded - `KB Padel Cup` (Doubles, Swiss, 8
+players, 4 rounds, 4 courts, scoring 24) and `KB New Padel Cup` (untouched).
+Tournament Pro slots are down to 12. The seed can only **check** that KB Padel
+Cup still carries Swiss, not rebuild it: the two-step format save was never
+captured on the wire, so if the check fails the script prints the URL to fix it
+by hand.
+
+**Capture defects found and fixed in the specs.** Three of 12.11's captures were
+full-page with the persona's name unmasked, and its Friendly Tournament shot had
+the enrollment list still covering the field while the annotation sat below the
+modal's fold. Both fixed the same way as their football equivalents.
+
+**New quirk worth remembering.** Padel's player-count option only responds to
+`dispatchEvent('click')` - a real mouse sequence opens and closes it without
+selecting. Same behaviour as the venue add button in 12.3 and 12.6. Two
+independent controls now share it, so treat it as a house pattern rather than a
+one-off.
+
+Next: `/kb-brief 13`.

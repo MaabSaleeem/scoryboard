@@ -213,6 +213,45 @@
       ],
       "published_at": "2026-08-28T10:07:45.000Z",
       "status": "published"
+    },
+    "12.11": {
+      "intercom_id": "16734124",
+      "collection": "12",
+      "intercom_collection_id": "19733981",
+      "brief": "briefs/12.md",
+      "spec": "specs/12/12.11.spec.ts",
+      "commit_sha": "2b0b16cf6d18d3b9ac98bd25348d1de6e90ebd85",
+      "screenshots": [
+        "screenshots/12/12.11/01-game-type-on-a-new-tournament.5cd4e003.png",
+        "screenshots/12/12.11/02-the-three-game-types.cef2b3fc.png",
+        "screenshots/12/12.11/03-the-padel-form.2f3f4884.png",
+        "screenshots/12/12.11/04-play-mode-options.8959d69c.png",
+        "screenshots/12/12.11/05-enrollment-type-options.ef6f7deb.png",
+        "screenshots/12/12.11/06-friendly-tournament.abfd6850.png",
+        "screenshots/12/12.11/07-board-you-land-on.0d3fa63d.png"
+      ],
+      "published_at": "2026-08-28T10:45:01.000Z",
+      "status": "published"
+    },
+    "12.12": {
+      "intercom_id": "16734128",
+      "collection": "12",
+      "intercom_collection_id": "19733981",
+      "brief": "briefs/12.md",
+      "spec": "specs/12/12.12.spec.ts",
+      "commit_sha": "2b0b16cf6d18d3b9ac98bd25348d1de6e90ebd85",
+      "screenshots": [
+        "screenshots/12/12.12/01-five-padel-formats.3a4ce668.png",
+        "screenshots/12/12.12/02-swiss-selected.49658f2e.png",
+        "screenshots/12/12.12/03-standings-type.11b8ea81.png",
+        "screenshots/12/12.12/04-scoring.3e75c5e5.png",
+        "screenshots/12/12.12/05-how-many-players.519d7192.png",
+        "screenshots/12/12.12/06-rounds-courts-and-gap.062f2293.png",
+        "screenshots/12/12.12/07-rules-and-regulations.06805aa8.png",
+        "screenshots/12/12.12/08-swiss-saved-pairs-and-phases.297c86a3.png"
+      ],
+      "published_at": "2026-08-28T10:45:15.000Z",
+      "status": "published"
     }
   }
 }
