@@ -21,7 +21,7 @@ target.
 | 09 | Creating & scheduling matches | 8 | 50 | manager_pro | not started | - | - |
 | 10 | Match day | 11 | 65 | manager_pro | not started | - | - |
 | 11 | Match insights & statistics | 3 | 9 | player | not started | - | - |
-| 12 | Tournaments - setting one up | 10 | 65 | organiser | published (9/10) | [briefs/12.md](../briefs/12.md) | 12.7 BLOCKED - the brief says there is no tournament banner; there is one. Needs a re-brief. Other 9 published, 60 screenshots |
+| 12 | Tournaments - setting one up | 10 | 65 | organiser | published | [briefs/12.md](../briefs/12.md) | 10/10 published, 65 screenshots. 12.2 and 12.4 are scoped to Football; Padel needs its own articles |
 | 13 | Tournaments - groups, brackets & phases | 6 | 32 | organiser | not started | - | flag: TOURNAMENT_FEATURE_ENABLED |
 | 14 | Tournaments - the fixture schedule | 5 | 23 | organiser | not started | - | flag: TOURNAMENT_FEATURE_ENABLED |
 | 15 | Tournaments - publishing & running | 9 | 60 | organiser | not started | - | flag: TOURNAMENT_FEATURE_ENABLED |
@@ -144,3 +144,53 @@ Also set `http.sslBackend=schannel` in this repo's local git config - git-bash
 could not validate GitHub's certificate without it.
 
 Next: re-brief 12.7, then `/kb-brief 13`.
+
+**2026-08-28 - collection 12 complete. All ten articles published.**
+
+| Article | Intercom ID | Shots | Pinned commit |
+|---|---|---|---|
+| 12.1 | 16733150 | 3 | 0ed9dd4 |
+| 12.2 | 16733171 | 8 | 0ec3021 |
+| 12.3 | 16733190 | 7 | c5fae3a |
+| 12.4 | 16733249 | 9 | eca5179 |
+| 12.5 | 16733298 | 9 | 3730425 |
+| 12.6 | 16733318 | 6 | f1e3512 |
+| 12.7 | 16733486 | 5 | 7f0e122 |
+| 12.8 | 16733354 | 6 | 29c1d38 |
+| 12.9 | 16733367 | 6 | 3e3ad46 |
+| 12.10 | 16733381 | 6 | 4fa083f |
+
+65 screenshots, matching the approved brief exactly. Every image URL embedded in
+the published bodies was re-checked at the end: all 65 return 200 with an
+`image/*` content type.
+
+**12.7 published after the brief was corrected and re-approved.** The tournament
+does have a banner - `Upload banner image` sits beside `Upload avatar image`
+under Profile appearance, each with its own edit and delete control. The article
+is back to the map's original title and covers both. Its two appearance captures
+now outline the banner and the crest rather than the section heading and its
+size caption.
+
+**Game-type scoping, added at the repo owner's request.** The three format
+templates in 12.4 are the Football set; Padel has its own. Verified in the
+rendered create form: choosing Padel adds Play mode, Enrollment type and a
+Friendly Tournament toggle, and choosing Other Sports changes nothing at all.
+
+- 12.2 -> "Creating a football tournament"
+- 12.4 -> "Choosing a format for a football tournament"
+
+Both say Other Sports works identically and Padel is separate, so an Other Sports
+reader is not turned away from an article that does describe their screen. 12.5
+and 12.7 got a pointer rather than a retitle. The other six were left alone:
+states, dates, venues, settings, referees and deletion do not vary by game type.
+
+Republished by PUT against the existing Intercom IDs, so no duplicates and no new
+URLs - the screenshots did not change and stayed pinned to their original
+commits.
+
+**Still open for the Padel work.** Whether Other Sports really uses the same
+three format templates was inferred from the bundle having one non-Padel format
+set, not seen on screen. Confirm it before writing the Padel articles, because
+the Football articles now assert it.
+
+Next: `/kb-brief 13`, and a Padel pass over collection 12.

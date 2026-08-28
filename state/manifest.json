@@ -61,7 +61,7 @@
         "screenshots/12/12.2/07-create-modal-complete.b65a3641.png",
         "screenshots/12/12.2/08-board-you-land-on.eae3cfad.png"
       ],
-      "published_at": "2026-08-28T09:28:55.000Z",
+      "published_at": "2026-08-28T10:07:18.000Z",
       "status": "published"
     },
     "12.3": {
@@ -101,7 +101,7 @@
         "screenshots/12/12.4/08-group-and-knockout.d7ad5c5b.png",
         "screenshots/12/12.4/09-format-saved-groups-generated.8947c953.png"
       ],
-      "published_at": "2026-08-28T09:37:01.000Z",
+      "published_at": "2026-08-28T10:07:25.000Z",
       "status": "published"
     },
     "12.5": {
@@ -122,7 +122,7 @@
         "screenshots/12/12.5/08-team-with-an-owner.4c6df91e.png",
         "screenshots/12/12.5/09-tournament-pro-slots.1f629323.png"
       ],
-      "published_at": "2026-08-28T09:42:50.000Z",
+      "published_at": "2026-08-28T10:07:32.000Z",
       "status": "published"
     },
     "12.6": {
@@ -195,6 +195,23 @@
         "screenshots/12/12.10/06-type-delete-to-confirm.3109c69b.png"
       ],
       "published_at": "2026-08-28T09:53:20.000Z",
+      "status": "published"
+    },
+    "12.7": {
+      "intercom_id": "16733486",
+      "collection": "12",
+      "intercom_collection_id": "19733981",
+      "brief": "briefs/12.md",
+      "spec": "specs/12/12.7.spec.ts",
+      "commit_sha": "7f0e12228d5f2d40aa7202001a438181e296fc96",
+      "screenshots": [
+        "screenshots/12/12.7/01-profile-appearance.9221e145.png",
+        "screenshots/12/12.7/02-crest-upload-and-limits.11bf4e5c.png",
+        "screenshots/12/12.7/03-phases-and-groups.8947c953.png",
+        "screenshots/12/12.7/04-rename-the-phase.b2003e14.png",
+        "screenshots/12/12.7/05-rename-a-group.2f97d9e4.png"
+      ],
+      "published_at": "2026-08-28T10:07:45.000Z",
       "status": "published"
     }
   }
