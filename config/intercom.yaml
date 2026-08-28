@@ -1,0 +1,113 @@
+# Intercom collection IDs
+#
+# Fill each id in before publishing that collection. Step 2 refuses to publish
+# into an empty id.
+#
+# Get the ids from the Intercom Help Center admin, or:
+#   GET https://api.intercom.io/help_center/collections
+#   Authorization: Bearer $INTERCOM_ACCESS_TOKEN
+#
+# Keys are the collection numbers from config/articles.yaml. Do not renumber them.
+#
+# Workspace confirmed 2026-08-28: Scoryboard (pzf0spnb), region US, one help centre,
+# default locale en, website_turned_on: false (the help centre is not live yet).
+# The workspace has NO collections. All 24 below must be created once, before the
+# first publish:
+#   POST https://api.intercom.io/help_center/collections
+#   {"name": "<name>", "help_center_id": 5705778}
+# Write the returned id into the matching row here and commit that change.
+#
+# Articles need an author_id, and default to state "draft". Publish explicitly:
+#   POST https://api.intercom.io/articles
+#   {"title": "...", "body": "<html>", "author_id": 11443412,
+#    "state": "published", "parent_id": <collection id>, "parent_type": "collection"}
+# An article is only visible in the help centre if it sits in a collection.
+#
+# The 24 collections below were created 2026-08-28 and verified: all top-level
+# (parent_id null), all in help centre 5705778, order 0-23 matching 01-24.
+#
+# Intercom HTML-escapes names in API responses: "Plans &amp; membership". The
+# stored value is a plain "&" - the url slug (".../19733973-plans-and-membership")
+# confirms it. Never write a name you read back from the API; that would store the
+# escaped form. Names here are the source of truth.
+
+help_center_id: "5705778"
+default_locale: "en"
+author_id: "11443412"
+
+collections:
+  "01":
+    name: "Getting started & onboarding"
+    id: "19733970"
+  "02":
+    name: "Finding your way around"
+    id: "19733971"
+  "03":
+    name: "Your profile & settings"
+    id: "19733972"
+  "04":
+    name: "Plans & membership"
+    id: "19733973"
+  "05":
+    name: "Friends"
+    id: "19733974"
+  "06":
+    name: "Following"
+    id: "19733975"
+  "07":
+    name: "Teams"
+    id: "19733976"
+  "08":
+    name: "Leaderboards & leagues"
+    id: "19733977"
+  "09":
+    name: "Creating & scheduling matches"
+    id: "19733978"
+  "10":
+    name: "Match day"
+    id: "19733979"
+  "11":
+    name: "Match insights & statistics"
+    id: "19733980"
+  "12":
+    name: "Tournaments - setting one up"
+    id: "19733981"
+  "13":
+    name: "Tournaments - groups, brackets & phases"
+    id: "19733982"
+  "14":
+    name: "Tournaments - the fixture schedule"
+    id: "19733983"
+  "15":
+    name: "Tournaments - publishing & running"
+    id: "19733984"
+  "16":
+    name: "Tournament plans & payment"
+    id: "19733985"
+  "17":
+    name: "Collecting & making payments"
+    id: "19733986"
+  "18":
+    name: "Chat & messaging"
+    id: "19733987"
+  "19":
+    name: "Comments, likes & ratings"
+    id: "19733988"
+  "20":
+    name: "Notifications, emails & the activity feed"
+    id: "19733989"
+  "21":
+    name: "Referees"
+    id: "19733990"
+  "22":
+    name: "Venues & club locations"
+    id: "19733991"
+  "23":
+    name: "Powerleague & CentreNet bookings"
+    id: "19733992"
+  "24":
+    name: "Troubleshooting & policies"
+    id: "19733993"
+
+# Deferred. Not published in this project.
+#   "25": Internal - back-office operations

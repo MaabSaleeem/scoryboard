@@ -1,0 +1,30 @@
+{
+  "_schema": {
+    "description": "article id -> what was published for it. Step 2 reads this to decide POST (new) or PUT (update), which is what makes the publish idempotent. One entry per article. Never delete an entry; a removed article gets \"status\": \"retired\".",
+    "entry": {
+      "intercom_id": "string - Intercom article id, the key for idempotent re-publish",
+      "collection": "string - collection id, e.g. \"07\"",
+      "intercom_collection_id": "string - from config/intercom.yaml",
+      "brief": "string - path to the approved brief",
+      "spec": "string - path to the Playwright spec that captured it",
+      "commit_sha": "string - the commit the screenshot URLs are pinned to",
+      "screenshots": "string[] - screenshot paths, in article order, with content hashes",
+      "published_at": "string - ISO 8601",
+      "status": "string - published | needs_recapture | retired"
+    },
+    "example": {
+      "07.1": {
+        "intercom_id": "0000000",
+        "collection": "07",
+        "intercom_collection_id": "0000000",
+        "brief": "briefs/07.md",
+        "spec": "specs/07/07.1.spec.ts",
+        "commit_sha": "0000000000000000000000000000000000000000",
+        "screenshots": ["screenshots/07/07.1/01-teams-empty.a1b2c3d4.png"],
+        "published_at": "2026-01-01T00:00:00Z",
+        "status": "published"
+      }
+    }
+  },
+  "articles": {}
+}

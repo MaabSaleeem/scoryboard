@@ -1,0 +1,83 @@
+# Scoryboard help centre
+
+We are building an Intercom help centre for Scoryboard, a football team and
+tournament management SaaS: 146 articles across 24 collections. Every article needs
+step-by-step screenshots captured from the live staging app with Playwright, then
+published through the Intercom Articles API.
+
+**One collection per session.**
+
+## How you work
+
+Two steps per collection, with one human gate between them.
+
+- **Step 1 - write the brief. Autonomous.** Drive the staging API and the browser
+  however you need to understand each flow. Build a helper in `lib/` when it is
+  worth reusing; otherwise just do the work. Output: a Playwright spec per article
+  under `specs/`, and one `briefs/<collection-id>.md`.
+- **GATE.** A human reads that one markdown file and approves it. Nothing publishes
+  before that.
+- **Step 2 - execute the brief. Supervised.** Run each stage, read its output, then
+  move on. Your inference here is for oversight, not authorship: spot what went
+  wrong, fix mechanical faults, stop on anything substantive.
+
+**The artifacts stay deterministic even though you are watching the run.** The specs
+are the source of truth. Re-running them against unchanged UI must produce the same
+screenshots on Tuesday that it produced on Monday, so the whole suite can be
+regenerated when the product changes. You supervise the run. You do not improvise it.
+
+Full process, brief template and per-stage detail: [docs/workflow.md](docs/workflow.md).
+Voice, structure and screenshot conventions: [docs/style-guide.md](docs/style-guide.md).
+
+## Opening ritual
+
+Every session, in this order:
+
+1. Read [state/progress.md](state/progress.md) - what is done, what is in flight.
+2. Read the target collection in [config/articles.yaml](config/articles.yaml) -
+   the article list, flags, shot estimates and personas.
+3. Read [config/api.md](config/api.md) - the endpoints. Never read the Postman JSON.
+
+Then, for step 1 also read [config/personas.yaml](config/personas.yaml); for step 2
+also read the approved brief and [config/intercom.yaml](config/intercom.yaml).
+
+## Step 2 - fix it yourself, or stop and ask
+
+Fix and carry on, then log it:
+
+- a capture that came out blank, mid-animation, or obscured by a modal, toast or
+  cookie banner
+- a selector that resolved to the wrong element
+- a missing fixture: re-seed and retry
+- a broken or throttled image URL: re-push and re-verify
+- a flaky step: retry, and note the flake
+
+Stop and ask when you find:
+
+- a documented step that no longer matches the app
+- a screenshot the brief called for that cannot be produced
+- an article whose approved content is now wrong
+- anything that would change what the brief said
+
+## Never
+
+- Never publish an article without an approved brief, and never publish one the
+  brief did not cover.
+- Never run a destructive flow against unseeded data. Seed your own fixtures.
+- Never absorb a failure silently. Log every deviation.
+- Never commit anything from `local/`. It holds credentials and client material.
+- Never work on a collection other than this session's target.
+- Never add screenshots the brief did not list, or rewrite content beyond what was
+  approved.
+- Never call the admin migration or backfill endpoints. They are tenant-wide.
+
+## Environment
+
+- Staging API `https://staging-sb.api.scoryboard.com`, web app
+  `https://staging-sb.app.scoryboard.com/`.
+- Auth is Firebase; ID tokens last one hour. Mint your own through
+  `POST /admins/generate-signin-token`. Never paste a token.
+- Credentials come from `.env` only. See `.env.example`.
+- Pro membership is free during beta - a self-serve toggle, no payment step. Only
+  collections 16 and 17 touch real money, through Stripe.
+- There are no push notifications and no shipped localisation. Document neither.

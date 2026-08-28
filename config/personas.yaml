@@ -1,0 +1,178 @@
+# Seeded personas
+#
+# Six accounts. Stable across sessions: same email, same state, same names.
+# Re-seeding must be idempotent - if the account exists, bring it to the state
+# below rather than creating a second one.
+#
+# Sessions are always minted, never pasted:
+#   POST /admins/generate-signin-token  {"data": {"email": "<persona email>"}}
+# then exchange the custom token for a Firebase ID token. See config/api.md.
+#
+# Every call below uses the admin API key (X-API-KEY) or the persona's own bearer
+# token. Bodies are wrapped in {"data": {...}}. Paths are in config/api.md.
+#
+# Fixtures that belong to one collection (a throwaway team, a scratch tournament)
+# are NOT here. Name those per collection - kb-<collection-id>-<thing> - so two
+# collections never fight over the same row.
+#
+# Email domain: yopmail.com, for every persona. Any domain works for accounts that
+# never read their mail, but three flows do read it - email verification (01.2),
+# password reset (01.4) and the email reference article (20.2) - and yopmail gives a
+# public inbox with no setup: kb-fresh@yopmail.com is readable at
+# https://yopmail.com/?kb-fresh. One domain everywhere keeps the specs uniform.
+#
+# Passwords: admin-created users have none. To give a persona one, create it with
+# POST /admins/users, call POST /users/reset-password {"email": "<persona>"}, then
+# open the reset link from its yopmail inbox. That covers 01.3 and 01.4 on
+# disposable data. The owner's own staging login is the fallback and is recorded in
+# local/credentials.md (gitignored) - if it is ever used in a capture, mask name,
+# avatar and email per docs/style-guide.md.
+
+conventions:
+  email_pattern: "kb-<persona>@yopmail.com"
+  last_name: "KB"
+  create: |
+    POST /admins/users
+    {"data": {"name": "<name>", "lastName": "KB", "email": "<email>"}}
+  session: |
+    POST /admins/generate-signin-token
+    {"data": {"email": "<email>"}}
+  membership: |
+    POST /admins/change-user-membership/:userId
+    {"data": {"membership": "Free" | "Pro"}}
+
+personas:
+
+  fresh:
+    email: kb-fresh@yopmail.com
+    name: Fresh
+    membership: Free
+    used_by: ["01", "07.6"]
+    state: >
+      A brand-new account that has completed nothing. No teams, no friends, no
+      matches, no avatar, no bio. The setup wizard and the profile checklist must
+      both still be unfinished.
+    seed:
+      - "DELETE /admins/user-delete/:userId   # only if the account already exists and has state"
+      - "POST /admins/users {\"name\":\"Fresh\",\"lastName\":\"KB\",\"email\":\"kb-fresh@yopmail.com\"}"
+    notes: >
+      This is the one persona that must be torn down and recreated rather than
+      reused, because its value is having no state. Collection 01 also needs the
+      real signup and email-verification flow, which the admin create path skips -
+      do that one through the UI.
+
+  player:
+    email: kb-player@yopmail.com
+    name: Pia
+    membership: Free
+    used_by: ["03", "06", "11", "17.10", "19", "20"]
+    state: >
+      A member of two teams she does not own, with match history so her statistics,
+      rankings and match list are populated. Has an avatar, a banner and a bio.
+      Follows one player, one team. Has received at least one payment request
+      (for 17.10) and has notifications to read.
+    seed:
+      - "POST /admins/users"
+      - "POST /players/avatar then PUT /users/:userId with the avatarToken"
+      - "POST /players/:playerId/banner"
+      - "manager_pro adds her: POST /team-players {teamId, name, email, role: Player}"
+      - "POST /team-invitations/accept {\"teamInvitationIds\":[...]}  # as player"
+      - "manager_pro runs a match to Finished so her stats populate"
+      - "POST /players/:playerId/follow and POST /teams/:teamId/follow  # as player"
+    notes: >
+      Statistics update asynchronously after a match finishes (see article 11.3).
+      Seed the match, then poll GET /players/:playerId/stats before capturing.
+
+  manager_free:
+    email: kb-manager-free@yopmail.com
+    name: Marc
+    membership: Free
+    used_by: ["02", "04", "05", "18", "23", "24"]
+    state: >
+      Owns one team on the Free plan, sitting at the Free limits so every gate
+      modal is reachable. Has friends in the friends list, one of them with a
+      clashing email for the merge flow. In one group chat.
+    seed:
+      - "POST /admins/users"
+      - "POST /admins/change-user-membership/:userId {\"membership\":\"Free\"}"
+      - "POST /teams {\"name\":\"KB Free FC\",\"teamSize\":\"5 VS 5\",\"defaultFormation\":{\"formation\":\"2-1-1\"}}"
+      - "POST /friends {\"name\":\"...\"} x3"
+      - "POST /friends {\"name\":\"...\",\"email\":\"<an email already on a player>\"}  # merge case"
+    notes: >
+      The Free/Pro pairs in collections 04 and 18 are captured by flipping THIS
+      account with change-user-membership between the two captures, not by using
+      manager_pro. Same data, one variable. Flip back to Free when done.
+      TODO: chat has no endpoint in the collection. Seed the group chat through
+      the UI and record how in the brief.
+
+  manager_pro:
+    email: kb-manager-pro@yopmail.com
+    name: Mo
+    membership: Pro
+    used_by: ["07", "08", "09", "10", "17", "22"]
+    state: >
+      Owns one full team (6 named players, mixed roles including an Administrator
+      and a Fan), one leaderboard containing that team plus one opponent, one
+      finished match with goals and cards, one scheduled match, and one saved
+      venue. Payout account connected in Stripe test mode for collection 17.
+    seed:
+      - "POST /admins/users"
+      - "POST /admins/change-user-membership/:userId {\"membership\":\"Pro\"}"
+      - "POST /teams {\"name\":\"KB United\",\"teamSize\":\"5 VS 5\",\"defaultFormation\":{\"formation\":\"2-1-1\"}}"
+      - "POST /team-players x6 with roles Player, Administrator, Fan"
+      - "POST /teams {\"name\":\"KB Rovers\", ...}  # the opponent"
+      - "POST /leaderboards {\"name\":\"KB Sunday League\"}"
+      - "POST /leaderboards/:id/teams {\"teamId\":\"...\"} x2"
+      - "POST /club-locations {\"name\":\"KB Astro\",\"location\":\"...\"}"
+      - "POST /matches {homeTeam, awayTeam, date, duration, clubLocationId, tag}"
+      - "POST /matches/:matchId/status {\"status\":\"Live\"} -> events -> {\"status\":\"Finished\"}"
+      - "POST /payments/stripe/account  # 17 only, test mode"
+    notes: >
+      Collection 17 needs a real Stripe Connect onboarding (17.2 is the hardest
+      capture in the project). Stripe test mode only. Do not enter real details.
+
+  organiser:
+    email: kb-organiser@yopmail.com
+    name: Oona
+    membership: Pro
+    tournament_plan: Pro
+    used_by: ["12", "13", "14", "15", "16"]
+    state: >
+      Holds Tournament Pro granted without Stripe, plus one tournament in each
+      state the articles need: one Draft mid-wizard, one Published with groups and
+      a full fixture list, one Live, one Completed. Owns four teams to fill a
+      group, and two venues.
+    seed:
+      - "POST /admins/users"
+      - "POST /admins/change-user-membership/:userId {\"membership\":\"Pro\"}"
+      - "POST /admins/users/tournament-free-pro/grant {\"email\":\"kb-organiser@yopmail.com\",\"plan\":\"Pro\",\"quantity\":2}"
+      - "POST /club-locations x2"
+      - "POST /teams x4 with players"
+      - "POST /tournaments {\"title\":\"KB Cup\",\"startDate\":\"...\",\"endDate\":\"...\",\"isOnline\":false}"
+      - "PATCH /tournaments/:id/config {startDate, endDate, clubLocationIds, teamIds, teamCount, format, groupCount, teamsPerGroup, matchesPerTeam, isComplete}"
+      - "PATCH /tournaments/:id/schedule {matches:[...]}"
+    notes: >
+      Requires the TOURNAMENT_FEATURE_ENABLED flag.
+      Collection 16 is real money on the Basic/Pro/Annual plans - use a SECOND
+      organiser account without the free grant so the paywall is reachable, and
+      Stripe test mode. Name it kb-organiser-basic@yopmail.com.
+      TODO: publishing, phases, brackets and the presentation editor have no
+      endpoints in the collection. Drive those through the UI and record the steps.
+
+  referee:
+    email: kb-referee@yopmail.com
+    name: Rae
+    membership: Free
+    used_by: ["21", "09.7"]
+    state: >
+      A referee profile with at least one accepted assignment on a manager_pro
+      match, one pending invitation, and enough finished matches to populate
+      referee statistics.
+    seed:
+      - "POST /admins/users  # then set the referee profile"
+      - "manager_pro assigns her to a match, then she accepts"
+      - "GET /referees/:playerId/matches to confirm the assignment landed"
+    notes: >
+      TODO: the Postman collection has no referee-registration endpoint. The only
+      trace is defaultProfile: "Referee" on POST /users. Confirm how an existing
+      account becomes a referee, through the UI if needed, and record it.
