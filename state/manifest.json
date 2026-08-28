@@ -160,6 +160,24 @@
       ],
       "published_at": "2026-08-28T09:48:59.000Z",
       "status": "published"
+    },
+    "12.9": {
+      "intercom_id": "16733367",
+      "collection": "12",
+      "intercom_collection_id": "19733981",
+      "brief": "briefs/12.md",
+      "spec": "specs/12/12.9.spec.ts",
+      "commit_sha": "3e3ad4664a831179278400c7ba5bf298bab53f12",
+      "screenshots": [
+        "screenshots/12/12.9/01-no-referees-added-yet.81f8da86.png",
+        "screenshots/12/12.9/02-saved-referees-tab.f5d06d06.png",
+        "screenshots/12/12.9/03-add-a-single-referee.4b6545cc.png",
+        "screenshots/12/12.9/04-add-many-referees.ddaf4b2b.png",
+        "screenshots/12/12.9/05-start-and-end-matches-permission.93b5e6a2.png",
+        "screenshots/12/12.9/06-referees-on-the-tournament.d2c610cd.png"
+      ],
+      "published_at": "2026-08-28T09:51:14.000Z",
+      "status": "published"
     }
   }
 }
