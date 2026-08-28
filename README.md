@@ -45,7 +45,7 @@ and screenshot rules are in [docs/style-guide.md](docs/style-guide.md).
 |---|---|
 | `CLAUDE.md` | Loaded every session: how the agent works, and the never-list |
 | `docs/` | The process in full, and the style guide |
-| `config/articles.yaml` | The article map: 24 collections, 146 articles, flags, shot estimates, personas |
+| `config/articles.yaml` | The article map: 24 collections, 154 articles, flags, shot estimates, personas |
 | `config/api.md` | Every staging endpoint, grouped by resource. Read this, not the Postman JSON |
 | `config/personas.yaml` | The six seeded accounts and the calls that produce them |
 | `config/intercom.yaml` | Collection name to Intercom collection ID |

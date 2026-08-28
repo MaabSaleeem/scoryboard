@@ -7,8 +7,12 @@
 
 meta:
   collections: 24
-  articles: 146
-  screenshots: 806
+  articles: 154
+  screenshots: 844
+  # 13, 14 and 15 were split by sport on 2026-08-28 after walking both game
+  # types through every tab. These totals count what this file lists: they do
+  # not yet include collection 12's two padel articles, which are published
+  # but never made it back into the map.
 
 collections:
 
@@ -16,276 +20,287 @@ collections:
     name: Getting started & onboarding
     persona_default: fresh
     articles:
-      - {id: 01.1, title: "Creating your Scoryboard account", shots: 6}
-      - {id: 01.2, title: "Verifying your email address", shots: 4}
-      - {id: 01.3, title: "Signing in, and common sign-in problems", shots: 4}
-      - {id: 01.4, title: "Resetting your password, and setting one on an invited account", shots: 5}
-      - {id: 01.5, title: "The setup wizard - what each step does", shots: 12}
-      - {id: 01.6, title: "Setting up your first team and leaderboard", shots: 8}
-      - {id: 01.7, title: "The profile checklist in your sidebar", shots: 3}
-      - {id: 01.8, title: "Deleting your account, and why an account may be disabled", shots: 4}
+      - {id: "01.1", title: "Creating your Scoryboard account", shots: 6}
+      - {id: "01.2", title: "Verifying your email address", shots: 4}
+      - {id: "01.3", title: "Signing in, and common sign-in problems", shots: 4}
+      - {id: "01.4", title: "Resetting your password, and setting one on an invited account", shots: 5}
+      - {id: "01.5", title: "The setup wizard - what each step does", shots: 12}
+      - {id: "01.6", title: "Setting up your first team and leaderboard", shots: 8}
+      - {id: "01.7", title: "The profile checklist in your sidebar", shots: 3}
+      - {id: "01.8", title: "Deleting your account, and why an account may be disabled", shots: 4}
 
   - id: "02"
     name: Finding your way around
     persona_default: manager_free
     articles:
-      - {id: 02.1, title: "The main navigation and your home feed", shots: 6}
-      - {id: 02.2, title: "Searching for players and teams", shots: 3}
-      - {id: 02.3, title: "Installing Scoryboard on your phone or desktop", shots: 6}
-      - {id: 02.4, title: "Getting help and contacting support", shots: 3}
-      - {id: 02.5, title: "Cookies, ads and in-app messages", shots: 4}
-      - {id: 02.6, title: "Embedding the trending matches widget on your own site", shots: 3}
+      - {id: "02.1", title: "The main navigation and your home feed", shots: 6}
+      - {id: "02.2", title: "Searching for players and teams", shots: 3}
+      - {id: "02.3", title: "Installing Scoryboard on your phone or desktop", shots: 6}
+      - {id: "02.4", title: "Getting help and contacting support", shots: 3}
+      - {id: "02.5", title: "Cookies, ads and in-app messages", shots: 4}
+      - {id: "02.6", title: "Embedding the trending matches widget on your own site", shots: 3}
 
   - id: "03"
     name: Your profile & settings
     persona_default: player
     articles:
-      - {id: 03.1, title: "Profile settings - what you can change", shots: 5}
-      - {id: 03.2, title: "Your profile photo, banner and bio", shots: 7}
-      - {id: 03.3, title: "What your public player profile shows", shots: 4}
-      - {id: 03.4, title: "Your player statistics explained", shots: 6}
-      - {id: 03.5, title: "Your teams, rankings and match history", shots: 4}
-      - {id: 03.6, title: "Comparing your stats with other players", flags: [free_pro], shots: 4, note: "needs Free gate modal plus Pro state"}
+      - {id: "03.1", title: "Profile settings - what you can change", shots: 5}
+      - {id: "03.2", title: "Your profile photo, banner and bio", shots: 7}
+      - {id: "03.3", title: "What your public player profile shows", shots: 4}
+      - {id: "03.4", title: "Your player statistics explained", shots: 6}
+      - {id: "03.5", title: "Your teams, rankings and match history", shots: 4}
+      - {id: "03.6", title: "Comparing your stats with other players", flags: [free_pro], shots: 4, note: "needs Free gate modal plus Pro state"}
 
   - id: "04"
     name: Plans & membership
     persona_default: manager_free
     note: "Pro is a free self-serve toggle during beta. No payment step. Flag for rewrite when beta ends."
     articles:
-      - {id: 04.1, title: "Free vs Pro - what is included", flags: [free_pro], shots: 4}
-      - {id: 04.2, title: "Pro is free during beta - how to upgrade", flags: [free_pro], shots: 5}
-      - {id: 04.3, title: "Every Free-plan limit, and the messages you will see", flags: [free_pro], shots: 8, note: "canonical limits table, other articles link here"}
+      - {id: "04.1", title: "Free vs Pro - what is included", flags: [free_pro], shots: 4}
+      - {id: "04.2", title: "Pro is free during beta - how to upgrade", flags: [free_pro], shots: 5}
+      - {id: "04.3", title: "Every Free-plan limit, and the messages you will see", flags: [free_pro], shots: 8, note: "canonical limits table, other articles link here"}
 
   - id: "05"
     name: Friends
     persona_default: manager_free
     articles:
-      - {id: 05.1, title: "What your friends list is and why teams depend on it", shots: 3, note: "concept article, highest ticket driver in this area"}
-      - {id: 05.2, title: "Adding, editing and removing friends", shots: 8}
-      - {id: 05.3, title: "Merging a friend with an existing player when emails clash", shots: 4}
-      - {id: 05.4, title: "Invite codes and claiming your own record", shots: 5}
+      - {id: "05.1", title: "What your friends list is and why teams depend on it", shots: 3, note: "concept article, highest ticket driver in this area"}
+      - {id: "05.2", title: "Adding, editing and removing friends", shots: 8}
+      - {id: "05.3", title: "Merging a friend with an existing player when emails clash", shots: 4}
+      - {id: "05.4", title: "Invite codes and claiming your own record", shots: 5}
 
   - id: "06"
     name: Following
     persona_default: player
     articles:
-      - {id: 06.1, title: "Following players, teams and tournaments", shots: 6}
+      - {id: "06.1", title: "Following players, teams and tournaments", shots: 6}
 
   - id: "07"
     name: Teams
     persona_default: manager_pro
     articles:
-      - {id: 07.1, title: "Creating a team", shots: 8}
-      - {id: 07.2, title: "Dummy teams and unowned teams", shots: 5}
-      - {id: 07.3, title: "Your team crest, banner and bio", shots: 5}
-      - {id: 07.4, title: "Your team settings screen", flags: [role], shots: 7}
-      - {id: 07.5, title: "Inviting players to your team", flags: [role], shots: 9}
-      - {id: 07.6, title: "Joining a team you have been invited to", persona: fresh, shots: 5}
-      - {id: 07.7, title: "Team roles - Owner, Administrator, Player and Fan", flags: [free_pro, role], shots: 5}
-      - {id: 07.8, title: "Removing a member, and blocking them", flags: [role], shots: 5}
-      - {id: 07.9, title: "Claiming a team and transferring ownership", flags: [role], shots: 6}
-      - {id: 07.10, title: "Your team page - stats, matches, top players and followers", shots: 5}
-      - {id: 07.11, title: "Deleting a team", flags: [role], shots: 3}
+      - {id: "07.1", title: "Creating a team", shots: 8}
+      - {id: "07.2", title: "Dummy teams and unowned teams", shots: 5}
+      - {id: "07.3", title: "Your team crest, banner and bio", shots: 5}
+      - {id: "07.4", title: "Your team settings screen", flags: [role], shots: 7}
+      - {id: "07.5", title: "Inviting players to your team", flags: [role], shots: 9}
+      - {id: "07.6", title: "Joining a team you have been invited to", persona: fresh, shots: 5}
+      - {id: "07.7", title: "Team roles - Owner, Administrator, Player and Fan", flags: [free_pro, role], shots: 5}
+      - {id: "07.8", title: "Removing a member, and blocking them", flags: [role], shots: 5}
+      - {id: "07.9", title: "Claiming a team and transferring ownership", flags: [role], shots: 6}
+      - {id: "07.10", title: "Your team page - stats, matches, top players and followers", shots: 5}
+      - {id: "07.11", title: "Deleting a team", flags: [role], shots: 3}
 
   - id: "08"
     name: Leaderboards & leagues
     persona_default: manager_pro
     articles:
-      - {id: 08.1, title: "What a leaderboard is and when to create one", shots: 2}
-      - {id: 08.2, title: "Creating a leaderboard", flags: [free_pro, role], shots: 8}
-      - {id: 08.3, title: "Your leaderboard settings screen", flags: [role], shots: 5}
-      - {id: 08.4, title: "Adding and removing teams", flags: [role], shots: 6}
-      - {id: 08.5, title: "Leaderboard admins", flags: [free_pro, role], shots: 4}
-      - {id: 08.6, title: "Reading the league table, and how ranking is worked out", shots: 4}
-      - {id: 08.7, title: "Leaderboard statistics, players and matches", shots: 6}
-      - {id: 08.8, title: "Sharing, commenting on and deleting a leaderboard", flags: [role], shots: 5}
+      - {id: "08.1", title: "What a leaderboard is and when to create one", shots: 2}
+      - {id: "08.2", title: "Creating a leaderboard", flags: [free_pro, role], shots: 8}
+      - {id: "08.3", title: "Your leaderboard settings screen", flags: [role], shots: 5}
+      - {id: "08.4", title: "Adding and removing teams", flags: [role], shots: 6}
+      - {id: "08.5", title: "Leaderboard admins", flags: [free_pro, role], shots: 4}
+      - {id: "08.6", title: "Reading the league table, and how ranking is worked out", shots: 4}
+      - {id: "08.7", title: "Leaderboard statistics, players and matches", shots: 6}
+      - {id: "08.8", title: "Sharing, commenting on and deleting a leaderboard", flags: [role], shots: 5}
 
   - id: "09"
     name: Creating & scheduling matches
     persona_default: manager_pro
     articles:
-      - {id: 09.1, title: "Creating a match - the three steps", shots: 10}
-      - {id: 09.2, title: "Creating a match from the calendar, or quick-creating one", shots: 6}
-      - {id: 09.3, title: "Match statuses, and why a match is stuck on Incomplete", shots: 5}
-      - {id: 09.4, title: "Venue, date, kick-off time, duration and pitch", shots: 6}
-      - {id: 09.5, title: "Match tags, and attaching a match to a leaderboard", flags: [role], shots: 5}
-      - {id: 09.6, title: "Editing, cancelling or deleting a match", flags: [role], shots: 5}
-      - {id: 09.7, title: "Assigning a referee, and adding a banner or note", flags: [role], shots: 6}
-      - {id: 09.8, title: "Inviting people, sharing a preview and the matches calendar", shots: 7}
+      - {id: "09.1", title: "Creating a match - the three steps", shots: 10}
+      - {id: "09.2", title: "Creating a match from the calendar, or quick-creating one", shots: 6}
+      - {id: "09.3", title: "Match statuses, and why a match is stuck on Incomplete", shots: 5}
+      - {id: "09.4", title: "Venue, date, kick-off time, duration and pitch", shots: 6}
+      - {id: "09.5", title: "Match tags, and attaching a match to a leaderboard", flags: [role], shots: 5}
+      - {id: "09.6", title: "Editing, cancelling or deleting a match", flags: [role], shots: 5}
+      - {id: "09.7", title: "Assigning a referee, and adding a banner or note", flags: [role], shots: 6}
+      - {id: "09.8", title: "Inviting people, sharing a preview and the matches calendar", shots: 7}
 
   - id: "10"
     name: Match day
     persona_default: manager_pro
     articles:
-      - {id: 10.1, title: "The match screen, its tabs and the guided tour", shots: 9}
-      - {id: 10.2, title: "Picking your lineup and choosing a formation", flags: [free_pro, role], shots: 9}
-      - {id: 10.3, title: "Starting, pausing and ending a match", flags: [role], shots: 6}
-      - {id: 10.4, title: "The match timer", shots: 3}
-      - {id: 10.5, title: "Awarding a goal, and revoking one entered by mistake", flags: [role], shots: 6}
-      - {id: 10.6, title: "Cards, penalties and entering a final score", flags: [role], shots: 7}
-      - {id: 10.7, title: "Choosing Player of the Match", flags: [role], shots: 3}
-      - {id: 10.8, title: "The match feed and commentary", flags: [free_pro], shots: 8}
-      - {id: 10.9, title: "Recording a match that has already been played", shots: 5}
-      - {id: 10.10, title: "Live viewers, and following a match from another device", shots: 4}
-      - {id: 10.11, title: "After the match - the league table, rating and results", shots: 5}
+      - {id: "10.1", title: "The match screen, its tabs and the guided tour", shots: 9}
+      - {id: "10.2", title: "Picking your lineup and choosing a formation", flags: [free_pro, role], shots: 9}
+      - {id: "10.3", title: "Starting, pausing and ending a match", flags: [role], shots: 6}
+      - {id: "10.4", title: "The match timer", shots: 3}
+      - {id: "10.5", title: "Awarding a goal, and revoking one entered by mistake", flags: [role], shots: 6}
+      - {id: "10.6", title: "Cards, penalties and entering a final score", flags: [role], shots: 7}
+      - {id: "10.7", title: "Choosing Player of the Match", flags: [role], shots: 3}
+      - {id: "10.8", title: "The match feed and commentary", flags: [free_pro], shots: 8}
+      - {id: "10.9", title: "Recording a match that has already been played", shots: 5}
+      - {id: "10.10", title: "Live viewers, and following a match from another device", shots: 4}
+      - {id: "10.11", title: "After the match - the league table, rating and results", shots: 5}
 
   - id: "11"
     name: Match insights & statistics
     persona_default: player
     articles:
-      - {id: 11.1, title: "Match facts, insights, form and head-to-head", shots: 4}
-      - {id: 11.2, title: "How team and player statistics are calculated", shots: 3}
-      - {id: 11.3, title: "When your statistics update after a match", shots: 2, note: "timing question, main ticket driver here"}
+      - {id: "11.1", title: "Match facts, insights, form and head-to-head", shots: 4}
+      - {id: "11.2", title: "How team and player statistics are calculated", shots: 3}
+      - {id: "11.3", title: "When your statistics update after a match", shots: 2, note: "timing question, main ticket driver here"}
 
   - id: "12"
     name: Tournaments - setting one up
     persona_default: organiser
     feature_flag: TOURNAMENT_FEATURE_ENABLED
     articles:
-      - {id: 12.1, title: "Tournaments explained - Draft, Published, Live, Completed", shots: 3}
-      - {id: 12.2, title: "Creating a tournament and the setup wizard", flags: [role], shots: 8}
-      - {id: 12.3, title: "Step 1 - dates, kick-off time, venues and teams", flags: [role], shots: 7}
-      - {id: 12.4, title: "Step 2 - choosing a format, groups and matches per team", flags: [role], shots: 9}
-      - {id: 12.5, title: "Adding teams, assigning owners and claiming a team", flags: [role, tourn_plan], shots: 9}
-      - {id: 12.6, title: "Venues, registration fees and referee fees", flags: [role], shots: 6}
-      - {id: 12.7, title: "Tournament crest, banner and phase names", flags: [role], shots: 5}
-      - {id: 12.8, title: "Tournament settings, admins and Access denied", flags: [role], shots: 6}
-      - {id: 12.9, title: "Referees on a tournament", flags: [role], shots: 6}
-      - {id: 12.10, title: "What locks when you go live, editing after setup, deleting", flags: [role], shots: 6}
+      - {id: "12.1", title: "Tournaments explained - Draft, Published, Live, Completed", shots: 3}
+      - {id: "12.2", title: "Creating a tournament and the setup wizard", flags: [role], shots: 8}
+      - {id: "12.3", title: "Step 1 - dates, kick-off time, venues and teams", flags: [role], shots: 7}
+      - {id: "12.4", title: "Step 2 - choosing a format, groups and matches per team", flags: [role], shots: 9}
+      - {id: "12.5", title: "Adding teams, assigning owners and claiming a team", flags: [role, tourn_plan], shots: 9}
+      - {id: "12.6", title: "Venues, registration fees and referee fees", flags: [role], shots: 6}
+      - {id: "12.7", title: "Tournament crest, banner and phase names", flags: [role], shots: 5}
+      - {id: "12.8", title: "Tournament settings, admins and Access denied", flags: [role], shots: 6}
+      - {id: "12.9", title: "Referees on a tournament", flags: [role], shots: 6}
+      - {id: "12.10", title: "What locks when you go live, editing after setup, deleting", flags: [role], shots: 6}
 
   - id: "13"
     name: Tournaments - groups, brackets & phases
     persona_default: organiser
     feature_flag: TOURNAMENT_FEATURE_ENABLED
+    note: "Football and Padel diverge on almost every screen here - group controls, bracket seeding, standings columns. Split at article level, verified in the app 2026-08-28. Only the phases article is shared."
     articles:
-      - {id: 13.1, title: "How teams are distributed into groups", shots: 4}
-      - {id: 13.2, title: "Editing and deleting a group", flags: [role], shots: 5}
-      - {id: 13.3, title: "Reading the group standings table", shots: 3}
-      - {id: 13.4, title: "Brackets and knockout rounds explained", flags: [role], shots: 6}
-      - {id: 13.5, title: "Setting and renaming bracket matches", flags: [role], shots: 5}
-      - {id: 13.6, title: "Tournament phases - preview, start, end and undo", flags: [role], shots: 9}
+      - {id: "13.1", title: "How teams are distributed into groups in a football tournament", shots: 4}
+      - {id: "13.2", title: "How pairs are created and grouped in a padel tournament", shots: 4, note: "pairs are generated from the player count as Player 1 & Player 2; one group, not several"}
+      - {id: "13.3", title: "Editing and deleting a group in a football tournament", flags: [role], shots: 5}
+      - {id: "13.4", title: "Editing a group in a padel tournament", flags: [role], shots: 4, note: "padel groups have Edit but no Delete - removing the structure means deleting the format"}
+      - {id: "13.5", title: "Reading the group standings table in a football tournament", shots: 3, note: "columns PLD W D L PTS GF GA GD"}
+      - {id: "13.6", title: "Reading the group standings table in a padel tournament", shots: 3, note: "columns PLD SCORE W D L PTS - no goals"}
+      - {id: "13.7", title: "Brackets and knockout rounds in a football tournament", flags: [role], shots: 6}
+      - {id: "13.8", title: "Brackets in a padel tournament, and filling them automatically", flags: [role], shots: 6, note: "slots arrive pre-seeded (1st Group A, Winner Match ...); Fill automatically and Clear have no football equivalent"}
+      - {id: "13.9", title: "Setting and renaming bracket matches in a football tournament", flags: [role], shots: 5, note: "football fills slots by hand - Add team to slot"}
+      - {id: "13.10", title: "Changing a padel format after you have saved it", flags: [role], shots: 5, note: "PADEL ONLY. The Configuration sub-tab on Format - standings type, scoring, rounds, courts. Football has no such tab. Contents not yet read."}
+      - {id: "13.11", title: "Tournament phases - preview, start, end and undo", flags: [role], shots: 9, note: "SHARED. Phase controls are driven by having two phases, not by sport. Needs a football group-and-knockout fixture - a group-only tournament shows none of this."}
 
   - id: "14"
     name: Tournaments - the fixture schedule
     persona_default: organiser
     feature_flag: TOURNAMENT_FEATURE_ENABLED
+    note: "Football schedules matches in sequence; padel schedules them in rounds across courts, so several start at once. Generation, bulk-scheduling and the clash article split. Rescheduling and PDF export are shared."
     articles:
-      - {id: 14.1, title: "How the fixture list is generated, and the schedule board", shots: 5}
-      - {id: 14.2, title: "Bulk-scheduling a group, and the gap between matches", flags: [role], shots: 5}
-      - {id: 14.3, title: "Rescheduling, rolling and deleting fixtures", flags: [role], shots: 6}
-      - {id: 14.4, title: "Why two fixtures clash, and fixtures showing only one team", shots: 4}
-      - {id: 14.5, title: "Exporting your fixture list as a PDF", shots: 3}
+      - {id: "14.1", title: "How the fixture list is generated for a football tournament", shots: 5, note: "flat list per group, one match per slot - 10:00, 10:10, 10:20"}
+      - {id: "14.2", title: "How the fixture list is generated for a padel tournament", shots: 5, note: "ROUND 1, ROUND 2 ...; matches in a round share a start time and carry a court number"}
+      - {id: "14.3", title: "Bulk-scheduling a football group, and the gap between matches", flags: [role], shots: 5}
+      - {id: "14.4", title: "Bulk-scheduling padel rounds, courts and the gap between rounds", flags: [role], shots: 5}
+      - {id: "14.5", title: "Rescheduling, rolling and deleting fixtures", flags: [role], shots: 6, note: "SHARED. Same controls on both - SELECT MATCH TO UPDATE, BULK MATCH UPDATE."}
+      - {id: "14.6", title: "Why two football fixtures clash, and fixtures showing only one team", shots: 4}
+      - {id: "14.7", title: "Why padel matches share a start time, and when that is a clash", shots: 4, note: "simultaneous matches on different courts are intended here - the football clash article is wrong for padel"}
+      - {id: "14.8", title: "Exporting your fixture list as a PDF", shots: 3, note: "SHARED. Same EXPORT FIXTURES control on both."}
 
   - id: "15"
     name: Tournaments - publishing & running
     persona_default: organiser
     feature_flag: TOURNAMENT_FEATURE_ENABLED
+    note: "Structure unchanged. Sponsor, presentation, prizes and chat are tournament-shell features and render identically for both sports - verified 2026-08-28. Only results and standings inherit the sport difference."
     articles:
-      - {id: 15.1, title: "Publishing your tournament and your public page", flags: [role], shots: 8}
-      - {id: 15.2, title: "Sharing your tournament link, QR code and access tokens", flags: [role], shots: 5}
-      - {id: 15.3, title: "The presentation editor, info page and gallery", flags: [role], shots: 8}
-      - {id: 15.4, title: "Building a match-day slideshow", flags: [role], shots: 12}
-      - {id: 15.5, title: "Running the slideshow on a venue screen", shots: 4}
-      - {id: 15.6, title: "Sponsors and prizes", flags: [role], shots: 5}
-      - {id: 15.7, title: "The tournament chat room", flags: [free_pro, role], shots: 6}
-      - {id: 15.8, title: "Entering results, standings and team statistics", flags: [role], shots: 6}
-      - {id: 15.9, title: "Participants, followers and completing a tournament", flags: [role], shots: 6}
+      - {id: "15.1", title: "Publishing your tournament and your public page", flags: [role], shots: 8, note: "add the scope note - the public standings and matches tabs inherit the sport difference"}
+      - {id: "15.2", title: "Sharing your tournament link, QR code and access tokens", flags: [role], shots: 5}
+      - {id: "15.3", title: "The presentation editor, info page and gallery", flags: [role], shots: 8, note: "identical for both sports"}
+      - {id: "15.4", title: "Building a match-day slideshow", flags: [role], shots: 12}
+      - {id: "15.5", title: "Running the slideshow on a venue screen", shots: 4}
+      - {id: "15.6", title: "Sponsors and prizes", flags: [role], shots: 5, note: "identical for both sports"}
+      - {id: "15.7", title: "The tournament chat room", flags: [free_pro, role], shots: 6, note: "identical for both sports"}
+      - {id: "15.8", title: "Entering results, standings and team statistics", flags: [role], shots: 8, note: "needs a padel section, not a split: standings columns and the leaderboard stat differ (Goals vs Score). Score entry itself is UNVERIFIED - needs a live match."}
+      - {id: "15.9", title: "Participants, followers and completing a tournament", flags: [role], shots: 6, note: "padel participants are pairs, so the counts read as teams - wording only"}
 
   - id: "16"
     name: Tournament plans & payment
     persona_default: organiser
     note: "REAL MONEY. Stripe test mode required."
     articles:
-      - {id: 16.1, title: "Tournament plans - Basic, Pro and Annual", flags: [tourn_plan, money], shots: 5}
-      - {id: 16.2, title: "The 8-team limit on Basic, and what to do about it", flags: [tourn_plan, money], shots: 4}
-      - {id: 16.3, title: "Upgrading a single tournament to Pro", flags: [tourn_plan, money], shots: 8}
-      - {id: 16.4, title: "Subscribing to Tournament Annual", flags: [tourn_plan, money], shots: 7}
-      - {id: 16.5, title: "Managing your Annual subscription - card, cancel, resume", flags: [tourn_plan, money], shots: 8}
-      - {id: 16.6, title: "Free Tournament Pro slots", flags: [tourn_plan], shots: 3}
+      - {id: "16.1", title: "Tournament plans - Basic, Pro and Annual", flags: [tourn_plan, money], shots: 5}
+      - {id: "16.2", title: "The 8-team limit on Basic, and what to do about it", flags: [tourn_plan, money], shots: 4}
+      - {id: "16.3", title: "Upgrading a single tournament to Pro", flags: [tourn_plan, money], shots: 8}
+      - {id: "16.4", title: "Subscribing to Tournament Annual", flags: [tourn_plan, money], shots: 7}
+      - {id: "16.5", title: "Managing your Annual subscription - card, cancel, resume", flags: [tourn_plan, money], shots: 8}
+      - {id: "16.6", title: "Free Tournament Pro slots", flags: [tourn_plan], shots: 3}
 
   - id: "17"
     name: Collecting & making payments
     persona_default: manager_pro
     note: "REAL MONEY, Stripe Connect. Two audiences - the organiser collecting and the player paying."
     articles:
-      - {id: 17.1, title: "Collecting money through Scoryboard - an overview", shots: 5}
-      - {id: 17.2, title: "Setting up your payout account", flags: [role, money], shots: 12, note: "Stripe Connect onboarding, hardest capture in the project"}
-      - {id: 17.3, title: "Payout account statuses, and what each one blocks", flags: [role, money], shots: 6}
-      - {id: 17.4, title: "Requesting payment - choosing a source", flags: [role, money], shots: 9}
-      - {id: 17.5, title: "Choosing who to charge, and setting the amount and due date", flags: [role, money], shots: 7}
-      - {id: 17.6, title: "Fees - passing them on or absorbing them", flags: [role, money], shots: 5}
-      - {id: 17.7, title: "Editing, cancelling and sending reminders", flags: [role, money], shots: 6}
-      - {id: 17.8, title: "Tracking money you have asked for", flags: [role, money], shots: 5}
-      - {id: 17.9, title: "When your payout arrives", flags: [money], shots: 3}
-      - {id: 17.10, title: "Paying a request you have received", persona: player, flags: [money], shots: 8}
-      - {id: 17.11, title: "Payment statuses, failed payments and refunds", flags: [money], shots: 6}
+      - {id: "17.1", title: "Collecting money through Scoryboard - an overview", shots: 5}
+      - {id: "17.2", title: "Setting up your payout account", flags: [role, money], shots: 12, note: "Stripe Connect onboarding, hardest capture in the project"}
+      - {id: "17.3", title: "Payout account statuses, and what each one blocks", flags: [role, money], shots: 6}
+      - {id: "17.4", title: "Requesting payment - choosing a source", flags: [role, money], shots: 9}
+      - {id: "17.5", title: "Choosing who to charge, and setting the amount and due date", flags: [role, money], shots: 7}
+      - {id: "17.6", title: "Fees - passing them on or absorbing them", flags: [role, money], shots: 5}
+      - {id: "17.7", title: "Editing, cancelling and sending reminders", flags: [role, money], shots: 6}
+      - {id: "17.8", title: "Tracking money you have asked for", flags: [role, money], shots: 5}
+      - {id: "17.9", title: "When your payout arrives", flags: [money], shots: 3}
+      - {id: "17.10", title: "Paying a request you have received", persona: player, flags: [money], shots: 8}
+      - {id: "17.11", title: "Payment statuses, failed payments and refunds", flags: [money], shots: 6}
 
   - id: "18"
     name: Chat & messaging
     persona_default: manager_free
     articles:
-      - {id: 18.1, title: "Chat overview - conversations, direct messages and groups", shots: 6}
-      - {id: 18.2, title: "Creating and setting up a group chat", flags: [role], shots: 6}
-      - {id: 18.3, title: "Group admins and managing members", flags: [role], shots: 7}
-      - {id: 18.4, title: "Sending messages, photos and files", shots: 5}
-      - {id: 18.5, title: "Replying, forwarding, reacting, editing and deleting", shots: 9}
-      - {id: 18.6, title: "Read receipts, who is online, and chat emails", shots: 5}
-      - {id: 18.7, title: "Chat on the Free plan - truncated messages and locked attachments", flags: [free_pro], shots: 6, note: "needs Free and Pro capture of the same thread"}
-      - {id: 18.8, title: "Leaving, deleting and reporting", flags: [role], shots: 6}
+      - {id: "18.1", title: "Chat overview - conversations, direct messages and groups", shots: 6}
+      - {id: "18.2", title: "Creating and setting up a group chat", flags: [role], shots: 6}
+      - {id: "18.3", title: "Group admins and managing members", flags: [role], shots: 7}
+      - {id: "18.4", title: "Sending messages, photos and files", shots: 5}
+      - {id: "18.5", title: "Replying, forwarding, reacting, editing and deleting", shots: 9}
+      - {id: "18.6", title: "Read receipts, who is online, and chat emails", shots: 5}
+      - {id: "18.7", title: "Chat on the Free plan - truncated messages and locked attachments", flags: [free_pro], shots: 6, note: "needs Free and Pro capture of the same thread"}
+      - {id: "18.8", title: "Leaving, deleting and reporting", flags: [role], shots: 6}
 
   - id: "19"
     name: Comments, likes & ratings
     persona_default: player
     articles:
-      - {id: 19.1, title: "Commenting on a match, team, player, league or tournament", flags: [free_pro], shots: 6}
-      - {id: 19.2, title: "Editing, deleting and liking comments", shots: 4}
-      - {id: 19.3, title: "Rating a match, player, team or referee", shots: 6}
-      - {id: 19.4, title: "How average ratings are calculated", shots: 3}
+      - {id: "19.1", title: "Commenting on a match, team, player, league or tournament", flags: [free_pro], shots: 6}
+      - {id: "19.2", title: "Editing, deleting and liking comments", shots: 4}
+      - {id: "19.3", title: "Rating a match, player, team or referee", shots: 6}
+      - {id: "19.4", title: "How average ratings are calculated", shots: 3}
 
   - id: "20"
     name: Notifications, emails & the activity feed
     persona_default: player
     note: "No push notifications exist. Do not write one."
     articles:
-      - {id: 20.1, title: "Your notifications - viewing, filtering, marking and deleting", shots: 6}
-      - {id: 20.2, title: "Every email Scoryboard sends you", shots: 4, note: "one reference table plus a few representative email screenshots"}
-      - {id: 20.3, title: "Why you are not receiving our emails", shots: 2}
-      - {id: 20.4, title: "The activity feed and how to filter it", shots: 4}
+      - {id: "20.1", title: "Your notifications - viewing, filtering, marking and deleting", shots: 6}
+      - {id: "20.2", title: "Every email Scoryboard sends you", shots: 4, note: "one reference table plus a few representative email screenshots"}
+      - {id: "20.3", title: "Why you are not receiving our emails", shots: 2}
+      - {id: "20.4", title: "The activity feed and how to filter it", shots: 4}
 
   - id: "21"
     name: Referees
     persona_default: referee
     articles:
-      - {id: 21.1, title: "Becoming a referee, and your referee profile", flags: [role], shots: 7}
-      - {id: 21.2, title: "Accepting an invitation and seeing your assigned matches", flags: [role], shots: 5}
-      - {id: 21.3, title: "Refereeing a match - what you can and cannot do", flags: [role], shots: 6}
-      - {id: 21.4, title: "Your referee statistics and availability", flags: [role], shots: 5}
+      - {id: "21.1", title: "Becoming a referee, and your referee profile", flags: [role], shots: 7}
+      - {id: "21.2", title: "Accepting an invitation and seeing your assigned matches", flags: [role], shots: 5}
+      - {id: "21.3", title: "Refereeing a match - what you can and cannot do", flags: [role], shots: 6}
+      - {id: "21.4", title: "Your referee statistics and availability", flags: [role], shots: 5}
 
   - id: "22"
     name: Venues & club locations
     persona_default: manager_pro
     articles:
-      - {id: 22.1, title: "Venues - adding, finding, editing and logos", shots: 7}
-      - {id: 22.2, title: "Tournament-only venues and saving venues for reuse", flags: [role], shots: 4}
+      - {id: "22.1", title: "Venues - adding, finding, editing and logos", shots: 7}
+      - {id: "22.2", title: "Tournament-only venues and saving venues for reuse", flags: [role], shots: 4}
 
   - id: "23"
     name: Powerleague & CentreNet bookings
     persona_default: manager_free
     note: "Partner-initiated records. High ticket volume because the user did not start the action."
     articles:
-      - {id: 23.1, title: "How a Powerleague booking becomes a Scoryboard match", shots: 5}
-      - {id: 23.2, title: "Why your booked match was not created", shots: 3}
-      - {id: 23.3, title: "Booking changes, cancellations and goals synced from Powerleague", shots: 4}
-      - {id: 23.4, title: "Tournaments and tournament access from a partner account", flags: [tourn_plan], shots: 4}
+      - {id: "23.1", title: "How a Powerleague booking becomes a Scoryboard match", shots: 5}
+      - {id: "23.2", title: "Why your booked match was not created", shots: 3}
+      - {id: "23.3", title: "Booking changes, cancellations and goals synced from Powerleague", shots: 4}
+      - {id: "23.4", title: "Tournaments and tournament access from a partner account", flags: [tourn_plan], shots: 4}
 
   - id: "24"
     name: Troubleshooting & policies
     persona_default: manager_free
     articles:
-      - {id: 24.1, title: "You do not have permission to do that", flags: [role], shots: 4}
-      - {id: 24.2, title: "Photo and file upload limits", shots: 3, note: "1MB avatars and logos, 3MB banners and feed images, 200MB video"}
-      - {id: 24.3, title: "Something went wrong, and Page not found", shots: 3}
-      - {id: 24.4, title: "Language filtering, terms, privacy and what we store", shots: 3}
+      - {id: "24.1", title: "You do not have permission to do that", flags: [role], shots: 4}
+      - {id: "24.2", title: "Photo and file upload limits", shots: 3, note: "1MB avatars and logos, 3MB banners and feed images, 200MB video"}
+      - {id: "24.3", title: "Something went wrong, and Page not found", shots: 3}
+      - {id: "24.4", title: "Language filtering, terms, privacy and what we store", shots: 3}
 
 deferred:
   - id: "25"

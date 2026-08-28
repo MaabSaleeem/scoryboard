@@ -289,4 +289,60 @@ under "Numbered steps and their screenshots".
 All 12 articles re-verified after republishing: 0 lists with `start`, image
 counts match the manifest, all published in `19733981`.
 
+### Collections 13, 14 and 15 split by sport in the map - 2026-08-28
+
+Walked football and padel through all nine tournament tabs before deciding, using
+KB Cup (round-robin), KB Padel Cup (Swiss) and a temporary football
+group-and-knockout tournament. What the screens actually do:
+
+| Screen | Football | Padel |
+|---|---|---|
+| Group controls | Edit and Delete | Edit only |
+| Phase controls | Edit/Delete Group Phase, Edit Knockout Phase | "Delete Swiss format"; no Edit Group Phase |
+| Bracket slots | "Add team to slot", manual | pre-seeded, plus Fill automatically / Clear |
+| Format sub-tabs | Phase, Group, Bracket | the same plus Configuration |
+| Standings columns | PLD W D L PTS GF GA GD | PLD SCORE W D L PTS |
+| Schedule | flat, 10:00 / 10:10 / 10:20 | ROUND 1, ROUND 2; matches share a time, carry a court |
+| Leaderboard stat | Goals | Score |
+| Sponsor, presentation, prizes, chat | identical on both | |
+
+**13: 6 -> 11 articles.** Split everywhere except the phases article. Phase
+controls turned out to be driven by having two phases, not by sport - a
+group-only football tournament shows none of them, which is why they first looked
+padel-specific.
+
+**14: 5 -> 8 articles.** Generation, bulk-scheduling and the clash article split;
+rescheduling and PDF export are shared. The clash article mattered most: two padel
+matches at the same time on different courts are intended, so a football-only
+version of that article would be wrong rather than merely incomplete.
+
+**15: unchanged at 9.** Sponsor, presentation, prizes and chat are
+tournament-shell features and render identically. Only 15.8 needs a padel section.
+
+Map totals now 154 articles / 844 screenshots. They still exclude collection 12's
+two padel articles, which are published but never made it back into the map.
+
+**Also fixed while in the file:** article ids were unquoted, so YAML parsed them as
+floats and `x.1` collided with `x.10`. Four collections were already affected
+(07, 10, 12, 17) and collection 13 would have become the fifth. All 154 ids are now
+quoted strings.
+
+### Collection 12's specs no longer replay - 2026-08-28 - OPEN
+
+Six specs (12.1, 12.2, 12.3, 12.5, 12.6, 12.8) wait for `Your Tournaments (2)`.
+The organiser has four tournaments since the padel pass, so they fail. Confirmed by
+running 12.2, not inferred. Four published screenshots show the list and would
+change once the specs run again: 12.1/01, 12.2/01, 12.5/09, 12.8/01.
+
+The fix is to wait on a named tournament card instead of a total, then re-capture
+those four. Not done - flagged for a decision.
+
+**This constrains 13, 14 and 15.** Every fixture tournament a collection seeds
+changes the organiser's list and breaks its siblings. Collection 13 needs a football
+group-and-knockout fixture, so it will hit this immediately. Decide first whether
+these collections get their own persona, or whether specs stop asserting counts.
+
+Free Tournament Pro slots are at 11: exploring cost one, and deleting the fixture
+afterwards does not give it back.
+
 Next: `/kb-brief 13`.
