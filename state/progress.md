@@ -14,7 +14,7 @@ target.
 
 | # | Collection | Articles | Shots (est.) | Persona default | Status | Brief | Notes |
 |---|---|---|---|---|---|---|---|
-| 01 | Getting started & onboarding | 7 | 44 | fresh | drafts on Intercom | [briefs/01.md](../briefs/01.md) | 7 drafts, 43 screenshots. 01.3 is one short - the invitation screen needs an inbox and yopmail now demands a CAPTCHA. Seven accounts, all `kb-fresh-01@` or `kb-01-*@` |
+| 01 | Getting started & onboarding | 7 | 44 | fresh | drafts on Intercom | [briefs/01.md](../briefs/01.md) | 7 drafts, 43 screenshots. 01.3 retitled "Resetting your password" - the invited-account half was dropped. Seven accounts, all `kb-fresh-01@` or `kb-01-*@`; two now unused |
 | 02 | Finding your way around | 6 | 25 | manager_free | not started | - | - |
 | 03 | Your profile & settings | 6 | 30 | player | not started | - | - |
 | 04 | Plans & membership | 3 | 17 | manager_free | not started | - | Pro is a free self-serve toggle during beta. No payment step. Flag for rewrite when beta ends. |
@@ -910,3 +910,37 @@ No flakes. The seven specs were run repeatedly through the session and never fai
 once the selector fixes were in.
 
 Next: `/kb-brief 02`.
+
+### 2026-08-29 - collection 01, 01.3 retitled and shortened
+
+At the repo owner's request, **01.3's "Setting a password on an invited account"
+section is gone**, and the article is retitled from the map's "Resetting your
+password, and setting one on an invited account" to **"Resetting your password"**.
+
+Republished by PUT against the existing Intercom id `16738270`, so no duplicate and
+no new screenshot URLs - its four images stay pinned to `89ab3a1`. Re-fetched
+afterwards: still a draft, still in `19733970`, four images all 200 `image/*`, no
+`<ol start=`, no trace of the dropped section.
+
+`config/articles.yaml` keeps the mapped title, the way 13.8 and 14.5 were handled.
+`briefs/01.md` and `specs/01/01.3.spec.ts` record the retitle and why.
+
+**One "If it does not work" bullet was reworded.** It used to send the reader to
+the dropped section - "you probably have no account with that address - see the
+section above". It now stands on its own.
+
+**The screenshots did not change.** Re-running the spec regenerated four identical
+captures under their pre-hash names; they were deleted rather than re-finalised, so
+the published files and their URLs are untouched.
+
+**Two accounts are now unused.** `kb-01-owner@` and `kb-01-invited@`, and the
+invitation between them, existed only for the half that has gone. The seed still
+builds them - deleting accounts nobody asked to delete is not this session's call -
+and `briefs/01.md` marks them unused in both the personas table and the fixtures
+table. Drop them from `scripts/seed-01.mjs` when somebody confirms.
+
+**The finding behind that section still stands, and no article now carries it:**
+`POST /users/reset-password` answers 200 for an address with no Firebase account
+and sends nothing, while the app shows "Check Your Email". Anybody invited to a
+team by email is in exactly that state. It is in `config/api.md` and in this log,
+and it is still worth a ticket.

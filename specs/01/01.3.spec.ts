@@ -1,15 +1,18 @@
-// 01.3 - Resetting your password, and setting one on an invited account.
+// 01.3 - Resetting your password.
+//
+// Published under that title, not the map's "Resetting your password, and
+// setting one on an invited account". The invited-account half was dropped by
+// the repo owner after the first drafts landed, so the article is now about one
+// procedure and the title says so.
 //
 // Four captures, not the five the brief first planned. The fifth was the screen
-// an invitation link opens, and it cannot be produced: the link exists only in
-// the invitation email, the address it is sent to has no account, and yopmail -
-// the inbox every persona in this project uses - began demanding a CAPTCHA
-// during this collection's exploration. Completing a CAPTCHA is not something a
-// spec may do. The article keeps that half as prose, and the prose is verified:
-// the invitation was opened by hand during step 1 and lands on /signin with the
-// address already filled in. See briefs/01.md, Unreachable.
+// an invitation link opens - it belonged to the half that is gone, and it could
+// not be produced anyway: the link exists only in the invitation email, and
+// yopmail, the inbox every persona in this project uses, began demanding a
+// CAPTCHA during this collection's exploration. Completing a CAPTCHA is not
+// something a spec may do.
 //
-// The same block is why this spec does not click Reset Password. That form only
+// That block is also why this spec does not click Reset Password. That form only
 // works with the oobCode from the email. What the capture shows is the form
 // itself, which is the same form either way - the page renders identically with
 // no code, with an invalid one and with a real one, checked all three ways on
@@ -20,7 +23,7 @@
 import { test, expect } from '@playwright/test';
 import { shot, quiet01, blockPromos, KB01, KB01_PASSWORD } from '../../lib/kb';
 
-test.describe('01.3 Resetting your password, and setting one on an invited account', () => {
+test.describe('01.3 Resetting your password', () => {
   test('the reset from the sign-in screen to the new-password form', async ({ page }) => {
     await blockPromos(page);
 
