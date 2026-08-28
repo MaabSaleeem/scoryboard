@@ -43,6 +43,26 @@
       ],
       "published_at": "2026-08-28T09:23:47.000Z",
       "status": "published"
+    },
+    "12.2": {
+      "intercom_id": "16733171",
+      "collection": "12",
+      "intercom_collection_id": "19733981",
+      "brief": "briefs/12.md",
+      "spec": "specs/12/12.2.spec.ts",
+      "commit_sha": "0ec302176280439ee66d23ca2fa24d27a760b81d",
+      "screenshots": [
+        "screenshots/12/12.2/01-tournament-list.42021ede.png",
+        "screenshots/12/12.2/02-create-modal-blank.a9e3e610.png",
+        "screenshots/12/12.2/03-create-modal-named.928f535d.png",
+        "screenshots/12/12.2/04-start-date-picker.8b2bf3f3.png",
+        "screenshots/12/12.2/05-start-time-chosen.ed024a34.png",
+        "screenshots/12/12.2/06-match-duration.73f62cf6.png",
+        "screenshots/12/12.2/07-create-modal-complete.b65a3641.png",
+        "screenshots/12/12.2/08-board-you-land-on.eae3cfad.png"
+      ],
+      "published_at": "2026-08-28T09:28:55.000Z",
+      "status": "published"
     }
   }
 }

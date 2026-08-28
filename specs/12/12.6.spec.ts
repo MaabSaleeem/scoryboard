@@ -49,7 +49,9 @@ test.describe('12.6 Venues on a tournament', () => {
     await expect(picker.getByRole('option', { name: /KB 12 Astro Park/ })).toBeVisible();
     // Full page, not clipped: clipping scrolls the popover into view and the
     // scroll dismisses it.
-    await shot(page, '12.6', '02-venue-picker');
+    // Full page rather than clipped to the popover, so mask the signed-in name
+    // the way every other page shot in this collection does.
+    await shot(page, '12.6', '02-venue-picker', { mask: [headerIdentity(page)] });
 
     // Icon-only div, no accessible name. rounded-full distinguishes the add
     // control from the option rows.

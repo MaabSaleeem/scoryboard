@@ -64,7 +64,11 @@ test.describe('12.3 Dates, kick-off time, venues and teams', () => {
     await modal.getByText('Select your club').click();
     const picker = page.getByRole('dialog').filter({ hasText: 'Location Club' });
     await expect(picker.getByRole('option', { name: /KB 12 Astro Park/ })).toBeVisible();
-    await shot(page, '12.3', '04-venue-picker-saved-venues');
+    // Full page rather than clipped to the popover, so mask the signed-in name
+    // the way every other page shot in this collection does.
+    await shot(page, '12.3', '04-venue-picker-saved-venues', {
+      mask: [headerIdentity(page)],
+    });
 
     // Adding a venue from inside the picker.
     // The add-a-venue control is an icon-only div with no accessible name. The
