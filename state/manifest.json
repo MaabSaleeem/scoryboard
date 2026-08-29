@@ -1059,6 +1059,26 @@
       ],
       "published_at": "2026-08-29T10:52:15.000Z",
       "status": "draft"
+    },
+    "04.3": {
+      "intercom_id": "16744149",
+      "collection": "04",
+      "intercom_collection_id": "19733973",
+      "brief": "briefs/04.md",
+      "spec": "specs/04/04.3.spec.ts",
+      "commit_sha": "d517db510cc648eac1721a4ab6094fc822fa8d21",
+      "screenshots": [
+        "screenshots/04/04.3/01-friend-limit-free.4169f5bd.png",
+        "screenshots/04/04.3/02-team-admin-limit-free.23496e7d.png",
+        "screenshots/04/04.3/03-leaderboard-limit-free.8a3f1a34.png",
+        "screenshots/04/04.3/04-leaderboard-admin-limit-free.795e644d.png",
+        "screenshots/04/04.3/05-compare-gate-free.73ff6f7f.png",
+        "screenshots/04/04.3/06-profile-views-gate-free.c42d0055.png",
+        "screenshots/04/04.3/07-create-leaderboard-pro.4a80942c.png",
+        "screenshots/04/04.3/08-profile-views-pro.24a3d890.png"
+      ],
+      "published_at": "2026-08-29T10:53:02.000Z",
+      "status": "draft"
     }
   }
 }

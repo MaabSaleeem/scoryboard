@@ -16,7 +16,7 @@ target.
 |---|---|---|---|---|---|---|---|
 | 01 | Getting started & onboarding | 7 | 44 | fresh | drafts on Intercom | [briefs/01.md](../briefs/01.md) | 43 screenshots. **01.4-01.7 published by the reviewer 2026-08-28; 01.1-01.3 still drafts.** 01.3 retitled "Resetting your password" - the invited-account half was dropped. Seven accounts, all `kb-fresh-01@` or `kb-01-*@`; two now unused |
 | 02 | Finding your way around & your profile | 8 | 36 | player | published | [briefs/02.md](../briefs/02.md) | 36 screenshots. **All eight published by the reviewer 2026-08-29.** 02.1, 02.3 and 02.6 amended and republished afterwards. 03 merged in 2026-08-29; four articles dropped. Accounts: `kb-player-02@`, `kb-02-owner@`, `kb-02-pro@` |
-| 04 | Plans & membership | 3 | 17 | manager_free | not started | - | Pro is a free self-serve toggle during beta. No payment step. Flag for rewrite when beta ends. |
+| 04 | Plans & membership | 3 | 17 | manager_free | drafts on Intercom | [briefs/04.md](../briefs/04.md) | 17 screenshots. **Three drafts, nothing published.** Pro is a free self-serve toggle during beta - no payment step, and no confirmation in either direction. Flag for rewrite when beta ends. Three accounts, NOT one flipped: `kb-manager-free-04@`, `kb-04-pro@`, `kb-04-upgrade@` |
 | 05 | Friends | 4 | 20 | manager_free | not started | - | - |
 | 06 | Following | 1 | 6 | player | not started | - | - |
 | 07 | Teams | 11 | 63 | manager_pro | published | [briefs/07.md](../briefs/07.md) | 63 screenshots. **All eleven published by the reviewer 2026-08-29.** 07.7 and 07.9 retitled - the app has no ownership transfer and no Fan role. Accounts: `kb-manager-pro-07@`, `kb-fresh-07@`, six `kb-07-*@` |
@@ -1465,3 +1465,61 @@ aborts the process instead of ending it, and on Windows under Node 24 that trips
 a libuv assertion and exits 127, which reads as a crash rather than a deliberate
 refusal. And `docs/workflow.md` stage 8 now describes the behaviour, so nobody
 reconciles by hand again.
+
+### 2026-08-29 - collection 04, Plans & membership
+
+**Three drafts on Intercom, nothing published.** Articles land in collection
+`19733973`; the images are pinned to the SHAs below.
+
+| Article | Title | Intercom id | Shots | Images pinned to |
+|---|---|---|---|---|
+| 04.1 | Free vs Pro - what is included | 16744143 | 4 | `0d5b555` |
+| 04.2 | Pro is free during beta - how to upgrade | 16744144 | 5 | `1556c6a` |
+| 04.3 | Every Free-plan limit, and the messages you will see | 16744149 | 8 | `d517db5` |
+
+17 screenshots, matching the map exactly. Nothing added, nothing dropped.
+
+Accounts: `kb-manager-free-04@yopmail.com` (Free, on every limit),
+`kb-04-pro@yopmail.com` (Pro), `kb-04-upgrade@yopmail.com` (Free at rest, the
+only account 04.2 touches). `node scripts/seed-04.mjs` is idempotent - a second
+run makes no writes.
+
+**This collection does not flip one account between Free and Pro, and
+`config/personas.yaml` says it should.** That note predates the "Actions you can
+only do once" section of `docs/style-guide.md`, which says the opposite and is
+right. 04.3's six captures are all gates that vanish the moment the account is
+Pro, so a half-done flip destroys them, and a crash between the flip and the flip
+back leaves the persona Pro for every later run with the other specs still
+passing. `personas.yaml` is now corrected for 04 and 18; 18 was not run.
+
+**Ten API observations** are now in `config/api.md`, marked
+`(observed in app, 2026-08-29)`, most of them in a new section, "Membership,
+plans and the Free-plan limits": the two tabs on `/subscriptions` and the fact
+that only one of them is free, the plan cards coming from Prismic rather than the
+Scoryboard API, the complete eight-code `MembershipLimits` enum, the gate modals
+rendering the app's own wording rather than the API's, `GET /friends` excluding
+friends who have joined your teams, `POST /team-players` creating a friend record
+as a side effect, no team-count limit on Free, a new account being born with one
+leaderboard and two teams, and `GET /players/:playerId` recording a profile view.
+
+`shot()` in `lib/kb.ts` gained `clipPad`, for modals. A clip that hugs a rounded
+dialog catches a sliver of the dimmed page in each top corner, which reads as a
+dark smudge along the top edge wherever the screen behind is dark. It did, on the
+leaderboard and player screens.
+
+**Where to look hard.** Two things a reviewer should check against the app:
+
+1. **`ONE_FRIEND_PER_TEAM` appears to be unreachable through the UI.** The API
+   raises it reliably, but no screen can: a friend who joins a team leaves
+   `GET /friends`, and both controls that could offer them again read that same
+   list. 04.3 states the limit in its table with the modal's wording and does not
+   claim the reader can trigger it. If the reviewer knows a path to it, the
+   article should get a ninth capture.
+2. **The substitute limit is stated as 3 and is not confirmed.** It comes from
+   reading the lineup code in the bundle, not from a real lineup. Reaching it
+   needs a match - collection 10's fixtures.
+
+Everything else in 04.3's table was confirmed one call at a time on staging.
+
+No flakes. Every spec was re-run after publishing, against a re-seeded set of
+accounts, and all five passed.

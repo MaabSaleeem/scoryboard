@@ -149,9 +149,24 @@ personas:
       - "POST /friends {\"name\":\"...\"} x3"
       - "POST /friends {\"name\":\"...\",\"email\":\"<an email already on a player>\"}  # merge case"
     notes: >
-      The Free/Pro pairs in collections 04 and 18 are captured by flipping THIS
-      account with change-user-membership between the two captures, not by using
-      manager_pro. Same data, one variable. Flip back to Free when done.
+      CORRECTED 2026-08-29, by collection 04. This used to say the Free/Pro pairs
+      in collections 04 and 18 were captured by flipping THIS account with
+      change-user-membership between the two captures. Do not do that.
+      docs/style-guide.md, "Actions you can only do once": a free_pro article gets
+      TWO seeded accounts, one Free and one Pro, because a flipped account only
+      works if the specs run in one order.
+
+      It fails in two ordinary ways. Collection 04's limits article photographs
+      six gates that vanish the moment the account is Pro, so any spec that
+      leaves the flip half-done destroys them; and a crash between the flip and
+      the flip back leaves the persona Pro for every later run, silently, with
+      the specs that do not care still passing.
+
+      So this account stays Free, and its collection seeds a second account that
+      is Pro at rest - kb-04-pro@yopmail.com. Where an article documents the
+      UPGRADE itself, which cannot be photographed unsubmitted because the app
+      has no confirm step, it gets a third, throwaway account whose spec resets
+      it: kb-04-upgrade@yopmail.com. Collection 18 should do the same.
       TODO: chat has no endpoint in the collection. Seed the group chat through
       the UI and record how in the brief.
 
