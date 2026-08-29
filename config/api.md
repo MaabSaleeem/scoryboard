@@ -89,7 +89,7 @@ most of step 1.
 | PUT | `/users/:userId` | Update own details | `name`, `lastName`, `gender`, `dateOfBirth`, `sports`, `position`; optional `bio`, `isMarketingOpted`, `avatarToken`, `bannerToken`. A 10-year minimum-age rule applies to `dateOfBirth`. **(observed in app, 2026-08-29)** It is a full REPLACE, not a patch - see below |
 | DELETE | `/users/:userId` | Delete own account | - |
 | POST | `/users/reset-password` | Send a password-reset email | `email` |
-| POST | `/users/subscription` | Self-serve Free / Pro toggle | `membership`: `Free` or `Pro`. Pro is free during beta, no payment step |
+| POST | `/users/subscription` | Self-serve Free / Pro toggle | `membership`: `Free` or `Pro`. Pro is free during beta, no payment step. **(observed in app, 2026-08-29)** Both directions are one call from `/subscriptions` and **neither is confirmed**: "Upgrade to PRO" upgrades on the click and opens a Congratulations window, "Cancel subscription" downgrades on the click and says nothing. See [Membership, plans and the Free-plan limits](#membership-plans-and-the-free-plan-limits) |
 | GET | `/users/banner/invite` | State of the "invite your team mates" banner | - |
 
 **(observed in app, 2026-08-29)** `PUT /users/:userId` replaces rather than
@@ -210,6 +210,21 @@ on screen. Worth having written down because the first two are the same message:
 | GET | `/friends/invite-code` | Your global friend invite code | - |
 | GET | `/friends/:id/shareCode` | Share code for one friend record | - |
 | POST | `/friends/join/:shareCode` | Claim your own friend record from a code | - |
+
+**(observed in app, 2026-08-29)** **`GET /friends` excludes a friend who has
+joined one of your teams**, and the Free limit of 14 is measured against that
+same filtered list. So adding a friend to a team frees a slot: an account with
+14 in the list plus one on a team accepts a fifteenth friend record. Isolated on
+staging by adding a friend to a team, watching `GET /friends` drop from 14 to 13,
+and then adding another successfully.
+
+A friend row carries two ids and they are not interchangeable:
+
+| Field | What it is | Used by |
+|---|---|---|
+| `id` | the friend record | `PUT /friends/:id`, `DELETE /friends/:id` |
+| `friendPlayerId` | the player behind it | `POST /team-players {"playerId": ...}` |
+
 
 ## Teams
 
@@ -357,6 +372,17 @@ Fan, and a Fan row renders on the Edit Team page **with no role badge at all**.
 Following a team does not create one either - `POST /teams/:teamId/follow` leaves
 the member list untouched.
 
+**(observed in app, 2026-08-29)** **`POST /team-players` with a `name` creates a
+friend record as a side effect**, so on an account already at the Free friend
+limit it answers `400 FRIEND_LIMIT_EXCEEDED` - "Limit reached: Free users can
+only add up to 14 friends" - and no team limit is ever reached. To add somebody
+who is already a friend, send `playerId` (their `friendPlayerId`) INSTEAD of
+`name`: sending both answers `400 SCHEMA_VALIDATION_ERROR`, "You cannot provide
+both playerId and name."
+
+**(observed in app, 2026-08-29)** **There is no team-count limit on Free.** A
+third team is accepted; the account is born with two.
+
 **(observed in app, 2026-08-29)** On the **Free** plan `POST /team-players` with
 `role: "Administrator"` answers
 `400 {"errorCode":"TEAM_ADMIN_LIMIT_EXCEEDED","reason":"Free plan users cannot add
@@ -381,6 +407,12 @@ opens to "No options available" on an account with 19 friends, on a team none of
 them belong to, and with a friend that belongs to no team at all. The other two
 paths on the dialog work. Worth a ticket.
 
+**Qualified 2026-08-29 by collection 04.** The same control on an account with
+**14** friends lists all fourteen and picking one works. So it is not simply
+broken - something about the larger list is. It never offers a friend who is
+already on one of your teams, because it reads `GET /friends`, which filters
+those out. Both observations stand; the trigger is unknown.
+
 **(observed in app, 2026-08-29)** A member added by email is on the team
 immediately - the team is in their `/teams?all=true` straight away - but the
 invitation stays pending until `POST /team-invitations/accept`. Signing in with one
@@ -401,7 +433,7 @@ any pending team invites."
 | GET | `/leaderboards/:id/teams/search?name=` | Find a team to add | - |
 | POST | `/leaderboards/:id/teams` | Add a team | `teamId` |
 | DELETE | `/leaderboards/:id/teams/:teamId` | Remove a team | - |
-| POST | `/leaderboards/:leaderboardId/admin` | Add an admin | `email` or `playerId` |
+| POST | `/leaderboards/:leaderboardId/admin` | Add an admin | `email` or `playerId`. **(observed in app, 2026-08-29)** On Free it answers `400 LEADERBOARD_ADMIN_LIMIT_EXCEEDED`, "Free plan users cannot add leaderboard admins. Upgrade to Pro to add admins." |
 | DELETE | `/leaderboards/:leaderboardId/admin` | Remove an admin | `email` |
 | GET | `/leaderboards/:leaderboardId/players` | Players in the league | - |
 | GET | `/leaderboards/:leaderboardId/matches` | League fixtures | `limit`, `skip`, `scheduleType`, `teamId`, `includeIncomplete` |
@@ -887,6 +919,122 @@ and carries **Claim Team**.
 | DELETE | `/tournaments/:tournamentId/sponsors/:sponsorId` | Remove a sponsor | - |
 | POST | `/tournaments/:tournamentId/sponsors/banner` | Upload a sponsor banner, returns a token | multipart, field `banner` |
 | GET | `/tournaments/:tournamentId/sponsors/banner?v=` | Fetch the sponsor banner | - |
+
+## Membership, plans and the Free-plan limits
+
+**(observed in app, 2026-08-29.)** Everything in this section was read off the
+live staging app and confirmed one call at a time. Collection 04 documents it.
+
+### The plans screen
+
+`/subscriptions` is an app route with two tabs.
+
+| Tab | What it is | Who documents it |
+|---|---|---|
+| **Platform Pro** | the account's own membership: BASIC (free) and PRO (free with Beta) | collection 04 |
+| **Tournament Pro** | per-tournament plans, in real money - GBP 19.99 / 215, EUR 22.99 / 248, USD | collection 16 |
+
+Read the two tabs as separate products. "Pro is free" is true of Platform Pro and
+false of Tournament Pro.
+
+The card content is **not** served by the Scoryboard API. The app fetches it from
+its own Next route, `GET /api/prismic/subscription-plans` on `$SCORYBOARD_APP_BASE`,
+which answers `{platformPlans, tournamentPlansByCurrency}` from Prismic. So the
+plan copy can change without a deploy. `lib/fixtures-04.mjs` pins every line and
+collection 04's specs assert against it.
+
+The free plan is called **BASIC** on this screen and **Free** everywhere else in
+the app and the API (`membership: "Free"`). The Pro card's price is
+`FREE (with Beta)`; the active-plan strip renders `Pro`, `Free with`, `Beta`
+in mixed case and upper-cases them with CSS - the same text-transform trap as
+GROUP A and DELETE ACCOUNT.
+
+### Upgrading and cancelling
+
+Both directions are `POST /users/subscription` and **neither asks for
+confirmation**.
+
+- **Upgrade to PRO** turns the account Pro on the click and opens a
+  Congratulations window: "Congratulations, you are now a Pro member! Enjoy all
+  the cool features for FREE while we are still in Beta." The Pro card's button
+  then reads "You are now a Pro member" and is spent.
+- **Cancel subscription** appears in the active-plan strip once you are Pro. It
+  downgrades on the click, with no dialog and no toast.
+- The sidebar's Subscriptions item gains a small Pro mark while the account is Pro.
+
+There is no payment step in either direction while the beta lasts.
+`POST /admins/change-user-membership/:id` does the same thing with the admin key,
+which is the only way a spec can put an upgraded account back.
+
+### MembershipLimits - the eight error codes
+
+The app's own `MembershipLimits` enum, complete:
+
+| Error code | Raised by | Modal title |
+|---|---|---|
+| `USER_FREE_LIMIT_EXCEEDED` | `POST /friends` at 14 | Friend Limit Reached |
+| `FRIEND_LIMIT_EXCEEDED` | `POST /team-players` with a `name` at 14 | Friend Limit Reached |
+| `ONE_FRIEND_PER_TEAM` | `POST /team-players` for a friend already on one of your teams | Team Limit Reached |
+| `ADMIN_TEAM_OWNER_FRIEND_LIMIT_EXCEEDED` | the team owner is over their own limit | Team Limit Reached |
+| `TEAM_ADMIN_LIMIT_EXCEEDED` | `POST /team-players` with `role: "Administrator"` | Team Limit Reached |
+| `LEADERBOARD_CREATION_LIMIT_EXCEEDED` | `POST /leaderboards` when you already own one | Leaderboard Limit Reached |
+| `LEADERBOARD_ADMIN_LIMIT_EXCEEDED` | `POST /leaderboards/:id/admin` | Leaderboard Admin Limit Reached |
+| `CHAT_PRO_REQUIRED` | reading an incoming message in full | Unlock full chat with Pro |
+
+**The modal does not show the API's wording.** It is keyed off the error code and
+renders the app's own i18n string, and the two differ - the API says "upgrade to
+Pro", the modal says "upgrade to **Pro Membership**". Quote the modal: that is
+what the reader sees. Every one of these modals carries the same
+**FREE Upgrade (Beta)** button, which upgrades the account in place.
+
+Three more Pro gates are client-side and have no error code: **Unlock Compare
+with Pro**, **Unlock Profile Views** and the substitute and match-media limits.
+
+### The Free limits themselves
+
+| Limit | Free | Pro |
+|---|---|---|
+| Friends in your friends list | 14 | unlimited |
+| The same friend on more than one of your teams | one team each | any number |
+| Teams you own | no limit | no limit |
+| Administrators on a team | none, Owner only | more than one |
+| Leaderboards you own | 1 | unlimited |
+| Administrators on a leaderboard | none, Owner only | more than one |
+| Substitutes in a lineup | 3 | unlimited |
+| Compare your stats with another player | blocked | yes |
+| The list of who viewed your profile | blocked, the count only | yes |
+| Reading incoming chat in full, and attachments | blocked | yes |
+| Photos and video on a match feed | blocked | unlimited |
+| Adverts | shown | none |
+
+A **new account is born with one leaderboard and two teams** (`<First>'s
+leaderboard`, `<First> K FC`, `<First> K FC Away`; the team names gain a date
+suffix when they clash). So the leaderboard limit is already reached the moment
+an account exists.
+
+### Profile views
+
+`GET /players/:playerId` **as somebody else records a profile view.** The count
+went 0 to 1 on the first such read and stayed at 1 on the second, so it dedupes
+by viewer. That is the only way found to seed one.
+
+| Method | Path | For |
+|---|---|---|
+| GET | `/profile-view/player/:playerId/count` | `{viewCount}` - readable on Free |
+| GET | `/profile-view/player/:playerId/viewers` | the list. On Free: `400 "user does not have permission"`, `permission: "Pro membership is required to view profile viewers"` |
+
+The counter in the profile header is a control only on your **own** profile and
+only while the count is above zero - the bundle gates the click on
+`isSelfProfile && (isPro || viewCount)`. At 1440 wide the clickable target is the
+**Views** tile in the counters row; the small "N views" button beside the rating
+is the narrow-layout copy and has a zero-sized box.
+
+### Routes this section adds
+
+| Route | Screen |
+|---|---|
+| `/subscriptions` | Subscriptions - Platform Pro and Tournament Pro |
+| `/leaderboards/:leaderboardId/settings` | Edit Leaderboard - appearance, roles, teams, delete |
 
 ## Partner bookings (Powerleague / CentreNet) - admin key
 

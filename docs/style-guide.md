@@ -142,6 +142,23 @@ Every one of these is still required:
   timestamps in fixture names, no faker.
 - One capture per state. Never capture the same element twice hoping one comes out.
 
+### Actions you can only do once
+
+Accepting an invite, transferring ownership, upgrading to Pro, deleting a team:
+the app will not let you do them twice, so a spec that performs one works on the
+first run and fails on every run after.
+
+- **Photograph the dialog, do not submit it.** The confirm screen is the article's
+  subject; the click is not.
+- **Take the "after" state from a second fixture** that is already in that state.
+- **A spec that consumes or mutates a fixture puts it back itself** - do not leave
+  it to the seed. Other specs photograph the same screens.
+- **A `free_pro` article gets two seeded accounts**, one Free and one Pro. Never
+  one account flipped between captures: the specs then only work in one order.
+
+Where the app has no undo, the seed provides the reset - delete and recreate the
+account, re-issue the invite, set the membership back to Free.
+
 ### Naming
 
 `screenshots/<collection-id>/<article-id>/<nn>-<slug>.<hash8>.png`

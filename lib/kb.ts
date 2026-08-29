@@ -215,6 +215,19 @@ export type ShotOptions = {
    * without it Playwright stitches the header into the MIDDLE of the image.
    */
   fullPage?: boolean;
+  /**
+   * Widen a clipped capture by this many CSS pixels on every side.
+   *
+   * For modals. A clip that hugs a rounded dialog catches a sliver of the dimmed
+   * page in each top corner, which reads as a smudge along the top edge wherever
+   * the screen behind is dark - collection 04's six gate captures, over the
+   * leaderboard and player pages. Framing the dialog with a deliberate margin of
+   * that same dimmed page removes the sliver and looks like what the reader sees.
+   *
+   * Clamped to the viewport, so a dialog near an edge simply gets less margin on
+   * that side rather than a clip Playwright refuses.
+   */
+  clipPad?: number;
 };
 
 /**
@@ -304,7 +317,30 @@ export async function shot(
     mask: opts.mask ?? [],
     maskColor: '#1F2933',
   };
-  if (opts.clip) await opts.clip.screenshot(common);
+  if (opts.clip && opts.clipPad) {
+    // page.screenshot({clip}) takes viewport coordinates and does no scrolling
+    // of its own, unlike locator.screenshot(). Bring the target on screen first
+    // or a card below the fold is clipped to whatever the viewport happens to
+    // be showing - which cost 04.2 the Upgrade to PRO button and the outline
+    // around it on the first run with a pad.
+    await centre(opts.clip);
+    await page.waitForFunction(() => true);
+    const box = await opts.clip.boundingBox();
+    if (!box) throw new Error('shot(): clipped target has no bounding box');
+    const view = page.viewportSize();
+    if (!view) throw new Error('shot(): no viewport');
+    const p = opts.clipPad;
+    const x = Math.max(0, box.x - p);
+    const y = Math.max(0, box.y - p);
+    await page.screenshot({
+      ...common,
+      clip: {
+        x, y,
+        width: Math.min(view.width - x, box.width + p * 2 - (box.x - p < 0 ? box.x - p : 0)),
+        height: Math.min(view.height - y, box.height + p * 2 - (box.y - p < 0 ? box.y - p : 0)),
+      },
+    });
+  } else if (opts.clip) await opts.clip.screenshot(common);
   else await page.screenshot({ ...common, fullPage: opts.fullPage ?? false });
   if (opts.annotate) await clearAnnotation(page);
   return file;
@@ -1725,4 +1761,173 @@ export function teamJoinedSince(page: Page) {
 export function teamViews(page: Page) {
   return onScreen(page.getByText('Views', { exact: true })).first()
     .locator('xpath=preceding-sibling::*[1]');
+}
+
+// --- collection 04: Plans & membership --------------------------------------
+//
+// Three accounts, and the reason there are three is worth stating once.
+//
+// docs/style-guide.md, "Actions you can only do once": a free_pro article gets
+// two seeded accounts, one Free and one Pro, never one account flipped between
+// captures - a flipped account only works if the specs run in one order, and a
+// crash halfway leaves it in the wrong state for every other spec.
+// config/personas.yaml still says collections 04 and 18 flip one account; that
+// note predates the rule and this collection follows the rule. See briefs/04.md.
+//
+// So: `free` (Marc) is Free and stays Free, `pro` (Nia) is Pro and stays Pro,
+// and `upgrade` (Ubi) is the throwaway 04.2 actually upgrades. There is no
+// confirm step on the way to Pro - selecting "Upgrade to PRO" upgrades you on
+// the spot - so that one capture cannot be a photograph of an unsubmitted
+// dialog. The spec performs it and puts the account back with the admin API,
+// which is the reset the style guide asks the seed to provide.
+
+// @ts-ignore - plain JS module, no types
+import * as KB04 from './fixtures-04.mjs';
+
+export { KB04 };
+
+/**
+ * Collection 04's accounts, their tokens and the ids a spec needs.
+ *
+ * Never hardcode an id: `scripts/seed-04.mjs` can legitimately rebuild an
+ * account and every id changes. Look things up here instead.
+ */
+export async function fixtures04() {
+  const read = async (key: 'free' | 'pro' | 'upgrade') => {
+    const email: string = KB04.ACCOUNTS[key];
+    const session = await mintSession(email);
+    const me = (await asUser(session.idToken, '/users/me')).body?.data;
+    if (!me) throw new Error(`${email} has no Scoryboard user. Run: node scripts/seed-04.mjs`);
+    return { email, token: session.idToken as string, ...me };
+  };
+
+  const free = await read('free');
+  const pro = await read('pro');
+  const upgrade = await read('upgrade');
+
+  if (free.membership !== 'Free') {
+    throw new Error(`${free.email} is ${free.membership}, not Free. Run: node scripts/seed-04.mjs`);
+  }
+  if (pro.membership !== 'Pro') {
+    throw new Error(`${pro.email} is ${pro.membership}, not Pro. Run: node scripts/seed-04.mjs`);
+  }
+
+  const boardOf = async (who: { token: string; email: string }) => {
+    const list = (await asUser(who.token, '/leaderboards')).body?.data ?? [];
+    if (!list.length) throw new Error(`${who.email} owns no leaderboard. Run: node scripts/seed-04.mjs`);
+    const b = list[0];
+    return { id: String(b._id ?? b.id), name: String(b.name) };
+  };
+
+  const teams = (await asUser(free.token, '/teams')).body?.data ?? [];
+  const team = teams.find((t: any) => t.name === KB04.TEAM);
+  if (!team) throw new Error(`${KB04.TEAM} is missing. Run: node scripts/seed-04.mjs`);
+
+  // The friends list has to sit exactly ON the limit, or 04.3's first capture
+  // is a success rather than the refusal the article is about. Asserted here,
+  // over the API, rather than by counting rows on the page: every row renders
+  // two "Add To Team" buttons, so a DOM count reads 28 for 14 friends.
+  //
+  // Watch out for the other half of this. GET /friends EXCLUDES a friend who
+  // has joined one of your teams, and the limit is measured against that same
+  // filtered list - so a friend left on a team quietly takes the count under 14.
+  const friends = (await asUser(free.token, '/friends')).body?.data ?? [];
+  if (friends.length !== KB04.FRIEND_LIMIT) {
+    throw new Error(
+      `${free.email} has ${friends.length} friends, not ${KB04.FRIEND_LIMIT}. ` +
+      `04.3 needs the list on the limit. Run: node scripts/seed-04.mjs`,
+    );
+  }
+
+  return {
+    free, pro, upgrade,
+    team: { id: String(team.teamId ?? team.id), name: KB04.TEAM as string },
+    freeBoard: await boardOf(free),
+    proBoard: await boardOf(pro),
+  };
+}
+
+/**
+ * Put an account's membership back where the seed expects it.
+ *
+ * 04.2 is the only spec that changes one. It calls this in a `finally`, so a
+ * failure halfway through the upgrade still leaves the account Free for the
+ * next run - the app has no undo, so the reset has to come from the admin API
+ * (docs/style-guide.md, "Actions you can only do once").
+ */
+export async function setMembership(userId: string, membership: 'Free' | 'Pro') {
+  const r = await admin(`/admins/change-user-membership/${userId}`, {
+    method: 'POST', body: { membership },
+  });
+  if (!r.ok) throw new Error(`change-user-membership ${userId} -> ${membership}: ${JSON.stringify(r.body)}`);
+}
+
+/**
+ * Wait for /subscriptions to have finished loading.
+ *
+ * The page paints its heading and its two tabs before the plan content arrives
+ * from `/api/prismic/subscription-plans`, so neither is a safe gate. Wait for a
+ * feature line that only exists once the cards have rendered.
+ */
+export async function subscriptionsReady(page: Page) {
+  await expect(page.getByRole('tab', { name: 'Platform Pro' })).toHaveAttribute('data-state', 'active');
+  await expect(onScreen(page.getByText('Ads enabled', { exact: true })).first()).toBeVisible();
+  await expect(onScreen(page.getByText('Ads Free', { exact: true })).first()).toBeVisible();
+}
+
+/**
+ * One of the two platform plan cards on /subscriptions.
+ *
+ * Picked by a feature line unique to that card rather than by its title: the
+ * strip at the top of the page repeats the title of whichever plan is active,
+ * and Playwright's string `hasText` is case-insensitive, so "BASIC" also matches
+ * the Pro card's "Everything in Basic". The card itself has no role and no test
+ * id - the rounded border is the only structural hook it offers.
+ */
+export function planCard(page: Page, plan: 'basic' | 'pro') {
+  const marker = plan === 'basic' ? 'Limited lineup features' : 'Unlimited substitutes in the team lineup';
+  return page.locator('div[class*="rounded-[26px]"]').filter({ hasText: marker }).first();
+}
+
+/** The "Your active subscriptions plan" strip: the heading and the plan row. */
+export function activePlanStrip(page: Page) {
+  return page.getByText(KB04.ACTIVE_PLAN_HEADING, { exact: true }).locator('xpath=parent::div');
+}
+
+/**
+ * The membership gate modal - "Friend Limit Reached", "Unlock Compare with
+ * Pro", and the six others. One component, one shape: a title, a message, a
+ * FREE Upgrade (Beta) button and Close.
+ *
+ * Radix leaves closed dialogs mounted and these gates open ON TOP of the dialog
+ * that triggered them, so there are usually two in the DOM. Match on the title.
+ */
+export function membershipModal(page: Page, title: string) {
+  return onScreen(page.locator('[role="dialog"]').filter({ hasText: title })).first();
+}
+
+/**
+ * Wait for a gate modal, and prove it is the whole modal rather than a
+ * half-painted one: the title, the message and the way out all present.
+ */
+export async function gateReady(page: Page, title: string, message: string) {
+  const modal = membershipModal(page, title);
+  await expect(modal).toBeVisible();
+  await expect(modal.getByText(message.split('\n')[0], { exact: false })).toBeVisible();
+  return modal;
+}
+
+/**
+ * One of the counters in a profile header - Followers, Following, Leaderboard,
+ * Views. The label is a leaf `<p>`; the click target is the tile around it.
+ *
+ * Do not reach for the "1 views" button instead. That is the narrow-layout copy
+ * of the same control and it has a zero-sized box at 1440 wide, so a click on
+ * it waits for a visible element for ever. Two other traps on this header: the
+ * ratings control reads "0 reviews", which contains "views", and the counter
+ * only opens anything at all when the count is above zero.
+ */
+export function profileCounter(page: Page, label: string) {
+  return page.getByText(label, { exact: true })
+    .locator('xpath=ancestor-or-self::*[contains(@class,"cursor-pointer")][1]');
 }
