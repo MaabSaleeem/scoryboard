@@ -1079,6 +1079,55 @@
       ],
       "published_at": "2026-08-29T10:53:02.000Z",
       "status": "draft"
+    },
+    "04.4": {
+      "intercom_id": "16744250",
+      "collection": "04",
+      "intercom_collection_id": "19733973",
+      "brief": "briefs/04.md",
+      "spec": "specs/04/04.4.spec.ts",
+      "commit_sha": "11e8de248c25d44461d9018fd9a073c764431ce8",
+      "screenshots": [
+        "screenshots/04/04.4/01-tournament-pro-tab.7172c2e6.png",
+        "screenshots/04/04.4/02-basic-card.89ca4408.png",
+        "screenshots/04/04.4/03-pro-card.9398d9ed.png",
+        "screenshots/04/04.4/04-annual-card.504afcd6.png",
+        "screenshots/04/04.4/05-currency-closed.fecb14ef.png",
+        "screenshots/04/04.4/06-currency-open.c38b8004.png"
+      ],
+      "published_at": "2026-08-29T11:31:36.000Z",
+      "status": "draft"
+    },
+    "04.5": {
+      "intercom_id": "16744251",
+      "collection": "04",
+      "intercom_collection_id": "19733973",
+      "brief": "briefs/04.md",
+      "spec": "specs/04/04.5.spec.ts",
+      "commit_sha": "11e8de248c25d44461d9018fd9a073c764431ce8",
+      "screenshots": [
+        "screenshots/04/04.5/01-start-with-pro.56f13589.png",
+        "screenshots/04/04.5/02-choose-a-tournament.32141765.png",
+        "screenshots/04/04.5/03-continue-with-pro.541f2fa5.png",
+        "screenshots/04/04.5/04-start-with-annual.54c26564.png",
+        "screenshots/04/04.5/05-no-basic-tournaments.f49267b5.png"
+      ],
+      "published_at": "2026-08-29T11:31:42.000Z",
+      "status": "draft"
+    },
+    "04.6": {
+      "intercom_id": "16744252",
+      "collection": "04",
+      "intercom_collection_id": "19733973",
+      "brief": "briefs/04.md",
+      "spec": "specs/04/04.6.spec.ts",
+      "commit_sha": "11e8de248c25d44461d9018fd9a073c764431ce8",
+      "screenshots": [
+        "screenshots/04/04.6/01-slots-on-the-tab.e479c6fa.png",
+        "screenshots/04/04.6/02-free-slots-panel.af395ced.png"
+      ],
+      "published_at": "2026-08-29T11:31:46.000Z",
+      "status": "draft"
     }
   }
 }

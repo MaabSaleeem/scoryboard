@@ -16,7 +16,7 @@ target.
 |---|---|---|---|---|---|---|---|
 | 01 | Getting started & onboarding | 7 | 44 | fresh | drafts on Intercom | [briefs/01.md](../briefs/01.md) | 43 screenshots. **01.4-01.7 published by the reviewer 2026-08-28; 01.1-01.3 still drafts.** 01.3 retitled "Resetting your password" - the invited-account half was dropped. Seven accounts, all `kb-fresh-01@` or `kb-01-*@`; two now unused |
 | 02 | Finding your way around & your profile | 8 | 36 | player | published | [briefs/02.md](../briefs/02.md) | 36 screenshots. **All eight published by the reviewer 2026-08-29.** 02.1, 02.3 and 02.6 amended and republished afterwards. 03 merged in 2026-08-29; four articles dropped. Accounts: `kb-player-02@`, `kb-02-owner@`, `kb-02-pro@` |
-| 04 | Plans & membership | 3 | 17 | manager_free | published | [briefs/04.md](../briefs/04.md) | 17 screenshots. **All three published by the reviewer 2026-08-29.** 04.1 amended and republished afterwards - the Coming soon paragraph was dropped. Pro is a free self-serve toggle during beta - no payment step, and no confirmation in either direction. Flag for rewrite when beta ends. Three accounts, NOT one flipped: `kb-manager-free-04@`, `kb-04-pro@`, `kb-04-upgrade@` |
+| 04 | Plans & membership | 6 | 30 | manager_free | drafts on Intercom | [briefs/04.md](../briefs/04.md) | 30 screenshots. **04.1-04.3 published by the reviewer 2026-08-29; 04.4-04.6 still drafts.** Collection 16 was retired into this one 2026-08-29 - its six articles became three, and 16.5 was dropped. 04.1 amended and republished - the Coming soon paragraph was dropped. Pro is a free self-serve toggle during beta - no payment step, and no confirmation in either direction. Flag for rewrite when beta ends. Three accounts, NOT one flipped: `kb-manager-free-04@`, `kb-04-pro@`, `kb-04-upgrade@` |
 | 05 | Friends | 4 | 20 | manager_free | not started | - | - |
 | 06 | Following | 1 | 6 | player | not started | - | - |
 | 07 | Teams | 11 | 63 | manager_pro | published | [briefs/07.md](../briefs/07.md) | 63 screenshots. **All eleven published by the reviewer 2026-08-29.** 07.7 and 07.9 retitled - the app has no ownership transfer and no Fan role. Accounts: `kb-manager-pro-07@`, `kb-fresh-07@`, six `kb-07-*@` |
@@ -28,7 +28,7 @@ target.
 | 13 | Tournaments - groups, brackets & phases | 11 | 55 | organiser | drafts on Intercom | [briefs/13.md](../briefs/13.md) | flag: TOURNAMENT_FEATURE_ENABLED. 11 drafts, 55 screenshots. 13.8 retitled. Account: kb-organiser-13@yopmail.com |
 | 14 | Tournaments - the fixture schedule | 8 | 37 | organiser | drafts on Intercom | [briefs/14.md](../briefs/14.md) | flag: TOURNAMENT_FEATURE_ENABLED. 8 drafts, 37 screenshots. 14.5 retitled - fixtures cannot be deleted. Account: kb-organiser-14@yopmail.com |
 | 15 | Tournaments - publishing & running | 9 | 62 | organiser | not started | - | flag: TOURNAMENT_FEATURE_ENABLED. Structure unchanged; 15.8 needs a padel section. Account: kb-organiser-15@yopmail.com |
-| 16 | Tournament plans & payment | 6 | 35 | organiser | not started | - | REAL MONEY. Stripe test mode required. |
+| ~~16~~ | ~~Tournament plans & payment~~ | - | - | - | **retired** | - | **RETIRED 2026-08-29, merged into 04.** 16.1+16.2 -> 04.4, 16.3+16.4 -> 04.5, 16.6 -> 04.6. 16.5 dropped - managing a live Annual subscription needs a completed payment. Intercom collection 19733985 is empty and must not be reused |
 | 17 | Collecting & making payments | 11 | 72 | manager_pro | not started | - | REAL MONEY, Stripe Connect. Two audiences - the organiser collecting and the player paying. |
 | 18 | Chat & messaging | 8 | 50 | manager_free | not started | - | - |
 | 19 | Comments, likes & ratings | 4 | 19 | player | not started | - | - |
@@ -38,7 +38,8 @@ target.
 | 23 | Powerleague & CentreNet bookings | 4 | 16 | manager_free | not started | - | Partner-initiated records. High ticket volume because the user did not start the action. |
 | 24 | Troubleshooting & policies | 4 | 13 | manager_free | not started | - | - |
 
-Totals: 149 articles, 823 screenshots estimated across 23 collections. These count
+Totals: 146 articles, 801 screenshots estimated across 22 collections. Collection
+16 was retired into 04 on 2026-08-29; 04 grew from 3 articles to 6. These count
 what `config/articles.yaml` lists and still exclude collection 12's two padel
 articles, which are published but never went back into the map.
 
@@ -1532,3 +1533,55 @@ against the same SHA its images were already pinned to (`0d5b555`) and
 republished with `scripts/publish-article.mjs`, which read the live state off
 Intercom, saw `published`, and left it alone rather than sending `draft`. The
 article stayed live through the edit; nothing was taken off the help centre.
+
+### 2026-08-29 - collection 16 retired into 04
+
+At the repo owner's request, and for the same reason 03 was retired into 02: both
+collections documented the same `/subscriptions` screen from opposite ends, and
+its two tabs are two different products. A reader who lands there has to be told
+which is which before anything else.
+
+Six articles became three. **16.5 was dropped** - see below.
+
+| Was | Now | Intercom id | Shots |
+|---|---|---|---|
+| 16.1 + 16.2 | 04.4 Tournament Pro - what it is, and the three plans | 16744250 | 6 |
+| 16.3 + 16.4 | 04.5 Upgrading a tournament to Tournament Pro | 16744251 | 5 |
+| 16.6 | 04.6 Free Tournament Pro slots | 16744252 | 2 |
+| 16.5 | dropped | - | - |
+
+**Three new drafts, nothing published.** Images pinned to `11e8de2`. Collection
+04 is now six articles and 30 screenshots. Intercom collection `19733985` is
+retired, empty, and must not be reused - confirmed empty after the run.
+
+**No money was spent, and no card number was ever typed.** Both controls that end
+the Scoryboard part of the flow were photographed and not selected:
+`Continue with PRO` posts to `/tournaments/:id/billing/checkout-session`, and
+`Start with ANNUAL` swaps the plans area for a Stripe `embedded-checkout` iframe
+inside a Scoryboard panel. Everything inside that panel is Stripe.
+
+Two new accounts, both this collection's own: `kb-04-organiser@yopmail.com`
+(no free slots, owns one Basic tournament - the paywall case) and
+`kb-04-grant@yopmail.com` (two free slots - 04.6's case). They have to be two
+accounts because the free-Pro grant is additive and **has no revoke**: an account
+that has ever held one can never show the paywall again.
+
+**Where to look hard.**
+
+1. **The Basic team limit is 8, and the plan card advertises 5.** The card says
+   "Up to 5 teams"; the app's own message is "Tournament Pro is required to add
+   more than 8 teams to a group", with a matching one for brackets. 04.4 states
+   both and tells the reader 8 is the number that bites. This is either a stale
+   marketing line or a limit that moved, and it is worth a ticket either way.
+2. **16.5 is gone, deliberately.** Managing a live Annual subscription - changing
+   the card, cancelling, resuming - has real endpoints, recorded in
+   `config/api.md`, but the screens only render once an Annual subscription is
+   active. That needs a completed payment. Written blind it would have been
+   invention, so it was dropped rather than guessed. If the client wants it,
+   somebody has to make a real Stripe test-mode purchase first.
+3. **04.5's prose describes what happens after checkout** - the plan changing
+   from Basic to Pro and the limits lifting - without a screenshot of it. That is
+   inference from the plan cards and the gate messages, not something observed.
+
+No flakes. All nine specs across the six articles were re-run after publishing,
+against a re-seeded set of five accounts, and all nine passed.

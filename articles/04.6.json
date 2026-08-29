@@ -1,0 +1,16 @@
+{
+  "id": "04.6",
+  "title": "Free Tournament Pro slots",
+  "description": "Scoryboard can give your account free Tournament Pro slots. Each one makes the next tournament you create Pro, with no payment and nothing to do.",
+  "collection": "04",
+  "intercom_collection_id": "19733973",
+  "author_id": "11443412",
+  "state": "published",
+  "spec": "specs/04/04.6.spec.ts",
+  "commit_sha": "11e8de248c25d44461d9018fd9a073c764431ce8",
+  "screenshots": [
+    "screenshots/04/04.6/01-slots-on-the-tab.e479c6fa.png",
+    "screenshots/04/04.6/02-free-slots-panel.af395ced.png"
+  ],
+  "body": "<p>Scoryboard can give your account <strong>free Tournament Pro slots</strong>. Each slot makes the next tournament you create a Pro tournament, at no cost and with no checkout.</p>\n\n<h2>Before you start</h2>\n\n<p>You cannot buy or claim slots. Scoryboard grants them. If your account has none, this panel is not there and the plans are the normal paid ones.</p>\n\n<h2>Check how many you have</h2>\n\n<ol>\n  <li>Select <strong>Subscriptions</strong> in the sidebar, then the <strong>Tournament Pro</strong> tab. If you have slots, a panel sits above the plan cards.\n    <p><img src=\"https://cdn.jsdelivr.net/gh/MaabSaleeem/scoryboard@11e8de248c25d44461d9018fd9a073c764431ce8/screenshots/04/04.6/01-slots-on-the-tab.e479c6fa.png\" alt=\"The Tournament Pro tab with a Free Tournament Pro slots remaining panel above the BASIC, PRO and ANNUAL cards.\"></p>\n  </li>\n  <li>Read the number on the right. That is how many tournaments are still covered.\n    <p><img src=\"https://cdn.jsdelivr.net/gh/MaabSaleeem/scoryboard@11e8de248c25d44461d9018fd9a073c764431ce8/screenshots/04/04.6/02-free-slots-panel.af395ced.png\" alt=\"The Free Tournament Pro slots remaining panel, outlined: Your next 2 tournaments will automatically get Tournament Pro at no extra cost, with a 2 in a circle.\"></p>\n  </li>\n</ol>\n\n<h2>What you will see</h2>\n\n<p>A slot is spent when you <strong>create</strong> a tournament, not when you ask for it. The next tournament you make is a Pro tournament from the start: unlimited teams, sponsors, the advanced slideshow, Tournament Chat and fixture export, with nothing to pay.</p>\n\n<p>The three plan cards stay on the screen underneath. A slot covers the next tournament you create - it does not turn your account into an Annual subscriber, and it does not upgrade a tournament you already have.</p>\n\n<p>When the slots run out the panel disappears and the paid plans apply again.</p>\n\n<h2>If it does not work</h2>\n\n<ul>\n  <li><strong>There is no panel.</strong> Your account has no slots. They are granted by Scoryboard, so there is nothing to switch on.</li>\n  <li><strong>You have slots but an existing tournament is still Basic.</strong> Slots apply to tournaments you create from now on. To upgrade one you already have, see \"Upgrading a tournament to Tournament Pro\".</li>\n  <li><strong>The number did not go down.</strong> It falls when a tournament is created, not when you open this screen.</li>\n</ul>\n\n<h2>Related</h2>\n\n<ul>\n  <li>\"Tournament Pro - what it is, and the three plans\"</li>\n  <li>\"Upgrading a tournament to Tournament Pro\"</li>\n</ul>"
+}
