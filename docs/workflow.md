@@ -232,6 +232,18 @@ Per article, in order:
    **Idempotent by article ID. Safe to re-run.** `scripts/publish-article.mjs`
    sends `draft` unless you pass `--state published`, which is the human's call,
    not yours.
+
+   **It asks Intercom what state the article is in before it decides**, rather
+   than trusting `state/manifest.json`, and corrects the manifest from the same
+   read. The manifest only knows about publishes the script itself did, and
+   publishing is something the reviewer does in the Intercom UI between sessions -
+   so it is stale by default. Twice that nearly unpublished live articles: four in
+   collection 01 on 2026-08-28, and forty-one across five collections on
+   2026-08-29. You no longer have to reconcile it by hand.
+
+   If the manifest's id answers 404, the script refuses and tells you rather than
+   creating a duplicate. If Intercom cannot be reached at all, it sends no `state`
+   and says so - omitting it can never unpublish anything.
 9. **Record the ID** in `state/manifest.json`.
 
 Order matters and does not bend: capture, inspect, optimise, commit, push, verify,

@@ -1436,3 +1436,32 @@ should pick it up.
 `PUT /articles/16738976` (02.6) answered 400 once and 200 on an immediate retry,
 with an unchanged payload. Transient, on the Intercom side. Nothing else in the
 run needed a retry.
+
+### 2026-08-29 - the manifest can no longer unpublish live articles
+
+`scripts/publish-article.mjs` now reads the article's state from **Intercom**
+before it decides what to send, and corrects `state/manifest.json` from the same
+read. It used to trust the manifest, which only ever knew about publishes the
+script itself had done - and publishing is the reviewer's action, taken in the
+Intercom UI between sessions. The manifest was stale by default, and the guard was
+reading a stale record. It nearly cost four live articles on 2026-08-28 and
+forty-one on 2026-08-29.
+
+Four paths, all exercised against the live workspace before committing:
+
+| Situation | What it does |
+|---|---|
+| Intercom says published, no `--state` | omits `state`; the article stays published |
+| Manifest says draft, Intercom says published | says so, goes with Intercom, stays published |
+| Manifest's id answers 404 | refuses, exits 1, creates no duplicate |
+| Intercom unreachable | omits `state`, warns; nothing can be unpublished |
+
+`--state` still overrides everything, and `--state draft` on a live article now
+warns that it takes the article off the help centre.
+
+Two smaller things fixed while in there. The script's exits are
+`process.exitCode` rather than `process.exit()`: exiting with a fetch still open
+aborts the process instead of ending it, and on Windows under Node 24 that trips
+a libuv assertion and exits 127, which reads as a crash rather than a deliberate
+refusal. And `docs/workflow.md` stage 8 now describes the behaviour, so nobody
+reconciles by hand again.
