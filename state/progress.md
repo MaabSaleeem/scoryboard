@@ -16,7 +16,7 @@ target.
 |---|---|---|---|---|---|---|---|
 | 01 | Getting started & onboarding | 7 | 44 | fresh | drafts on Intercom | [briefs/01.md](../briefs/01.md) | 43 screenshots. **01.4-01.7 published by the reviewer 2026-08-28; 01.1-01.3 still drafts.** 01.3 retitled "Resetting your password" - the invited-account half was dropped. Seven accounts, all `kb-fresh-01@` or `kb-01-*@`; two now unused |
 | 02 | Finding your way around & your profile | 8 | 36 | player | published | [briefs/02.md](../briefs/02.md) | 36 screenshots. **All eight published by the reviewer 2026-08-29.** 02.1, 02.3 and 02.6 amended and republished afterwards. 03 merged in 2026-08-29; four articles dropped. Accounts: `kb-player-02@`, `kb-02-owner@`, `kb-02-pro@` |
-| 04 | Plans & membership | 3 | 17 | manager_free | drafts on Intercom | [briefs/04.md](../briefs/04.md) | 17 screenshots. **Three drafts, nothing published.** Pro is a free self-serve toggle during beta - no payment step, and no confirmation in either direction. Flag for rewrite when beta ends. Three accounts, NOT one flipped: `kb-manager-free-04@`, `kb-04-pro@`, `kb-04-upgrade@` |
+| 04 | Plans & membership | 3 | 17 | manager_free | published | [briefs/04.md](../briefs/04.md) | 17 screenshots. **All three published by the reviewer 2026-08-29.** 04.1 amended and republished afterwards - the Coming soon paragraph was dropped. Pro is a free self-serve toggle during beta - no payment step, and no confirmation in either direction. Flag for rewrite when beta ends. Three accounts, NOT one flipped: `kb-manager-free-04@`, `kb-04-pro@`, `kb-04-upgrade@` |
 | 05 | Friends | 4 | 20 | manager_free | not started | - | - |
 | 06 | Following | 1 | 6 | player | not started | - | - |
 | 07 | Teams | 11 | 63 | manager_pro | published | [briefs/07.md](../briefs/07.md) | 63 screenshots. **All eleven published by the reviewer 2026-08-29.** 07.7 and 07.9 retitled - the app has no ownership transfer and no Fan role. Accounts: `kb-manager-pro-07@`, `kb-fresh-07@`, six `kb-07-*@` |
@@ -1523,3 +1523,12 @@ Everything else in 04.3's table was confirmed one call at a time on staging.
 
 No flakes. Every spec was re-run after publishing, against a re-seeded set of
 accounts, and all five passed.
+
+### 2026-08-29 - collection 04, after review
+
+The reviewer published all three. 04.1 was then amended at their request: the
+closing paragraph about the PRO card's "Coming soon" line was dropped. Rebuilt
+against the same SHA its images were already pinned to (`0d5b555`) and
+republished with `scripts/publish-article.mjs`, which read the live state off
+Intercom, saw `published`, and left it alone rather than sending `draft`. The
+article stayed live through the edit; nothing was taken off the help centre.
