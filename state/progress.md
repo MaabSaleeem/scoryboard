@@ -15,7 +15,7 @@ target.
 | # | Collection | Articles | Shots (est.) | Persona default | Status | Brief | Notes |
 |---|---|---|---|---|---|---|---|
 | 01 | Getting started & onboarding | 7 | 44 | fresh | drafts on Intercom | [briefs/01.md](../briefs/01.md) | 43 screenshots. **01.4-01.7 published by the reviewer 2026-08-28; 01.1-01.3 still drafts.** 01.3 retitled "Resetting your password" - the invited-account half was dropped. Seven accounts, all `kb-fresh-01@` or `kb-01-*@`; two now unused |
-| 02 | Finding your way around & your profile | 8 | 36 | player | drafts on Intercom | [briefs/02.md](../briefs/02.md) | 36 screenshots, all eight drafted. 03 merged in 2026-08-29; four articles dropped. Accounts: `kb-player-02@`, `kb-02-owner@`, `kb-02-pro@` |
+| 02 | Finding your way around & your profile | 8 | 36 | player | published | [briefs/02.md](../briefs/02.md) | 36 screenshots. **All eight published by the reviewer 2026-08-29.** 02.1, 02.3 and 02.6 amended and republished afterwards. 03 merged in 2026-08-29; four articles dropped. Accounts: `kb-player-02@`, `kb-02-owner@`, `kb-02-pro@` |
 | 04 | Plans & membership | 3 | 17 | manager_free | not started | - | Pro is a free self-serve toggle during beta. No payment step. Flag for rewrite when beta ends. |
 | 05 | Friends | 4 | 20 | manager_free | not started | - | - |
 | 06 | Following | 1 | 6 | player | not started | - | - |
@@ -1161,3 +1161,60 @@ Everything is on `kb/collection-02`, pushed. The image URLs resolve from that
 branch's commits. Merging is the human's call.
 
 Next: `/kb-brief 04`.
+
+### 2026-08-29 - collection 02, three articles amended after the reviewer published
+
+The reviewer published all eight, then asked for two wording changes. 02.1, 02.3
+and 02.6 were republished by PUT against their existing ids, so no duplicates and
+no new screenshot URLs - all thirteen images stay pinned to `2000806a`. Verified
+afterwards: all three still `published`, still in `19733971`, every image 200
+`image/*`, no `<ol start=`.
+
+**`state/manifest.json` was stale, and it was a live hazard.** It recorded every
+article as `draft`. Reconciling it against Intercom corrected **41 entries**
+across collections 01, 02, 07, 13 and 14 - everything the reviewer has published.
+`scripts/publish-article.mjs` only omits `state` from its PUT when the manifest
+says `published`, so the next re-run of any of those would have sent
+`state: "draft"` and knocked 41 live articles off the help centre. The script's
+guard was working; it was reading a stale record. This is the second time - the
+same thing happened to collection 01 on 2026-08-28. **Step 2 should reconcile the
+manifest against Intercom before it publishes anything**, rather than trusting
+what it wrote last time. It still does not.
+
+**02.3.** "The form does not know who you are, so type the address you want a
+reply on" now reads "Use the address you want the reply to go to."
+
+**02.6 reframed, title unchanged.** The article walks the reader through opening
+somebody else's profile, which read as though it were an article about looking at
+other people. It is not: **Scoryboard has no preview of your own profile.**
+Checked in the app bundle - the profile component takes an `isSelfProfile` flag
+and renders either your view or a visitor's view of the same page. There is no
+"view as", no preview and no toggle. The one-line answer and step 1 now say that
+up front, and "If it does not work" carries a bullet for the reader who goes
+looking for a preview. The mapped title is accurate and was left alone; the
+screenshots did not change.
+
+#### Two things the brief got wrong, both now corrected in it
+
+- **`/profile-view` is not an app route.** It is an API path in the app's own
+  `ApiEndPoints` enum. The route sweep in `scripts/route-sweep.mjs` greps quoted
+  path literals out of the bundle and cannot tell an app route from an API path -
+  worth knowing before the next collection writes a "Routes covered" table from
+  it. Open question 1 was therefore based on a mistake.
+- **The Views counter is a control, not a label.** Selecting it opens **Profile
+  Views**, the list of who has viewed your profile, backed by
+  `GET /profile-view/player/:playerId/viewers`. Confirmed on screen in both
+  states, not just read in the bundle: **Pro** gets the list ("No profile views
+  yet" when empty), **Free** gets "Unlock Profile Views", the same gate shape as
+  Compare in 02.8. So it is a `free_pro` feature that nothing in the map covers.
+
+02.1 now names it in one sentence, at the repo owner's request and deliberately
+with **no screenshot** - so 02.1 stays at its mapped 6 shots and no spec changed.
+Neither state is photographed anywhere. Whoever plans the Pro-features work
+should pick it up.
+
+#### Flake
+
+`PUT /articles/16738976` (02.6) answered 400 once and 200 on an immediate retry,
+with an unchanged payload. Transient, on the Intercom side. Nothing else in the
+run needed a retry.

@@ -227,6 +227,55 @@ on screen. Worth having written down because the first two are the same message:
 | GET | `/teams/:teamId/matches` | Team fixtures | `limit`, `skip`, `scheduleType`, `includeIncomplete`, `startDate`, `endDate` |
 | GET | `/teams/:teamId/shareCode` | The team join code | - |
 
+**(observed in app, 2026-08-29)** Three things about `POST /teams` that the row
+above does not say, all read off the Add Team dialog's own form and confirmed on
+the wire.
+
+- **The two checkboxes are named the opposite way round from their fields.**
+  "Create a Dummy team" carries `id="isPrivate"` and sends `isPrivate: true`.
+  "I don't want to own this team" carries `id="isSystem"` and sends
+  `isSystem: true`. Do not infer either from the field name.
+- **A dummy team (`isPrivate`) is in its owner's list and nobody else's.** Any
+  other account opening `/teams/:id` gets a full-page "DUMMY TEAM - This team is
+  dummy, and you don't have permission to view it." The app's own tooltip says it
+  "is not searchable and you cannot invite real players ... use [it] to set up a
+  match where you need an unranked opposing team", and `GET /teams?name=` does
+  not return it.
+- **An unowned team (`isSystem`) is in NO team list at all**, not even its
+  creator's, so `GET /teams?all=true` cannot find it. `GET /teams?name=` can, and
+  that is the only handle on one. Its page is headed **Unclaimed Team** and
+  carries a **Claim Team** button. `POST /teams/:teamId/claim` turns it into an
+  ordinary owned team and answers with a "Congratulations! You now own this team."
+  success dialog in the UI.
+
+**(observed in app, 2026-08-29)** `DELETE /teams/:teamId` is the Owner's alone.
+An Administrator on the team gets `403 {"reason":"user does not have permission",
+"permission":"Only team Owner can delete team"}`. The Edit Team page still renders
+its DELETE TEAM section for an Administrator, with the button **disabled**, so the
+UI and the API agree.
+
+**(observed in app, 2026-08-29)** **There is no way to transfer ownership of a
+team.** The role list the app offers is exactly
+`[{label:"Player",value:"Player"},{label:"Administrator",value:"Administrator"}]`,
+there is no Owner option anywhere, and the bundle holds no transfer mutation - its
+team mutations are create, update, delete, claim, add/remove/update player,
+remove-and-block, bulk invite, invite and join. A team changes hands only by being
+created unowned and then claimed.
+
+### Team appearance - the crest and the banner are both two calls
+
+**(observed in app, 2026-08-29)** `POST /teams/:teamId/banner` does NOT store the
+banner. It answers with a **token**, exactly as `POST /teams/avatar` does, and the
+token has to be saved with `PUT /teams/:teamId {"bannerToken": "..."}`. Until it
+is, the team object carries no `bannerVersion` and `GET /teams/:teamId/banner?v=`
+answers 404. The table above described this endpoint as uploading "onto the team";
+it does not.
+
+`avatarVersion` and `bannerVersion` appear on the team object only once each image
+exists, so their absence is the way to tell. The `v` query parameter is
+**required** on both GET endpoints - omitting it is
+`400 SCHEMA_VALIDATION_ERROR {"field":"v","message":"Required"}`, not a cache miss.
+
 ### Team stats and leaderboards
 
 | Method | Path | For |
@@ -276,6 +325,68 @@ Roles: `Owner`, `Administrator`, `Player`, `Fan`.
 | POST | `/team-players/join/:shareCode` | Join using the team share code | - |
 | GET | `/team-invitations` | Invitations addressed to me | - |
 | POST | `/team-invitations/accept` | Accept one or many | `teamInvitationIds[]` |
+
+**(observed in app, 2026-08-29)** What removing and blocking actually do, isolated
+on staging with two accounts removed from the same team, one with the flag and one
+without.
+
+- **Neither is confirmed.** The member menu on the Edit Team page offers *Edit*,
+  *Remove from team* and *Remove & Block*, and both removals fire on the click.
+  There is no "are you sure" dialog for either.
+- **A removed row is invisible in the app.** It stays in
+  `GET /teams/:id/players` flagged `isDeleted: true` (and `isBlocked: true` where
+  the flag was sent), keeping its name, role and email - anonymising the address
+  is what deleting the ACCOUNT does, not what removing a member does - but no
+  screen in the web app renders it. There is no blocked-members list.
+- **The block only stops the person letting themselves back in.**
+  `POST /team-players/join/:shareCode` answers `200` for somebody who was removed
+  without the flag and `400 {"reason":"You are blocked from joining this team."}`
+  for somebody who was removed with it.
+- **The owner can still add a blocked person back.** `POST /team-players` with
+  their address answers 200, and they are a member again with the block cleared.
+- **A removal cannot be undone in place.** Re-adding makes a NEW row; the dead one
+  stays. A seed that removes somebody on every run grows a new dead row each time.
+
+**(observed in app, 2026-08-29)** **The Fan role exists in the API and not in the
+app.** `POST /team-players` accepts `role: "Fan"` and stores it, and
+`GET /teams/:id/players` hides those rows unless `?includeFans=true` is sent -
+verified both ways on the same team. But the app's own `TeamRole` enum is
+`Owner | Administrator | Player | Admin | Team | Referee | Padel`, with no Fan: the
+role dropdown offers only Player and Administrator, nothing in the UI can create a
+Fan, and a Fan row renders on the Edit Team page **with no role badge at all**.
+Following a team does not create one either - `POST /teams/:teamId/follow` leaves
+the member list untouched.
+
+**(observed in app, 2026-08-29)** On the **Free** plan `POST /team-players` with
+`role: "Administrator"` answers
+`400 {"errorCode":"TEAM_ADMIN_LIMIT_EXCEEDED","reason":"Free plan users cannot add
+team admins. Upgrade to Pro to add admins."}`. The dialog offers Administrator
+either way; the refusal arrives on submit, as a **Team Limit Reached** modal
+carrying a FREE Upgrade (Beta) button.
+
+**(observed in app, 2026-08-29)** The two "Generate invitation link" buttons make
+**different** links.
+
+| Where | Link | Made by |
+|---|---|---|
+| Add New Player / Invite Player dialog | `<app>/teams/:teamId?shareCode=<code>` | `GET /teams/:teamId/shareCode` |
+| A name-only member's own **Invite** button | `<app>/teams/:teamId?inviteCode=<teamInvitationId>` | `POST /team-players/invite/:teamPlayerId` |
+
+The first is the team's standing join code and works for anybody. The second binds
+one existing team-player row to whoever opens it.
+
+**(observed in app, 2026-08-29)** **"Select player from friend list" never lists
+anybody.** The control on the Add New Player, Invite Player and Edit Player dialogs
+opens to "No options available" on an account with 19 friends, on a team none of
+them belong to, and with a friend that belongs to no team at all. The other two
+paths on the dialog work. Worth a ticket.
+
+**(observed in app, 2026-08-29)** A member added by email is on the team
+immediately - the team is in their `/teams?all=true` straight away - but the
+invitation stays pending until `POST /team-invitations/accept`. Signing in with one
+outstanding lands the account on **`/team/join`**, "Join a team - Select a team
+you're invited to join". With none outstanding that screen reads "You don't have
+any pending team invites."
 
 ## Leaderboards
 
@@ -354,6 +465,19 @@ Comment edit and delete are not in the collection. See
 | GET | `/matches/:matchId/banner?v=` | Fetch the banner | - |
 | PUT | `/matches/:matchId` | Save an uploaded banner | `bannerToken` |
 
+**(observed in app, 2026-08-29)** **A match that is not in a leaderboard writes no
+statistics at all.** Isolated on staging with two finished matches between the same
+two teams and the same line-ups, one carrying `leaderboardId` and one not. The one
+without left `GET /teams/:id/stats` answering with no `data` key and every player on
+zero; the one with it read `matches: 1, wins: 1, goals: 1` within seconds. Any
+collection that photographs team or player statistics has to put its match in a
+leaderboard.
+
+`GET /teams/:teamId/stats` answers `data.stats`:
+`{goals, conceded, matches, wins, draws, losses, cleanSheets, winStreak, redCards,
+yellowCards, playerOfMatch}`. That is a different shape from the PLAYER stats
+endpoint, which nests its record under `winLossDraws`.
+
 ### Match events
 
 Every event is `POST /matches/:matchId/events` with a `type`:
@@ -429,6 +553,27 @@ under Users first, because that PUT clears the bio.
 **The page's cropper does not upload the file it was given.** Its crop window is a
 fixed box in the middle of the image, so what it stores is a zoomed centre band.
 A direct API upload stores the whole image. Two different pictures from one file.
+
+### Profile views
+
+**(observed in app, 2026-08-29.)** Not in the Postman export. `/profile-view` is
+an API path in the app's own `ApiEndPoints` enum, **not** an app route - an
+earlier sweep for this collection mistook it for a screen.
+
+| Method | Path | For |
+|---|---|---|
+| GET | `/profile-view/player/:playerId/viewers` | Who has opened your profile |
+
+It backs the **Views** counter in the profile header, which appears only on your
+own profile (`isSelfProfile` in the bundle). Selecting the counter opens a panel:
+
+- **Pro** - "Profile Views", the list of viewers. Empty state: "No profile views
+  yet."
+- **Free** - "Unlock Profile Views", the Pro gate: "Profile views are available
+  for Pro members only." Same shape as the Compare gate in 02.8.
+
+So the viewers list is a `free_pro` feature. 02.1 names it in prose. Nothing
+photographs it yet.
 
 ### Following
 
@@ -696,6 +841,30 @@ Court and pitch numbers are assigned per match by the **generator**. The bulk
 update's `pitchNumber` writes a **single** value across every match it touches, so
 it cannot restore a distributed set; only regenerating the format can. Re-sending
 an identical padel configuration does not regenerate - a value has to change.
+
+### Team app routes
+
+**(observed in app, 2026-08-29.)** Note the plural: the team pages are all under
+`/teams`, while `/team/*` holds the three interstitials.
+
+| Route | Screen |
+|---|---|
+| `/teams` | **Manage Teams** - your team list, with Add Team and a per-row Invite and menu |
+| `/teams/:teamId` | the team page. Tabs are routes: `/player-stats`, `/matches`, `/payment`, `/comments`; Team Info is the bare path |
+| `/teams/:teamId/settings` | **Edit Team** - appearance, details, players, leaderboards, delete |
+| `/teams/:teamId?shareCode=` | what the team's invitation link opens |
+| `/teams/:teamId?inviteCode=` | what one member's own invitation link opens |
+| `/team/join` | **Join a team** - the invitations addressed to you |
+| `/team/create` | in the route enum; the app creates teams from a dialog on `/teams` |
+| `/team/congratulations` | in the route enum; claiming shows a Success dialog in place instead |
+
+The team page's tab labels are upper case by CSS, so their accessible names are
+`Team Info`, `Player Stats`, `Matches`, `Payment`, `Comments` - the same
+text-transform trap collections 14 and 01 hit on GROUP A and DELETE ACCOUNT.
+
+Somebody who is not on the team sees the page headed **External Team**, with no
+Create Match and no Invite Player. An unclaimed team is headed **Unclaimed Team**
+and carries **Claim Team**.
 
 ### App routes - singular and plural are different pages
 
