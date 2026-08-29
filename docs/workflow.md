@@ -212,7 +212,9 @@ Per article, in order:
    `<nn>-<slug>.<hash8>.png`. A changed image gets a new URL, so a stale CDN copy
    can never be served in its place.
 5. **Commit and push.** Screenshots for one article, one commit. Push before the
-   next stage - an unpushed image cannot be fetched.
+   next stage - an unpushed image cannot be fetched. **Straight to `master`** - no
+   feature branch, no pull request. See "How you work" in
+   [CLAUDE.md](../CLAUDE.md).
 6. **Verify each URL.** `HEAD` every image URL. It must return `200` and a
    `image/*` content type. Pinned to the commit SHA you just pushed:
    `https://cdn.jsdelivr.net/gh/MaabSaleeem/scoryboard@<sha>/screenshots/<path>`

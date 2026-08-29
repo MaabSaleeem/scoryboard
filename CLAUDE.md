@@ -32,6 +32,13 @@ the screenshots when the product changes. Small differences between runs are fin
 a shifted pixel, a different hash. What is not fine is fixing a screenshot by hand
 instead of fixing the spec. You supervise the run. You do not improvise it.
 
+**Commit straight to `master`.** No feature branch, no pull request. Screenshot
+URLs are pinned to the commit that holds them, so work sitting on a side branch is
+work whose images resolve from somewhere the help centre will not keep. Collections
+12 and 02 were built on `kb/collection-*` branches before this rule existed; both
+were merged, and the branches are history, not a pattern to copy. If you find
+yourself on a branch that is not `master`, check `master` out before you commit.
+
 Full process, brief template and per-stage detail: [docs/workflow.md](docs/workflow.md).
 Voice, structure and screenshot conventions: [docs/style-guide.md](docs/style-guide.md).
 
