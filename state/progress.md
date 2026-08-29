@@ -16,7 +16,7 @@ target.
 |---|---|---|---|---|---|---|---|
 | 01 | Getting started & onboarding | 7 | 44 | fresh | drafts on Intercom | [briefs/01.md](../briefs/01.md) | 43 screenshots. **01.4-01.7 published by the reviewer 2026-08-28; 01.1-01.3 still drafts.** 01.3 retitled "Resetting your password" - the invited-account half was dropped. Seven accounts, all `kb-fresh-01@` or `kb-01-*@`; two now unused |
 | 02 | Finding your way around & your profile | 8 | 36 | player | published | [briefs/02.md](../briefs/02.md) | 36 screenshots. **All eight published by the reviewer 2026-08-29.** 02.1, 02.3 and 02.6 amended and republished afterwards. 03 merged in 2026-08-29; four articles dropped. Accounts: `kb-player-02@`, `kb-02-owner@`, `kb-02-pro@` |
-| 04 | Plans & membership | 6 | 30 | manager_free | drafts on Intercom | [briefs/04.md](../briefs/04.md) | 30 screenshots. **04.1-04.3 published by the reviewer 2026-08-29; 04.4-04.6 still drafts.** Collection 16 was retired into this one 2026-08-29 - its six articles became three, and 16.5 was dropped. 04.1 amended and republished - the Coming soon paragraph was dropped. Pro is a free self-serve toggle during beta - no payment step, and no confirmation in either direction. Flag for rewrite when beta ends. Three accounts, NOT one flipped: `kb-manager-free-04@`, `kb-04-pro@`, `kb-04-upgrade@` |
+| 04 | Plans & membership | 6 | 30 | manager_free | published | [briefs/04.md](../briefs/04.md) | 30 screenshots. **All six published by the reviewer 2026-08-29.** 04.6 amended and republished afterwards - when a slot is spent. Collection 16 was retired into this one 2026-08-29 - its six articles became three, and 16.5 was dropped. 04.1 amended and republished - the Coming soon paragraph was dropped. Pro is a free self-serve toggle during beta - no payment step, and no confirmation in either direction. Flag for rewrite when beta ends. Three accounts, NOT one flipped: `kb-manager-free-04@`, `kb-04-pro@`, `kb-04-upgrade@` |
 | 05 | Friends | 4 | 20 | manager_free | not started | - | - |
 | 06 | Following | 1 | 6 | player | not started | - | - |
 | 07 | Teams | 11 | 63 | manager_pro | published | [briefs/07.md](../briefs/07.md) | 63 screenshots. **All eleven published by the reviewer 2026-08-29.** 07.7 and 07.9 retitled - the app has no ownership transfer and no Fan role. Accounts: `kb-manager-pro-07@`, `kb-fresh-07@`, six `kb-07-*@` |
@@ -1585,3 +1585,34 @@ that has ever held one can never show the paywall again.
 
 No flakes. All nine specs across the six articles were re-run after publishing,
 against a re-seeded set of five accounts, and all nine passed.
+
+### 2026-08-29 - 04.6 amended, after review
+
+The reviewer published all six, then asked for the timing rule in 04.6 to be
+unmissable. It was worth testing before making it the headline: the article
+inferred it from the panel's wording and nothing had watched a slot actually go.
+
+Tested on staging and put back - creating a tournament on the grant account, then
+deleting it and topping the allowance up. Three things, all now in the article and
+in `config/api.md`:
+
+- `POST /tournaments` on an account with slots answers `pricingPlan: "Pro"`
+  immediately. No checkout, no session, no upgrade call;
+- the allowance drops on that create, 2 to 1;
+- **deleting the tournament does not give the slot back.** It stayed at 1. That
+  warning was not in the article before and now is.
+
+The panel is driven by `...Remaining`, not `...Total` - after the top-up the
+total read 3 and the panel still said 2. That is what makes the seed's
+grant-only-the-shortfall strategy correct, and 04.6's spec still asserts 2.
+
+The article gained a "When a slot is spent" heading and a four-row table -
+looking, creating, upgrading, deleting - so the answer is visible without reading
+a paragraph. Rebuilt against `11e8de2`, the SHA its images were already pinned
+to; no screenshot changed. `publish-article.mjs` read the live state off
+Intercom, saw `published`, and left it published.
+
+The brief's "Unreachable" table said a slot being spent could not be observed.
+That was wrong and is corrected: it was observed, and simply not made into a
+capture, because it would take the count off 2 and change what every later run of
+04.6 photographs.

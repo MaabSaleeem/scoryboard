@@ -1099,7 +1099,18 @@ with an allowance panel on the Tournament Pro tab:
 > **Free Tournament Pro slots remaining**
 > Your next N tournaments will automatically get Tournament Pro at no extra cost.
 
-The slot is spent when a tournament is **created**, not when one is upgraded, and
+**Confirmed on staging 2026-08-29**, by creating a tournament on an account with
+two slots and then putting it back:
+
+- `POST /tournaments` answers `pricingPlan: "Pro"` immediately. There is no
+  checkout, no session and no upgrade call - the tournament is Pro from the
+  moment it exists;
+- `freeTournamentProAllowanceRemaining` drops on that create, 2 to 1;
+- **deleting the tournament does NOT return the slot.** It stayed at 1;
+- the panel renders `...Remaining`, not `...Total`: after topping the account
+  back up the total read 3 and the panel still said 2.
+
+So a slot is spent by CREATING, never by upgrading, and the spend is one-way.
 `GET /users/me` reports `freeTournamentProAllowanceTotal` and
 `freeTournamentProAllowanceRemaining`. The grant is additive and there is no
 revoke, so an account that has ever held one can never show the paywall again -
