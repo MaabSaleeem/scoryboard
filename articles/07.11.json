@@ -1,0 +1,17 @@
+{
+  "id": "07.11",
+  "title": "Deleting a team",
+  "description": "How to delete a team, what goes with it, and why only the Owner can.",
+  "collection": "07",
+  "intercom_collection_id": "19733976",
+  "author_id": "11443412",
+  "state": "published",
+  "spec": "specs/07/07.11.spec.ts",
+  "commit_sha": "af73b436c853791983796ff6d44e82bb65c73bde",
+  "screenshots": [
+    "screenshots/07/07.11/01-delete-team-card.e8fdffae.png",
+    "screenshots/07/07.11/02-delete-dialog.6b22bfd5.png",
+    "screenshots/07/07.11/03-not-the-owner.558e3b52.png"
+  ],
+  "body": "<p>Only the team's <strong>Owner</strong> can delete it. An Administrator sees the control and cannot use it.</p>\n\n<h2>Before you start</h2>\n\n<p>Deleting a team cannot be undone, and it takes the team's members, its record and its place in any leaderboard with it. Matches that have already been played are not deleted.</p>\n\n<h2>Delete a team</h2>\n\n<ol>\n  <li>Open the team's <strong>Edit Team</strong> page and scroll to the bottom. <strong>DELETE TEAM</strong> is the last card.\n    <p><img src=\"https://cdn.jsdelivr.net/gh/MaabSaleeem/scoryboard@af73b436c853791983796ff6d44e82bb65c73bde/screenshots/07/07.11/01-delete-team-card.e8fdffae.png\" alt=\"The Delete team card with its red warning and the Delete Team button outlined.\"></p>\n  </li>\n  <li>Select <strong>Delete Team</strong>. Scoryboard asks you to confirm.\n    <p><img src=\"https://cdn.jsdelivr.net/gh/MaabSaleeem/scoryboard@af73b436c853791983796ff6d44e82bb65c73bde/screenshots/07/07.11/02-delete-dialog.6b22bfd5.png\" alt=\"The Delete Team dialog reading &quot;This action cannot be undone. This will permanently delete the team and remove all associated data.&quot;, with Cancel and Delete Team buttons.\"></p>\n  </li>\n  <li>Select <strong>Delete Team</strong> again to go through with it, or <strong>Cancel</strong> to stop. The team disappears from your Teams list.</li>\n</ol>\n\n<h2>If you are not the Owner</h2>\n\n<p>An Administrator gets the same card with the button greyed out.</p>\n\n<p><img src=\"https://cdn.jsdelivr.net/gh/MaabSaleeem/scoryboard@af73b436c853791983796ff6d44e82bb65c73bde/screenshots/07/07.11/03-not-the-owner.558e3b52.png\" alt=\"The Delete team card seen by an Administrator, with the greyed-out Delete Team button outlined.\"></p>\n\n<p>Ask the Owner to delete it, or leave the team alone.</p>\n\n<h2>What you will see</h2>\n\n<p>Deleting a team is confirmed. Removing a member is not - see \"Removing a member, and blocking them\" before you go near that menu.</p>\n\n<h2>If it does not work</h2>\n\n<ul>\n  <li><strong>Delete Team is greyed out.</strong> You are an Administrator, not the Owner. Only the Owner can delete a team.</li>\n  <li><strong>You cannot reach Edit Team at all.</strong> You are a Player or a Fan on that team.</li>\n  <li><strong>You deleted the wrong team.</strong> There is no undo. Create a new team and invite the members back.</li>\n  <li><strong>You want to leave a team rather than delete it.</strong> Ask the Owner or an Administrator to remove you.</li>\n</ul>\n\n<h2>Related</h2>\n\n<ul>\n  <li>\"Your team settings screen\"</li>\n  <li>\"Removing a member, and blocking them\"</li>\n  <li>\"Team roles - Owner, Administrator and Player\"</li>\n</ul>"
+}

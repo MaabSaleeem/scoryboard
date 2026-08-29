@@ -206,6 +206,15 @@ export type ShotOptions = {
    * only its inner edge would survive.
    */
   annotatePad?: number;
+  /**
+   * Capture the whole scrollable page rather than the viewport.
+   *
+   * docs/style-guide.md allows this only where the article documents a whole
+   * page - collection 07's tour of the Edit Team screen is the case it was added
+   * for. Call unstickHeader() first: the app's header is `position: sticky`, so
+   * without it Playwright stitches the header into the MIDDLE of the image.
+   */
+  fullPage?: boolean;
 };
 
 /**
@@ -296,7 +305,7 @@ export async function shot(
     maskColor: '#1F2933',
   };
   if (opts.clip) await opts.clip.screenshot(common);
-  else await page.screenshot({ ...common, fullPage: false });
+  else await page.screenshot({ ...common, fullPage: opts.fullPage ?? false });
   if (opts.annotate) await clearAnnotation(page);
   return file;
 }
@@ -1411,4 +1420,309 @@ export async function openAccountBlock(page: Page, name: string) {
   const block = signOut.locator('xpath=ancestor::div[contains(@class,"border-y")][1]');
   await expect(block.getByText('Edit User Profile', { exact: true })).toBeVisible();
   return block;
+}
+
+// --- collection 07: Teams ---------------------------------------------------
+//
+// Everything below is read by specs/07/*.spec.ts. The accounts, teams, squads,
+// match and expected statistics live in lib/fixtures-07.mjs, which
+// scripts/seed-07.mjs also reads - so a spec cannot drift from the seed.
+//
+// The one rule that shapes this whole block: **no spec here performs a one-way
+// action.** Accepting an invitation, claiming a team, removing a member,
+// blocking them and deleting a team are all photographed as the control, and the
+// dialog where there is one, and stopped there. Every "after" comes from a
+// second fixture the seed already built.
+
+// @ts-ignore - plain JS module, no types
+import {
+  ACCOUNTS as KB07, PROFILES as KB07_PROFILES, TEAMS as KB07_TEAMS,
+  IMAGES as KB07_IMAGES, UNITED_BIO as KB07_BIO,
+  EXPECTED_TEAM_STATS as KB07_STATS,
+} from './fixtures-07.mjs';
+
+export { KB07, KB07_PROFILES, KB07_TEAMS, KB07_IMAGES, KB07_BIO, KB07_STATS };
+
+/**
+ * The collection's accounts and teams, looked up rather than hardcoded.
+ *
+ * `scripts/seed-07.mjs --rebuild` deletes and recreates every account, and every
+ * id changes when it does. A spec carrying an id would then point at a deleted
+ * row - collections 12 and 02 both learned this the hard way.
+ *
+ * KB 07 Orient is found by SEARCH rather than by listing, because an unowned
+ * team is in nobody's `/teams?all=true` - not even its creator's. That is not a
+ * quirk of this helper; it is the only handle the API gives you, and it is the
+ * same way a reader finds one.
+ */
+export async function fixtures07() {
+  const session = async (email: string) => {
+    const token: string = (await mintSession(email)).idToken;
+    const me = (await asUser(token, '/users/me')).body?.data;
+    if (!me?.playerId) throw new Error(`${email} is not seeded. Run: node scripts/seed-07.mjs`);
+    return { email, token, id: String(me.id), playerId: String(me.playerId), membership: me.membership };
+  };
+
+  const pro = await session(KB07.pro);
+  const heir = await session(KB07.heir);
+  const free = await session(KB07.free);
+
+  const listed = async (who: { token: string }) =>
+    (await asUser(who.token, '/teams?all=true')).body?.data ?? [];
+  const byName = (rows: any[], name: string) => {
+    const row = rows.find((t: any) => t.name === name);
+    if (!row) throw new Error(`Team "${name}" is missing. Run: node scripts/seed-07.mjs`);
+    return String(row.teamId);
+  };
+
+  const proTeams = await listed(pro);
+  const heirTeams = await listed(heir);
+  const freeTeams = await listed(free);
+
+  const hits = (await asUser(pro.token, `/teams?name=${encodeURIComponent(KB07_TEAMS.orient)}`))
+    .body?.data ?? [];
+  const orient = hits.find((t: any) => t.name === KB07_TEAMS.orient);
+  if (!orient) {
+    throw new Error(`"${KB07_TEAMS.orient}" is not findable by search. Run: node scripts/seed-07.mjs`);
+  }
+
+  return {
+    pro,
+    heir,
+    free,
+    teams: {
+      united: byName(proTeams, KB07_TEAMS.united),
+      rovers: byName(proTeams, KB07_TEAMS.rovers),
+      athletic: byName(proTeams, KB07_TEAMS.athletic),
+      reserves: byName(proTeams, KB07_TEAMS.reserves),
+      albion: byName(proTeams, KB07_TEAMS.albion),
+      wanderers: byName(heirTeams, KB07_TEAMS.wanderers),
+      casuals: byName(freeTeams, KB07_TEAMS.casuals),
+      orient: String(orient.id),
+    },
+  };
+}
+
+/**
+ * Sign in and land on a screen that has NO sidebar.
+ *
+ * `signInAs()` proves the session by waiting for the sidebar's /tournaments
+ * link. That is right for every screen inside the app and wrong for the three
+ * interstitials - `/team/join` is one, and collection 01's wizard steps are the
+ * others - which render a bare card on a plain header.
+ *
+ * So this signs in through the app first, on a screen that does have a sidebar,
+ * and only then navigates. Same minted-URL flow, same single-use token.
+ */
+export async function signInBare(page: Page, email: string, to: string) {
+  await signInAs(page, email, '/teams');
+  await page.goto(to);
+}
+
+/**
+ * Everything collection 07 needs off-screen before a capture.
+ *
+ * quiet() covers the messenger and the animations. This adds the promotional
+ * banner, which sits on the home page and on the team pages and is a different
+ * campaign every month.
+ *
+ * NOT hidden: toasts and `[role="status"]`. quiet() hides those, and 07.7's
+ * whole subject is the modal a Free owner gets when they try to add an
+ * Administrator. Any spec that needs a refusal on screen must call quiet() and
+ * then check the refusal is still there - the Team Limit Reached modal is a real
+ * dialog, not a toast, so it survives.
+ */
+export async function quiet07(page: Page) {
+  await quiet(page);
+  await page.addStyleTag({
+    content: '[data-testid="promo-campaign"], #promo-campaign { display: none !important; }',
+  });
+}
+
+/**
+ * Hide the signed-in name in the sidebar rather than mask it.
+ *
+ * Masking is the style guide's default and is right wherever the name is
+ * visible. It is wrong where something else covers the sidebar but not the mask
+ * - the open search dropdown does exactly that - because Playwright paints the
+ * block at the element's own coordinates, which are now UNDERNEATH the dropdown,
+ * and the capture comes back with a black bar across the search results.
+ *
+ * Collection 02 made the same call about the notification badge, for the same
+ * reason and on the same screen.
+ */
+export async function hideSidebarIdentity(page: Page, name: string) {
+  await sidebarIdentity(page, name).evaluate((el: HTMLElement) => {
+    el.style.visibility = 'hidden';
+  });
+}
+
+/**
+ * Wait for Manage Teams to have finished loading.
+ *
+ * The screen paints its heading, its Add Team button and the column headers
+ * before the fetch lands, so none of those is a safe gate. Wait for a named team
+ * the seed always builds.
+ *
+ * Do NOT gate on a count of rows. That is global state for the account: 07.1
+ * creates a team and 07.11 photographs a delete dialog, and a count would make
+ * the specs order-dependent. Collection 12 lost six specs to exactly that.
+ */
+export async function teamListReady(page: Page, names: string[] = [KB07_TEAMS.united]) {
+  for (const name of names) {
+    await expect(teamRow(page, name)).toBeVisible();
+  }
+  // And wait for the one crest in the list to arrive.
+  //
+  // Every row paints the team's initials on a coloured disc first and swaps in
+  // the crest when the image loads. imagesPainted() cannot help: it only knows
+  // about <img> elements that are already in the DOM, and this one is not there
+  // yet. Without this gate the Manage Teams captures come back showing "KU"
+  // where KB 07 United's badge should be - which they did, on the first full run
+  // of this collection, in five separate shots.
+  await expect(teamRow(page, KB07_TEAMS.united).locator('img')).toBeVisible();
+}
+
+/**
+ * One row on Manage Teams.
+ *
+ * The rows are a CSS grid with no id, role or test id, and the name is a bare
+ * `span` inside a clipped box - so the row is reached from the name and asserted
+ * to contain it, which fails loudly here rather than producing a screenshot of
+ * the wrong row.
+ */
+export function teamRow(page: Page, name: string) {
+  return onScreen(page.locator('div[class*="grid-cols-["]').filter({
+    has: page.locator(`span:text-is("${name}")`),
+  })).first();
+}
+
+/** The three-dot menu at the end of a Manage Teams row: Edit and Remove. */
+export function teamRowMenu(page: Page, name: string) {
+  return teamRow(page, name).locator('[aria-haspopup="menu"]');
+}
+
+/**
+ * One member's row on the Edit Team page.
+ *
+ * Two things to know. The row is `div.grid-cols-5`, and every row is rendered
+ * TWICE - a wide layout inside `.hidden.lg\\:block` and a narrow one - so the
+ * match has to be narrowed to the copy on screen or it resolves to two elements
+ * and fails strictly.
+ *
+ * Members with an account are matched by address, which is unique. Name-only
+ * rows have no address and are matched by name.
+ */
+export function memberRow(page: Page, who: string) {
+  return onScreen(page.locator('div[class*="grid-cols-5"]').filter({ hasText: who })).first();
+}
+
+/** The three-dot menu on a member's row: Edit, Remove from team, Remove & Block. */
+export function memberRowMenu(page: Page, who: string) {
+  return memberRow(page, who).getByRole('button').last();
+}
+
+/**
+ * A section card on the Edit Team page, by its heading.
+ *
+ * The page is five cards - PROFILE APPEARANCE, TEAM INFORMATION, TEAM PLAYERS,
+ * LEADERBOARDS, DELETE TEAM - and none of them carries an id. Each is reached
+ * from its own heading and asserted to still contain it.
+ *
+ * The headings are upper case on screen; match them case-insensitively, because
+ * whether the capitals are in the DOM or in the CSS varies from card to card -
+ * the same trap collections 12, 14 and 01 all hit.
+ *
+ * Scoped to `main`, and that is not optional: the sidebar's navigation carries a
+ * "Leaderboards" link, so a page-wide match for the LEADERBOARDS card finds the
+ * nav item first and clips a 510px-wide strip of the sidebar instead of the card.
+ */
+export async function teamCard(page: Page, heading: string) {
+  const h = onScreen(page.locator('main').getByText(new RegExp(`^${heading}$`, 'i'))).first();
+  await expect(h).toBeVisible();
+  const card = h.locator('xpath=ancestor::div[contains(@class,"bg-white")][1]');
+  await expect(card.getByText(new RegExp(`^${heading}$`, 'i')).first()).toBeVisible();
+  return card;
+}
+
+/**
+ * A tab on the team page.
+ *
+ * The labels render upper case through CSS, so the accessible name is the
+ * original casing: "Player Stats", not "PLAYER STATS". Matching what is on
+ * screen finds nothing. Each tab is also a route, so the click navigates.
+ */
+export async function teamTab(page: Page, name: string) {
+  const tab = page.getByRole('button', { name, exact: true });
+  await expect(tab).toBeVisible();
+  await tab.click();
+  return tab;
+}
+
+/**
+ * A Radix Select on these screens - team size, member role, the friend list.
+ *
+ * Two things, both learned the hard way in this collection.
+ *
+ * A plain click DOES open them here; the dispatched-click workaround collections
+ * 12, 13 and 14 needed for the venue button and the padel player count is not
+ * required. What is required is not pressing Escape afterwards: Escape closes
+ * the whole modal, not just the list.
+ *
+ * And the options are matched by TEXT inside the open listbox rather than by
+ * `getByRole('option', {name})`. The accessible name carries the selected-item
+ * indicator, so an exact role match on "7 VS 7" finds nothing.
+ */
+export async function openSelect(page: Page, trigger: Locator) {
+  await trigger.click();
+  const list = page.locator('[role="listbox"]');
+  await expect(list).toBeVisible();
+  return list;
+}
+
+export async function pickOption(page: Page, trigger: Locator, value: string) {
+  const list = await openSelect(page, trigger);
+  await list.getByText(value, { exact: true }).first().click();
+  await expect(trigger).toContainText(value);
+}
+
+/**
+ * The team's own share code, and one member's invitation id.
+ *
+ * Both appear in a capture, and docs/style-guide.md says to mask a share code
+ * unless it is the subject. In 07.5 it IS the subject - the article is about the
+ * link you send somebody - so it is shown, on a staging team that exists only for
+ * these screenshots. Everywhere else, mask it with this locator.
+ */
+export function invitationLinkField(page: Page) {
+  return page.locator('[role="dialog"] input[readonly], [role="dialog"] input[value*="shareCode"], [role="dialog"] input[value*="inviteCode"]').first();
+}
+
+/**
+ * Wait for the team page to have finished loading.
+ *
+ * The header, the tab strip and the Grow Your Team banner all paint before the
+ * fetches land, so none is a safe gate. Wait for the member count, which only
+ * appears once the team has been read.
+ */
+export async function teamPageReady(page: Page, teamName: string) {
+  await expect(onScreen(page.getByText(teamName, { exact: true })).first()).toBeVisible();
+  await expect(onScreen(page.getByText('Members', { exact: true })).first()).toBeVisible();
+}
+
+/**
+ * "Joined Since August 2026" on a team page, and the Views counter beside it.
+ *
+ * The join date is the team's own and does not drift between runs - but it does
+ * change whenever the seed rebuilds, and it is not what any capture here is
+ * about. Views rises every time any account opens the page, including these
+ * specs. docs/style-guide.md: mask both.
+ */
+export function teamJoinedSince(page: Page) {
+  return onScreen(page.getByText(/^Joined Since/)).first();
+}
+
+export function teamViews(page: Page) {
+  return onScreen(page.getByText('Views', { exact: true })).first()
+    .locator('xpath=preceding-sibling::*[1]');
 }

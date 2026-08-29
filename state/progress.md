@@ -19,7 +19,7 @@ target.
 | 04 | Plans & membership | 3 | 17 | manager_free | not started | - | Pro is a free self-serve toggle during beta. No payment step. Flag for rewrite when beta ends. |
 | 05 | Friends | 4 | 20 | manager_free | not started | - | - |
 | 06 | Following | 1 | 6 | player | not started | - | - |
-| 07 | Teams | 11 | 63 | manager_pro | not started | - | - |
+| 07 | Teams | 11 | 63 | manager_pro | published | [briefs/07.md](../briefs/07.md) | 63 screenshots. **All eleven published by the reviewer 2026-08-29.** 07.7 and 07.9 retitled - the app has no ownership transfer and no Fan role. Accounts: `kb-manager-pro-07@`, `kb-fresh-07@`, six `kb-07-*@` |
 | 08 | Leaderboards & leagues | 8 | 40 | manager_pro | not started | - | - |
 | 09 | Creating & scheduling matches | 8 | 50 | manager_pro | not started | - | - |
 | 10 | Match day | 11 | 65 | manager_pro | not started | - | - |
@@ -1161,6 +1161,224 @@ Everything is on `kb/collection-02`, pushed. The image URLs resolve from that
 branch's commits. Merging is the human's call.
 
 Next: `/kb-brief 04`.
+
+### 2026-08-29 - collection 07 complete. Eleven articles, all drafts.
+
+| Article | Intercom ID | Shots | Pinned commit |
+|---|---|---|---|
+| 07.1 | 16740184 | 8 | b7b1595 |
+| 07.2 | 16740185 | 5 | f233020 |
+| 07.3 | 16740186 | 5 | f7eebab |
+| 07.4 | 16740187 | 7 | 61e6b21 |
+| 07.5 | 16740189 | 9 | a70f712 |
+| 07.6 | 16740195 | 5 | 4e858a9 |
+| 07.7 | 16740215 | 5 | 75e91d5 |
+| 07.8 | 16740236 | 5 | a3816ec |
+| 07.9 | 16740266 | 6 | a5c005c |
+| 07.10 | 16740286 | 5 | 2d3bfc5 |
+| 07.11 | 16740298 | 3 | af73b43 |
+
+63 screenshots, exactly the 63 the map estimated, all in Intercom collection
+`19733976`. Every image URL embedded in the stored bodies was re-fetched at the
+end: all 63 return 200 with an `image/*` content type. No article carries
+`<ol start=`. **Every one is a draft. Nothing is published and nothing has been
+reviewed.**
+
+### The finding that shaped the whole collection
+
+**Teams is the collection of one-way actions, and none of the specs performs
+one.** Accepting an invitation, claiming a team, removing a member, blocking them
+and deleting a team are all irreversible. Each is photographed as the control,
+and the confirmation dialog where there is one, and stopped there; every "after"
+state comes from a second fixture the seed already built. That is the pattern
+collections 12 and 13 used for ending a phase, applied to a whole collection.
+
+Exploration found the cost of getting it wrong. An exploratory click on **Remove
+from team** removed a member from KB 07 United and the fixture had to be rebuilt:
+**neither removal is confirmed.** *Remove from team* and *Remove & Block* both
+fire on the click, next to an *Edit* that opens a dialog. That is the clearest
+defect this collection found.
+
+### Two articles are retitled, because the map describes features that do not exist
+
+- **07.9 "Claiming a team and transferring ownership" is published as "Claiming a
+  team".** There is no ownership transfer. The role list the app offers is a
+  literal two-element array of Player and Administrator, there is no Owner option
+  anywhere, and the bundle holds no transfer mutation - its team mutations are
+  create, update, delete, claim, add/remove/update player, remove-and-block, bulk
+  invite, invite and join. A team changes hands only by being created unowned and
+  then claimed. The article's last screenshot is the evidence for the negative.
+- **07.7 "Team roles - Owner, Administrator, Player and Fan" is published as
+  "Team roles - Owner, Administrator and Player".** The API takes `role: "Fan"`
+  and hides those rows unless `?includeFans=true` - verified both ways on one
+  team - but the app's own `TeamRole` enum has no Fan, nothing in the UI can
+  create one, and a seeded Fan row renders on the Edit Team page **with no role
+  badge at all**. Following a team does not make one either. A Fan section would
+  have documented a state no reader can reach, illustrated by a row that looks
+  broken.
+
+`config/articles.yaml` keeps both mapped titles, the way 13.8, 14.5 and 01.3 were
+handled.
+
+### The finding every later collection needs
+
+**A match that is not in a leaderboard writes no statistics at all.** Isolated on
+staging with two finished matches between the same two teams and the same
+line-ups, one carrying `leaderboardId` and one not. The one without left
+`GET /teams/:id/stats` answering with no `data` key and every player on zero; the
+one with it read `matches: 1, wins: 1, goals: 1` within seconds.
+
+07.10 is the article about team statistics. Without the leaderboard its whole
+subject is a row of zeroes, and the first version of this seed produced exactly
+that. **Collections 08, 09, 10, 11 and 19 should read this before seeding.**
+
+### Six more behaviours now recorded in config/api.md
+
+1. **The Add Team checkboxes are named the opposite way round from their fields.**
+   "Create a Dummy team" carries `id="isPrivate"`; "I don't want to own this team"
+   carries `id="isSystem"`. A dummy team is in its owner's list and nobody
+   else's; an unowned team is in NO list at all, not even its creator's, and
+   `GET /teams?name=` is the only handle on one.
+2. **`POST /teams/:teamId/banner` does not store a banner.** It answers with a
+   token, exactly as `POST /teams/avatar` does, and the token has to be saved
+   with `PUT /teams/:teamId {"bannerToken"}`. config/api.md said it uploaded
+   "onto the team"; it does not. The `v` query parameter is required on both
+   image GETs - omitting it is a 400 schema error, not a cache miss.
+3. **Blocking only stops the person letting themselves back in.**
+   `POST /team-players/join/:shareCode` answers 200 for somebody removed without
+   the flag and `400 "You are blocked from joining this team."` for somebody
+   removed with it. The owner can still add a blocked person back, which clears
+   the block. **There is no blocked-members list, and no removed member is
+   rendered anywhere** - the rows survive in the API flagged `isDeleted` and no
+   screen shows them.
+4. **On Free you cannot add an Administrator.** `400 TEAM_ADMIN_LIMIT_EXCEEDED`,
+   shown as a **Team Limit Reached** modal carrying a FREE Upgrade (Beta) button.
+   The dialog offers Administrator either way; the refusal only arrives on submit.
+5. **The two "Generate invitation link" buttons make different links.** The
+   dialog's makes `?shareCode=` from the team's own code; a name-only member's
+   own Invite button makes `?inviteCode=` from
+   `POST /team-players/invite/:teamPlayerId`, bound to that one row.
+6. **`DELETE /teams/:teamId` is the Owner's alone** - an Administrator gets
+   `403 "Only team Owner can delete team"`, and the Edit Team page renders the
+   DELETE TEAM card for them with the button disabled. Screen and API agree.
+
+### Unlike collection 02, a crest-only save does NOT clear the team bio
+
+Checked deliberately, because collection 02 found that saving a profile photo
+wipes your profile bio. `PUT /teams/:id {"avatarToken"}` leaves `bio` alone.
+07.3 therefore carries no warning about it. A negative worth having written down.
+
+### Fixtures
+
+Eight accounts and eight teams, all built by `node scripts/seed-07.mjs`
+(idempotent - verified twice from a fresh `--rebuild`, and again after the full
+capture suite: zero writes).
+
+| Team | Owner | What makes it the fixture |
+|------|-------|---------------------------|
+| KB 07 United | Mo | crest, banner, bio, 9 members, every role the app can set, one finished match, one upcoming, 3 followers |
+| KB 07 Rovers | Mo | the opponent |
+| KB 07 Athletic | Mo | one member removed **and blocked**, one removed plainly - 07.8's "after" |
+| KB 07 Wanderers | **Nia** | Mo is an **Administrator** on it, which is where 07.4 and 07.11 photograph the not-the-Owner half |
+| KB 07 Casuals | **Fred (Free)** | the Free half of 07.7 |
+| KB 07 Reserves | Mo | a **dummy** team (`isPrivate`) |
+| KB 07 Orient | **nobody** | **unclaimed** (`isSystem`), findable only by search |
+| KB 07 Albion | Mo | created unclaimed, then claimed - 07.9's "after" |
+
+Nia has to be **Pro**, which is not obvious: a Free owner cannot hold an
+Administrator, and Wanderers exists to carry one.
+
+**The upcoming match is dated 5 December 2026 on purpose.** A match whose date
+has passed starts itself. Move `UPCOMING.date` in `lib/fixtures-07.mjs` if this
+collection is ever re-captured after then.
+
+**A removed row cannot be un-removed.** `ensureRemovedRow()` looks for the dead
+row first and does nothing when it is there; without that, KB 07 Athletic would
+grow one more removed member on every run.
+
+### Capture defects found and fixed in the specs
+
+- **Five team crests came out as initials.** Every Manage Teams row paints the
+  team's coloured initials first and swaps in the crest when it loads, and
+  `imagesPainted()` cannot see an `<img>` that is not in the DOM yet.
+  `teamListReady()` now waits for that one crest. The same race on the Join a
+  team card is fixed the same way in 07.6.
+- **07.4/06 clipped the sidebar, not the card.** `teamCard()` matched its heading
+  page-wide and the sidebar navigation carries a "Leaderboards" link, so the
+  LEADERBOARDS shot came out a 510px strip of the sidebar. Scoped to `main`.
+- **07.1/08 cut off its own subject** - a new team lands below the fold. `centre()`.
+- **07.9/01 had a black bar across the search results.** A mask paints at the
+  element's own coordinates and the open dropdown covers them, so the identity
+  block landed on top of the list. Hidden rather than masked - the call
+  collection 02 made about the notification badge on the same screen. New helper
+  `hideSidebarIdentity()`.
+- **07.1/04 and 07.3/03 left the persona's name legible.** Both are viewport
+  shots of a dialog, so the sidebar is still in frame. Masks added.
+
+### Three things learned about writing specs for this app
+
+- **A spec cannot switch accounts inside one test.** `signInAs()` mints a fresh
+  session but the context still holds the first account's, and the app stays
+  signed in as whoever got there first. 07.2, 07.6, 07.7 and 07.8 are two
+  `test()` blocks each; each test gets its own context.
+- **`signInAs()` assumes a sidebar.** It waits for the `/tournaments` link, which
+  `/team/join` does not have. New helper `signInBare()`.
+- **The Radix selects here do NOT need the dispatched click** that collections
+  12, 13 and 14 all needed. They open on a plain click. What they need is not
+  pressing Escape afterwards: Escape closes the whole modal, not just the list.
+
+### Worth a look, and worth a ticket
+
+- **Removing a member is unconfirmed.** Two irreversible menu items fire on the
+  click, beside an Edit that does not. The clearest defect here.
+- **"Select player from friend list" never lists anybody.** It opens to "No
+  options available" on an account with 19 friends, on a team none of them are
+  on, and with a friend that belongs to no team at all. The other two paths on
+  that dialog work. 07.5 names the control and does not tell the reader to rely
+  on it.
+- **The Fan role is half-built.** The API stores it and gates it behind
+  `?includeFans=true`; the app cannot set it, cannot label it, and renders it as
+  a row with no badge. Either the API should stop accepting it or the app should
+  grow the badge.
+- **"Team Limit Reached" is the wrong title** for a modal whose message is about
+  admins, not team count.
+- **`/team/create`, `/team/congratulations` and `/team/invite`** are in the app's
+  route enum and nothing navigates to any of them - the same shape as collection
+  01's `/selectClubLocation`.
+
+### Where to look hard in the drafts
+
+- **07.5's claim that an Administrator can invite.** It says Owner or
+  Administrator, reasoned from an Administrator getting the full Edit Team page
+  and its Add New Player button. Not exercised end to end as an Administrator.
+- **07.9's two quoted refusals** - "This team is already claimed by someone else."
+  and the tournament-team name clash. Both come from the bundle's message
+  catalogue and neither was produced on screen.
+- **07.9's description of the Success dialog after claiming.** Seen once during
+  exploration, on a throwaway team. The spec does not claim anything, so the
+  sentence is described rather than shown.
+- **07.2's claim that neither checkbox can be changed after creation.** Reasoned
+  from the settings page having no such control, not from a refused API call.
+- **07.10's line that Followers is a count and not a list.**
+  `GET /teams/:id/followers` returns real people; no screen was found that
+  renders them.
+
+### Flakes
+
+None. The eleven specs were run repeatedly through the session - the full suite
+three times - and never failed once the selector fixes were in.
+
+### ~~Not committed to master~~ - merged 2026-08-29
+
+This said collection 07 was parked on `kb/collection-07` and that merging was the
+human's call. It has since been merged into `master`, and the branch rule has
+changed: **commit straight to `master`, no feature branch** - see "How you work"
+in [CLAUDE.md](../CLAUDE.md). Screenshot URLs are pinned to the commit that holds
+them, so work left on a side branch resolves its images from somewhere the help
+centre will not keep. The eleven articles' images stay pinned to the commits in
+the table above, all of which are now on `master`.
+
+Next: `/kb-brief 05`.
 
 ### 2026-08-29 - collection 02, three articles amended after the reviewer published
 
