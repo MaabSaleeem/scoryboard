@@ -831,6 +831,201 @@
       ],
       "published_at": "2026-08-28T21:44:01.000Z",
       "status": "draft"
+    },
+    "07.1": {
+      "intercom_id": "16740184",
+      "collection": "07",
+      "intercom_collection_id": "19733976",
+      "brief": "briefs/07.md",
+      "spec": "specs/07/07.1.spec.ts",
+      "commit_sha": "b7b159592bf3625c1a3b17c5cb53f8354dc8d4b9",
+      "screenshots": [
+        "screenshots/07/07.1/01-manage-teams.a14bf80f.png",
+        "screenshots/07/07.1/02-add-team-dialog.3645a044.png",
+        "screenshots/07/07.1/03-team-name.d0208920.png",
+        "screenshots/07/07.1/04-team-size-list.308d889a.png",
+        "screenshots/07/07.1/05-team-crest.eaadab64.png",
+        "screenshots/07/07.1/06-checkboxes.cb622c30.png",
+        "screenshots/07/07.1/07-add-button.5ae5b706.png",
+        "screenshots/07/07.1/08-new-team-row.349021b1.png"
+      ],
+      "published_at": "2026-08-29T00:34:44.000Z",
+      "status": "draft"
+    },
+    "07.2": {
+      "intercom_id": "16740185",
+      "collection": "07",
+      "intercom_collection_id": "19733976",
+      "brief": "briefs/07.md",
+      "spec": "specs/07/07.2.spec.ts",
+      "commit_sha": "f23302087f2c050428f9ccec8723b2ca8a9d2163",
+      "screenshots": [
+        "screenshots/07/07.2/01-both-checkboxes.0c2cae20.png",
+        "screenshots/07/07.2/02-dummy-ticked.7629fa98.png",
+        "screenshots/07/07.2/03-dummy-in-your-list.f73d8566.png",
+        "screenshots/07/07.2/04-dummy-no-permission.6f2028c8.png",
+        "screenshots/07/07.2/05-unclaimed-team-page.689c169b.png"
+      ],
+      "published_at": "2026-08-29T00:35:15.000Z",
+      "status": "draft"
+    },
+    "07.3": {
+      "intercom_id": "16740186",
+      "collection": "07",
+      "intercom_collection_id": "19733976",
+      "brief": "briefs/07.md",
+      "spec": "specs/07/07.3.spec.ts",
+      "commit_sha": "f7eebab2494bfa593b43f8b4ac72045ab4767eed",
+      "screenshots": [
+        "screenshots/07/07.3/01-profile-appearance.d1170dbe.png",
+        "screenshots/07/07.3/02-banner-controls.d3ba5f9d.png",
+        "screenshots/07/07.3/03-crop-banner.b9633dc6.png",
+        "screenshots/07/07.3/04-team-bio.741801a3.png",
+        "screenshots/07/07.3/05-save-changes.c1a1027d.png"
+      ],
+      "published_at": "2026-08-29T00:35:30.000Z",
+      "status": "draft"
+    },
+    "07.4": {
+      "intercom_id": "16740187",
+      "collection": "07",
+      "intercom_collection_id": "19733976",
+      "brief": "briefs/07.md",
+      "spec": "specs/07/07.4.spec.ts",
+      "commit_sha": "61e6b214b4f3c3d617450e668905fdf70ed4a1e4",
+      "screenshots": [
+        "screenshots/07/07.4/01-row-menu.3afd5eae.png",
+        "screenshots/07/07.4/02-edit-team-page.7aa8e323.png",
+        "screenshots/07/07.4/03-profile-appearance.d1170dbe.png",
+        "screenshots/07/07.4/04-team-information.39823ab0.png",
+        "screenshots/07/07.4/05-team-players.38bbc006.png",
+        "screenshots/07/07.4/06-leaderboards.f29a8b83.png",
+        "screenshots/07/07.4/07-delete-disabled-for-admin.558e3b52.png"
+      ],
+      "published_at": "2026-08-29T00:35:54.000Z",
+      "status": "draft"
+    },
+    "07.5": {
+      "intercom_id": "16740189",
+      "collection": "07",
+      "intercom_collection_id": "19733976",
+      "brief": "briefs/07.md",
+      "spec": "specs/07/07.5.spec.ts",
+      "commit_sha": "a70f712d2545c3abccc38290f30413513dc28d12",
+      "screenshots": [
+        "screenshots/07/07.5/01-add-new-player.e7a9ffa1.png",
+        "screenshots/07/07.5/02-add-player-dialog.3ebdd3d4.png",
+        "screenshots/07/07.5/03-name-and-email.614eaa22.png",
+        "screenshots/07/07.5/04-role-list.0e0fe054.png",
+        "screenshots/07/07.5/05-pending-member.ed723636.png",
+        "screenshots/07/07.5/06-invitation-link.5a06e4e4.png",
+        "screenshots/07/07.5/07-copy-link.f88cc137.png",
+        "screenshots/07/07.5/08-row-invite-button.f7af4527.png",
+        "screenshots/07/07.5/09-member-invite-link.543f299f.png"
+      ],
+      "published_at": "2026-08-29T00:36:31.000Z",
+      "status": "draft"
+    },
+    "07.6": {
+      "intercom_id": "16740195",
+      "collection": "07",
+      "intercom_collection_id": "19733976",
+      "brief": "briefs/07.md",
+      "spec": "specs/07/07.6.spec.ts",
+      "commit_sha": "4e858a922de37a45c174a969cee5255b39dc774c",
+      "screenshots": [
+        "screenshots/07/07.6/01-join-a-team.83bb2a7f.png",
+        "screenshots/07/07.6/02-card-selected.fd1f98f2.png",
+        "screenshots/07/07.6/03-teams-list.76162795.png",
+        "screenshots/07/07.6/04-joined-team-page.d29f42b7.png",
+        "screenshots/07/07.6/05-no-invitations.fe91aced.png"
+      ],
+      "published_at": "2026-08-29T00:36:53.000Z",
+      "status": "draft"
+    },
+    "07.7": {
+      "intercom_id": "16740215",
+      "collection": "07",
+      "intercom_collection_id": "19733976",
+      "brief": "briefs/07.md",
+      "spec": "specs/07/07.7.spec.ts",
+      "commit_sha": "75e91d5f2c6e744ce74c62f54c3d258497ce4f82",
+      "screenshots": [
+        "screenshots/07/07.7/01-role-badges.0b32f998.png",
+        "screenshots/07/07.7/02-edit-player-dialog.2418e82b.png",
+        "screenshots/07/07.7/03-role-list-pro.1b1db9d5.png",
+        "screenshots/07/07.7/04-team-limit-free.bad1ea75.png",
+        "screenshots/07/07.7/05-free-upgrade-pro.7105a564.png"
+      ],
+      "published_at": "2026-08-29T00:37:14.000Z",
+      "status": "draft"
+    },
+    "07.8": {
+      "intercom_id": "16740236",
+      "collection": "07",
+      "intercom_collection_id": "19733976",
+      "brief": "briefs/07.md",
+      "spec": "specs/07/07.8.spec.ts",
+      "commit_sha": "a3816ec407ee62b532eeefeb808a35f53874c03e",
+      "screenshots": [
+        "screenshots/07/07.8/01-member-menu.d4b2c905.png",
+        "screenshots/07/07.8/02-remove-from-team.5371152a.png",
+        "screenshots/07/07.8/03-remove-and-block.3a5ee80f.png",
+        "screenshots/07/07.8/04-after-removal.20ec55aa.png",
+        "screenshots/07/07.8/05-blocked-refusal.ef94be39.png"
+      ],
+      "published_at": "2026-08-29T00:37:36.000Z",
+      "status": "draft"
+    },
+    "07.9": {
+      "intercom_id": "16740266",
+      "collection": "07",
+      "intercom_collection_id": "19733976",
+      "brief": "briefs/07.md",
+      "spec": "specs/07/07.9.spec.ts",
+      "commit_sha": "a5c005c6cd60fa66ed9aa0835d23a0a0dac1e010",
+      "screenshots": [
+        "screenshots/07/07.9/01-search-result.8c7d0f29.png",
+        "screenshots/07/07.9/02-unclaimed-page.f6043289.png",
+        "screenshots/07/07.9/03-claim-dialog.87aaca21.png",
+        "screenshots/07/07.9/04-claim-cancel.8311e791.png",
+        "screenshots/07/07.9/05-claimed-in-your-list.691f12dc.png",
+        "screenshots/07/07.9/06-role-list-no-owner.a0449294.png"
+      ],
+      "published_at": "2026-08-29T00:38:06.000Z",
+      "status": "draft"
+    },
+    "07.10": {
+      "intercom_id": "16740286",
+      "collection": "07",
+      "intercom_collection_id": "19733976",
+      "brief": "briefs/07.md",
+      "spec": "specs/07/07.10.spec.ts",
+      "commit_sha": "2d3bfc544de8d377f953086f571f71c17cd4e286",
+      "screenshots": [
+        "screenshots/07/07.10/01-team-header.ea523892.png",
+        "screenshots/07/07.10/02-team-stats.2cb842b9.png",
+        "screenshots/07/07.10/03-top-players.371a8666.png",
+        "screenshots/07/07.10/04-matches-past.0dea19ef.png",
+        "screenshots/07/07.10/05-player-stats.a4cd39ff.png"
+      ],
+      "published_at": "2026-08-29T00:38:25.000Z",
+      "status": "draft"
+    },
+    "07.11": {
+      "intercom_id": "16740298",
+      "collection": "07",
+      "intercom_collection_id": "19733976",
+      "brief": "briefs/07.md",
+      "spec": "specs/07/07.11.spec.ts",
+      "commit_sha": "af73b436c853791983796ff6d44e82bb65c73bde",
+      "screenshots": [
+        "screenshots/07/07.11/01-delete-team-card.e8fdffae.png",
+        "screenshots/07/07.11/02-delete-dialog.6b22bfd5.png",
+        "screenshots/07/07.11/03-not-the-owner.558e3b52.png"
+      ],
+      "published_at": "2026-08-29T00:38:37.000Z",
+      "status": "draft"
     }
   }
 }
