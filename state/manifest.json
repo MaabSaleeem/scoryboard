@@ -1042,6 +1042,23 @@
       ],
       "published_at": "2026-08-29T10:51:35.000Z",
       "status": "draft"
+    },
+    "04.2": {
+      "intercom_id": "16744144",
+      "collection": "04",
+      "intercom_collection_id": "19733973",
+      "brief": "briefs/04.md",
+      "spec": "specs/04/04.2.spec.ts",
+      "commit_sha": "1556c6a5a6bc65706854e210ecd00fd3b0c58c1d",
+      "screenshots": [
+        "screenshots/04/04.2/01-sidebar-subscriptions.dd403cd4.png",
+        "screenshots/04/04.2/02-upgrade-to-pro.d3fecca3.png",
+        "screenshots/04/04.2/03-congratulations.5a8077bc.png",
+        "screenshots/04/04.2/04-plan-now-pro.c8847e51.png",
+        "screenshots/04/04.2/05-pro-in-the-sidebar.6d072016.png"
+      ],
+      "published_at": "2026-08-29T10:52:15.000Z",
+      "status": "draft"
     }
   }
 }
