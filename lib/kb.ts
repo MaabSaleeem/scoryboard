@@ -1793,7 +1793,7 @@ export { KB04 };
  * account and every id changes. Look things up here instead.
  */
 export async function fixtures04() {
-  const read = async (key: 'free' | 'pro' | 'upgrade') => {
+  const read = async (key: 'free' | 'pro' | 'upgrade' | 'organiser' | 'grant') => {
     const email: string = KB04.ACCOUNTS[key];
     const session = await mintSession(email);
     const me = (await asUser(session.idToken, '/users/me')).body?.data;
@@ -1804,6 +1804,8 @@ export async function fixtures04() {
   const free = await read('free');
   const pro = await read('pro');
   const upgrade = await read('upgrade');
+  const organiser = await read('organiser');
+  const grant = await read('grant');
 
   if (free.membership !== 'Free') {
     throw new Error(`${free.email} is ${free.membership}, not Free. Run: node scripts/seed-04.mjs`);
@@ -1839,12 +1841,79 @@ export async function fixtures04() {
     );
   }
 
+  // --- Tournament Pro -------------------------------------------------------
+  //
+  // The organiser must have NO free Tournament Pro slots or the tab shows the
+  // allowance panel instead of the paywall, and the grant account must have
+  // exactly the number 04.6 photographs. The grant has no revoke, so a wrong
+  // value here is not something a spec can fix - fail and say so.
+  if ((organiser.freeTournamentProAllowanceRemaining ?? 0) !== 0) {
+    throw new Error(
+      `${organiser.email} has free Tournament Pro slots. 04.4 and 04.5 need the paywall.`,
+    );
+  }
+  if ((grant.freeTournamentProAllowanceRemaining ?? 0) !== KB04.FREE_PRO_SLOTS) {
+    throw new Error(
+      `${grant.email} has ${grant.freeTournamentProAllowanceRemaining} free Tournament Pro ` +
+      `slots, not ${KB04.FREE_PRO_SLOTS}. Run: node scripts/seed-04.mjs`,
+    );
+  }
+
+  const tournaments = (await asUser(organiser.token, '/tournaments')).body?.data ?? [];
+  const cup = tournaments.find((t: any) => t.title === KB04.TOURNAMENT);
+  if (!cup) throw new Error(`${KB04.TOURNAMENT} is missing. Run: node scripts/seed-04.mjs`);
+  if (cup.pricingPlan !== 'Basic') {
+    throw new Error(
+      `${KB04.TOURNAMENT} is on the ${cup.pricingPlan} plan. 04.5's selector lists only Basic ones.`,
+    );
+  }
+
   return {
-    free, pro, upgrade,
+    free, pro, upgrade, organiser, grant,
     team: { id: String(team.teamId ?? team.id), name: KB04.TEAM as string },
     freeBoard: await boardOf(free),
     proBoard: await boardOf(pro),
+    tournament: { id: String(cup._id ?? cup.id), name: KB04.TOURNAMENT as string },
   };
+}
+
+/**
+ * Open the Tournament Pro tab on /subscriptions and wait for its cards.
+ *
+ * A different product from the membership above: per tournament, real money,
+ * bought through Stripe. No spec in this collection buys one.
+ */
+export async function tournamentTabReady(page: Page) {
+  await page.getByRole('tab', { name: KB04.TOURNAMENT_TAB }).click();
+  await expect(page.getByRole('tab', { name: KB04.TOURNAMENT_TAB }))
+    .toHaveAttribute('data-state', 'active');
+  await expect(onScreen(page.getByText(KB04.TOURNAMENT_HEADING, { exact: true })).first())
+    .toBeVisible();
+  for (const marker of ['Up to 5 teams', 'List all your sponsors', 'Unlimited tournaments']) {
+    await expect(onScreen(page.getByText(marker, { exact: true })).first()).toBeVisible();
+  }
+}
+
+/**
+ * One of the three tournament plan cards.
+ *
+ * Picked by a feature line unique to that card, for the same reason planCard()
+ * is: the titles repeat elsewhere on the screen and Playwright's string
+ * `hasText` is case-insensitive, so "BASIC" also matches "Everything in Basic".
+ */
+export function tournamentPlanCard(page: Page, plan: 'basic' | 'pro' | 'annual') {
+  const marker = {
+    basic: 'Up to 5 teams',
+    pro: 'List all your sponsors',
+    annual: 'Unlimited tournaments',
+  }[plan];
+  return page.locator('div[class*="rounded-[26px]"]').filter({ hasText: marker }).first();
+}
+
+/** The "Free Tournament Pro slots remaining" panel. Only there with a grant. */
+export function freeSlotsPanel(page: Page) {
+  return page.getByText(KB04.FREE_SLOTS_TITLE, { exact: true })
+    .locator('xpath=ancestor::div[contains(@class,"rounded")][1]');
 }
 
 /**

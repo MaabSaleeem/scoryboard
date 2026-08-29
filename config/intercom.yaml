@@ -85,9 +85,13 @@ collections:
   "15":
     name: "Tournaments - publishing & running"
     id: "19733984"
+  # RETIRED 2026-08-29. Collection 16 was merged into 04. This Intercom
+  # collection is empty and nothing should publish into it. Kept so the id is
+  # not silently reused.
   "16":
-    name: "Tournament plans & payment"
+    name: "Tournament plans & payment (retired - merged into 04)"
     id: "19733985"
+    retired: true
   "17":
     name: "Collecting & making payments"
     id: "19733986"

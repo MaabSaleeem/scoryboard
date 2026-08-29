@@ -6,9 +6,9 @@
 #          (set per article only when it differs from persona_default)
 
 meta:
-  collections: 23
-  articles: 149
-  screenshots: 823
+  collections: 22
+  articles: 146
+  screenshots: 801
   # 13, 14 and 15 were split by sport on 2026-08-28 after walking both game
   # types through every tab. These totals count what this file lists: they do
   # not yet include collection 12's two padel articles, which are published
@@ -45,11 +45,14 @@ collections:
   - id: "04"
     name: Plans & membership
     persona_default: manager_free
-    note: "Pro is a free self-serve toggle during beta. No payment step. Flag for rewrite when beta ends."
+    note: "Two different products live on the /subscriptions screen and this collection covers both. Platform Pro (04.1-04.3) is the account's own membership and is a free self-serve toggle during beta, no payment step. Tournament Pro (04.4-04.6) is per-tournament and is REAL MONEY. Collection 16 was retired into this collection on 2026-08-29. Flag for rewrite when the beta ends."
     articles:
       - {id: "04.1", title: "Free vs Pro - what is included", flags: [free_pro], shots: 4}
       - {id: "04.2", title: "Pro is free during beta - how to upgrade", flags: [free_pro], shots: 5}
       - {id: "04.3", title: "Every Free-plan limit, and the messages you will see", flags: [free_pro], shots: 8, note: "canonical limits table, other articles link here"}
+      - {id: "04.4", title: "Tournament Pro - what it is, and the three plans", flags: [tourn_plan, money], shots: 6, note: "was 16.1 and 16.2. The plan card advertises Up to 5 teams; the enforced limit is 8. Says both."}
+      - {id: "04.5", title: "Upgrading a tournament to Tournament Pro", flags: [tourn_plan, money], shots: 5, note: "was 16.3 and 16.4. Capture STOPS at the last Scoryboard screen - Continue with PRO and Start with ANNUAL both hand off to a Stripe embedded checkout."}
+      - {id: "04.6", title: "Free Tournament Pro slots", flags: [tourn_plan], shots: 2, note: "was 16.6. No money. Granted with the admin API."}
 
   - id: "05"
     name: Friends
@@ -197,17 +200,21 @@ collections:
       - {id: "15.8", title: "Entering results, standings and team statistics", flags: [role], shots: 8, note: "needs a padel section, not a split: standings columns and the leaderboard stat differ (Goals vs Score). Score entry itself is UNVERIFIED - needs a live match."}
       - {id: "15.9", title: "Participants, followers and completing a tournament", flags: [role], shots: 6, note: "padel participants are pairs, so the counts read as teams - wording only"}
 
+  # RETIRED 2026-08-29. Collection 16 was merged into collection 04, which
+  # already documented the /subscriptions screen both products live on. Its six
+  # articles became three: 16.1 and 16.2 -> 04.4, 16.3 and 16.4 -> 04.5,
+  # 16.6 -> 04.6. 16.5, managing a live Annual subscription, was DROPPED - the
+  # card, cancel and resume controls only exist once a real payment has been
+  # taken, and this project does not take one. See briefs/04.md, "Unreachable".
+  #
+  # Collection ids are NOT renumbered: 17 to 24 keep theirs, because briefs,
+  # specs, screenshots and the manifest all reference them.
   - id: "16"
-    name: Tournament plans & payment
+    name: Tournament plans & payment (retired - merged into 04)
+    retired: true
     persona_default: organiser
-    note: "REAL MONEY. Stripe test mode required."
-    articles:
-      - {id: "16.1", title: "Tournament plans - Basic, Pro and Annual", flags: [tourn_plan, money], shots: 5}
-      - {id: "16.2", title: "The 8-team limit on Basic, and what to do about it", flags: [tourn_plan, money], shots: 4}
-      - {id: "16.3", title: "Upgrading a single tournament to Pro", flags: [tourn_plan, money], shots: 8}
-      - {id: "16.4", title: "Subscribing to Tournament Annual", flags: [tourn_plan, money], shots: 7}
-      - {id: "16.5", title: "Managing your Annual subscription - card, cancel, resume", flags: [tourn_plan, money], shots: 8}
-      - {id: "16.6", title: "Free Tournament Pro slots", flags: [tourn_plan], shots: 3}
+    note: "RETIRED. Do not publish into this collection. Its Intercom collection 19733985 is empty and unused."
+    articles: []
 
   - id: "17"
     name: Collecting & making payments

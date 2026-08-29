@@ -35,7 +35,9 @@
 
 import 'dotenv/config';
 import { admin, asUser, mintSession, j } from '../lib/api.mjs';
-import { ACCOUNTS, PROFILES, TEAM, FRIENDS, FRIEND_LIMIT } from '../lib/fixtures-04.mjs';
+import {
+  ACCOUNTS, PROFILES, TEAM, FRIENDS, FRIEND_LIMIT, TOURNAMENT, TOURNAMENT_DATES, FREE_PRO_SLOTS,
+} from '../lib/fixtures-04.mjs';
 
 const REBUILD = process.argv.includes('--rebuild');
 
@@ -218,11 +220,83 @@ async function ensureProfileView(viewer, subject) {
   return after;
 }
 
+
+/**
+ * One Basic tournament, for 04.5's "Choose a Tournament for PRO" dialog.
+ *
+ * It must stay on the Basic plan - the dialog lists only Basic tournaments.
+ * Nothing here upgrades it: the upgrade is the Stripe checkout that 04.5
+ * deliberately stops short of.
+ */
+async function ensureTournament(me) {
+  const list = (await asUser(me.token, '/tournaments')).body?.data ?? [];
+  const found = list.find((t) => t.title === TOURNAMENT);
+  if (found) {
+    const id = String(found._id ?? found.id);
+    note('GET', '/tournaments', 200, TOURNAMENT + ' exists - ' + id + ' plan=' + found.pricingPlan);
+    if (found.pricingPlan !== 'Basic') {
+      throw new Error(
+        TOURNAMENT + ' is on the ' + found.pricingPlan + ' plan, not Basic. 04.5 lists only '
+        + 'Basic tournaments. Delete it and re-run.',
+      );
+    }
+    return { id, name: TOURNAMENT };
+  }
+  const r = await asUser(me.token, '/tournaments', {
+    method: 'POST',
+    body: { title: TOURNAMENT, ...TOURNAMENT_DATES, isOnline: false },
+  });
+  if (!r.ok) throw new Error('POST /tournaments ' + TOURNAMENT + ': ' + j(r.body));
+  note('POST', '/tournaments', r.status, TOURNAMENT + ' created - ' + r.body.data.id);
+  return { id: String(r.body.data.id), name: TOURNAMENT };
+}
+
+/**
+ * Top the free Tournament Pro allowance up to FREE_PRO_SLOTS.
+ *
+ * The grant is ADDITIVE and there is no revoke (config/api.md), so this reads
+ * what is left and asks only for the shortfall. Granting a flat quantity every
+ * run would walk the number up, and 04.6 photographs that number.
+ */
+async function ensureFreeProSlots(me) {
+  const remaining = me.freeTournamentProAllowanceRemaining ?? 0;
+  if (remaining >= FREE_PRO_SLOTS) {
+    note('-', 'tournament-free-pro', '-', me.email + ' already has ' + remaining + ' slot(s)');
+    return remaining;
+  }
+  const r = await admin('/admins/users/tournament-free-pro/grant', {
+    method: 'POST',
+    body: { email: me.email, plan: 'Pro', quantity: FREE_PRO_SLOTS - remaining },
+  });
+  if (!r.ok) throw new Error('tournament-free-pro/grant ' + me.email + ': ' + j(r.body));
+  note('POST', '/admins/users/tournament-free-pro/grant', r.status,
+    me.email + ' ' + remaining + ' -> ' + r.body.data.remainingQuantity);
+  return r.body.data.remainingQuantity;
+}
+
+/**
+ * The paywall accounts must have NO free slots, or the Tournament Pro tab shows
+ * the allowance panel instead and 04.4 and 04.5 photograph the wrong screen.
+ * There is no revoke, so this can only check and fail loudly.
+ */
+function assertNoFreeSlots(me) {
+  const remaining = me.freeTournamentProAllowanceRemaining ?? 0;
+  if (remaining > 0) {
+    throw new Error(
+      me.email + ' has ' + remaining + ' free Tournament Pro slot(s). 04.4 and 04.5 need the '
+      + 'paywall, and the grant has no revoke. Use a fresh address.',
+    );
+  }
+  note('-', 'tournament-free-pro', '-', me.email + ' has no free slots - the paywall is reachable');
+}
+
 // --- run --------------------------------------------------------------------
 
 const free = await ensureAccount('free');
 const pro = await ensureAccount('pro');
 const upgrade = await ensureAccount('upgrade');
+const organiser = await ensureAccount('organiser');
+const grant = await ensureAccount('grant');
 
 console.log('\n--- memberships ---');
 await ensureMembership(free, 'Free');
@@ -247,8 +321,17 @@ await ensureProfileView(proNow, freeNow);    // Nia views Marc  -> 04.3's Free g
 await ensureProfileView(freeNow, proNow);    // Marc views Nia  -> 04.3's Pro panel
 
 console.log('\n--- what a spec will find ---');
+console.log('--- Tournament Pro ---');
+const organiserNow = await lookup(ACCOUNTS.organiser);
+assertNoFreeSlots(organiserNow);
+const cup = await ensureTournament(organiserNow);
+const grantNow = await lookup(ACCOUNTS.grant);
+const slots = await ensureFreeProSlots(grantNow);
+
 console.log(j({
   free: { email: freeNow.email, id: freeNow.id, playerId: freeNow.playerId, membership: freeNow.membership, team: freeTeam, leaderboard: freeBoard },
   pro: { email: proNow.email, id: proNow.id, playerId: proNow.playerId, membership: proNow.membership, leaderboard: proBoard },
   upgrade: { email: upgrade.email, id: upgrade.id, membership: 'Free' },
+  organiser: { email: organiserNow.email, id: organiserNow.id, tournament: cup, freeProSlots: 0 },
+  grant: { email: grantNow.email, id: grantNow.id, freeProSlots: slots },
 }));

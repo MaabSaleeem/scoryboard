@@ -1029,12 +1029,96 @@ only while the count is above zero - the bundle gates the click on
 **Views** tile in the counters row; the small "N views" button beside the rating
 is the narrow-layout copy and has a zero-sized box.
 
+### Tournament Pro - a different product on the same screen
+
+**(observed in app, 2026-08-29.)** REAL MONEY. Collection 16 was retired into
+collection 04 on the same day; 04.4 to 04.6 document this, and every capture
+stops before the payment gateway.
+
+**The Basic team limit is 8, and the plan card says 5.** The BASIC card
+advertises "Up to 5 teams". What the app enforces is:
+
+- `Tournament Pro is required to add more than 8 teams to a group.`
+- `Tournament Pro is required to add more than 8 teams to a bracket.`
+
+Basic is stopped at two more places, each with its own message:
+
+- `Tournament Pro is required to manage sponsors.`
+- `Tournament Pro is required to export fixtures.`
+
+Prices are quoted **per currency**, not converted at checkout. From
+`GET /api/prismic/subscription-plans`:
+
+| Plan | Covers | GBP | EUR | USD |
+|---|---|---|---|---|
+| Basic | every tournament, always | free | free | free |
+| Pro | one tournament | 19.99 | 22.99 | 24.99 |
+| Annual | unlimited tournaments for a year | 215 | 248 | - |
+
+Two Pro lines carry a "Coming soon" marker and are not shipped: "Request joining
+fee" and "Registration".
+
+The currency control is a dropdown **menu**, not a select: its items are
+`menuitemradio`, not `option`.
+
+### Buying it, and where Scoryboard stops
+
+| Method | Path | For |
+|---|---|---|
+| POST | `/tournaments/:tournamentId/billing/checkout-session` | Start a Pro checkout for ONE tournament. Body `{plan, currency, returnUrlBase}` |
+| POST | `/tournaments/:tournamentId/billing/finalize-session` | Finish it. Body `{sessionId}` |
+| POST | `/users/tournament-subscription/checkout-session` | Start an Annual checkout. Body `{currency}` |
+| POST | `/users/tournament-subscription/cancel` | Cancel Annual |
+| POST | `/users/tournament-subscription/resume` | Resume a cancelled Annual |
+| POST | `/users/tournament-subscription/payment-method/setup-intent` | Change the card on Annual |
+| POST | `/users/tournament-subscription/payment-method/finalize` | Finish that. Body `{setupIntentId}` |
+
+**Pro is bought for one named tournament.** Selecting "Start with PRO" opens
+**Choose a Tournament for PRO**, which lists only tournaments whose
+`pricingPlan` is `Basic`, with a search box and a New Tournament button. With
+none it reads "No Basic tournaments available / Create a tournament to continue
+with the Tournament Pro upgrade." **Annual** is bought from its card with nothing
+to pick, because it covers every tournament while active.
+
+**Both hand off to Stripe, and that is where this project stops.**
+"Continue with PRO" posts the checkout session above; "Start with ANNUAL" swaps
+the plans area for a Stripe `embedded-checkout` iframe inside a Scoryboard panel
+headed "Tournament Pro", with "Back to plans" and "All upgrades are subject to
+our terms of use." Everything inside that panel is Stripe - confirmed by reading
+the frame list. No spec selects either control.
+
+The four Annual management calls are recorded here because the bundle names
+them. **The screens that carry them were never seen**: they only render once an
+Annual subscription is active, which needs a completed payment.
+
+### Free Tournament Pro slots
+
+`POST /admins/users/tournament-free-pro/grant` (admin key) replaces the paywall
+with an allowance panel on the Tournament Pro tab:
+
+> **Free Tournament Pro slots remaining**
+> Your next N tournaments will automatically get Tournament Pro at no extra cost.
+
+The slot is spent when a tournament is **created**, not when one is upgraded, and
+`GET /users/me` reports `freeTournamentProAllowanceTotal` and
+`freeTournamentProAllowanceRemaining`. The grant is additive and there is no
+revoke, so an account that has ever held one can never show the paywall again -
+seed the two cases into two addresses.
+
+### A tournament's own plan
+
+`GET /tournaments` returns `pricingPlan` on each row: `Basic`, `Pro` or `Annual`.
+A new tournament is `Basic`. `PATCH /tournaments/:id/config` as written in this
+file answers **404 "Cannot PATCH"** on a tournament that has not been through the
+wizard - collections 12 to 15 own that flow; collection 04 never touched it.
+
 ### Routes this section adds
 
 | Route | Screen |
 |---|---|
 | `/subscriptions` | Subscriptions - Platform Pro and Tournament Pro |
 | `/leaderboards/:leaderboardId/settings` | Edit Leaderboard - appearance, roles, teams, delete |
+| `/subscriptions` (Tournament Pro tab) | the paid, per-tournament plans |
 
 ## Partner bookings (Powerleague / CentreNet) - admin key
 
