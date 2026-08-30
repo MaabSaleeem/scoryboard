@@ -1128,6 +1128,74 @@
       ],
       "published_at": "2026-08-29T11:44:34.000Z",
       "status": "published"
+    },
+    "05.1": {
+      "intercom_id": "16749940",
+      "collection": "05",
+      "intercom_collection_id": "19733974",
+      "brief": "briefs/05.md",
+      "spec": "specs/05/05.1.spec.ts",
+      "commit_sha": "ef345f9cfc7e12033184d59e00d096a5b784b210",
+      "screenshots": [
+        "screenshots/05/05.1/01-friend-list.5837c495.png",
+        "screenshots/05/05.1/02-add-to-team.f7421fc6.png",
+        "screenshots/05/05.1/03-one-friend-per-team-free.9c4a2af3.png"
+      ],
+      "published_at": "2026-08-30T06:54:14.000Z",
+      "status": "draft"
+    },
+    "05.2": {
+      "intercom_id": "16749941",
+      "collection": "05",
+      "intercom_collection_id": "19733974",
+      "brief": "briefs/05.md",
+      "spec": "specs/05/05.2.spec.ts",
+      "commit_sha": "6cad3ef68ac5678de626c2c1030feb5a1206a069",
+      "screenshots": [
+        "screenshots/05/05.2/01-friend-list.80594ff1.png",
+        "screenshots/05/05.2/02-add-friend-dialog.500162db.png",
+        "screenshots/05/05.2/03-add-friend-filled.987031d8.png",
+        "screenshots/05/05.2/04-new-friend-row.241f1aaa.png",
+        "screenshots/05/05.2/05-row-menu-open.f44a3a24.png",
+        "screenshots/05/05.2/06-edit-friend-dialog.77cf67f7.png",
+        "screenshots/05/05.2/07-remove-confirm.e97bfe3d.png",
+        "screenshots/05/05.2/08-edit-disabled-linked.d2b517d1.png"
+      ],
+      "published_at": "2026-08-30T06:54:48.000Z",
+      "status": "draft"
+    },
+    "05.3": {
+      "intercom_id": "16749943",
+      "collection": "05",
+      "intercom_collection_id": "19733974",
+      "brief": "briefs/05.md",
+      "spec": "specs/05/05.3.spec.ts",
+      "commit_sha": "7107d3d531498f02bb8a850a986b63e9d8813bf2",
+      "screenshots": [
+        "screenshots/05/05.3/01-edit-friend.96ef81fa.png",
+        "screenshots/05/05.3/02-email-typed.4eae6395.png",
+        "screenshots/05/05.3/03-email-already-exists.452917ff.png",
+        "screenshots/05/05.3/04-linked-row.299c5ee7.png"
+      ],
+      "published_at": "2026-08-30T06:55:07.000Z",
+      "status": "draft"
+    },
+    "05.4": {
+      "intercom_id": "16749944",
+      "collection": "05",
+      "intercom_collection_id": "19733974",
+      "brief": "briefs/05.md",
+      "spec": "specs/05/05.4.spec.ts",
+      "commit_sha": "d55208196a567e2a38ead0cf8a2d94cab5b74b68",
+      "screenshots": [
+        "screenshots/05/05.4/01-invite-link-account.fa76cdf6.png",
+        "screenshots/05/05.4/02-invite-link-friend.fde6f7b3.png",
+        "screenshots/05/05.4/03-friend-list-invitation.5a810b9c.png",
+        "screenshots/05/05.4/04-invitation-accepted.6b1acf8e.png",
+        "screenshots/05/05.4/05-claimed-row.91a68c92.png"
+      ],
+      "published_at": "2026-08-30T06:55:29.000Z",
+      "status": "draft"
     }
   }
 }

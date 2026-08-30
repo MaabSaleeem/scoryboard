@@ -17,7 +17,7 @@ target.
 | 01 | Getting started & onboarding | 7 | 44 | fresh | drafts on Intercom | [briefs/01.md](../briefs/01.md) | 43 screenshots. **01.4-01.7 published by the reviewer 2026-08-28; 01.1-01.3 still drafts.** 01.3 retitled "Resetting your password" - the invited-account half was dropped. Seven accounts, all `kb-fresh-01@` or `kb-01-*@`; two now unused |
 | 02 | Finding your way around & your profile | 8 | 36 | player | published | [briefs/02.md](../briefs/02.md) | 36 screenshots. **All eight published by the reviewer 2026-08-29.** 02.1, 02.3 and 02.6 amended and republished afterwards. 03 merged in 2026-08-29; four articles dropped. Accounts: `kb-player-02@`, `kb-02-owner@`, `kb-02-pro@` |
 | 04 | Plans & membership | 6 | 30 | manager_free | published | [briefs/04.md](../briefs/04.md) | 30 screenshots. **All six published by the reviewer 2026-08-29.** 04.6 amended and republished afterwards - when a slot is spent. Collection 16 was retired into this one 2026-08-29 - its six articles became three, and 16.5 was dropped. 04.1 amended and republished - the Coming soon paragraph was dropped. Pro is a free self-serve toggle during beta - no payment step, and no confirmation in either direction. Flag for rewrite when beta ends. Three accounts, NOT one flipped: `kb-manager-free-04@`, `kb-04-pro@`, `kb-04-upgrade@` |
-| 05 | Friends | 4 | 20 | manager_free | not started | - | - |
+| 05 | Friends | 4 | 20 | manager_free | drafts on Intercom | [briefs/05.md](../briefs/05.md) | 20 screenshots, exactly as mapped. Nothing added, dropped or retitled. Found that a **refused Add To Team deletes the friend** (ONE_FRIEND_PER_TEAM), which also answers collection 04's open question 1. Accounts: `kb-manager-free-05@`, `kb-05-mate@`, `kb-05-player@`, `kb-05-invitee@`. `kb-05-claimer@` is burnt - see the session log |
 | 06 | Following | 1 | 6 | player | not started | - | - |
 | 07 | Teams | 11 | 63 | manager_pro | published | [briefs/07.md](../briefs/07.md) | 63 screenshots. **All eleven published by the reviewer 2026-08-29.** 07.7 and 07.9 retitled - the app has no ownership transfer and no Fan role. Accounts: `kb-manager-pro-07@`, `kb-fresh-07@`, six `kb-07-*@` |
 | 08 | Leaderboards & leagues | 8 | 40 | manager_pro | not started | - | - |
@@ -1616,3 +1616,177 @@ The brief's "Unreachable" table said a slot being spent could not be observed.
 That was wrong and is corrected: it was observed, and simply not made into a
 capture, because it would take the count off 2 and change what every later run of
 04.6 photographs.
+
+### 2026-08-30 - collection 05 complete. Four articles, all drafts.
+
+| Article | Intercom ID | Shots | Pinned commit |
+|---|---|---|---|
+| 05.1 What your friends list is and why teams depend on it | 16749940 | 3 | `ef345f9` |
+| 05.2 Adding, editing and removing friends | 16749941 | 8 | `6cad3ef` |
+| 05.3 Merging a friend with an existing player when emails clash | 16749943 | 4 | `7107d3d` |
+| 05.4 Invite codes and claiming your own record | 16749944 | 5 | `d552081` |
+
+20 screenshots, exactly the 20 the map estimated, all in Intercom collection
+`19733974`. Every image URL embedded in the stored bodies was re-fetched at the
+end: all 20 return 200 with an `image/*` content type. No article carries
+`<ol start=`. **Every one is a draft. Nothing is published and nothing has been
+reviewed.**
+
+Nothing was added, dropped or retitled. The four mapped titles are the four
+published titles.
+
+### The finding that shaped the collection
+
+**A refused Add To Team deletes the friend.** On Free a friend may belong to one
+of your teams only. Asking for a second answers `400 ONE_FRIEND_PER_TEAM`, raises
+a **Team Limit Reached** modal, **and soft-deletes the friend record**. The person
+stays on the team they were already on and disappears from the friends list.
+Reproduced from the API and through the app, several times.
+
+From the app it is worse than it sounds, because the friends list is where the
+**Add To Team** button lives: the reader selects it on a row, gets a modal, closes
+it, and the row they started from is gone. Recovering is not straightforward
+either - re-adding by name creates a NEW placeholder player while the original
+stays on the team, so the team member and the new friend are two different people.
+Only `POST /friends` with a `playerId` puts the real row back, and no screen sends
+that.
+
+05.1 documents it and its spec exercises it, spending a friend every run and
+reviving the record in a `finally`. **This is the clearest defect this collection
+found. Worth a ticket: a refusal should not delete data.**
+
+### Two corrections to what was already written down
+
+**`GET /friends` does NOT exclude a friend who is on one of your teams.** That
+note has been in `config/api.md` since 2026-08-29 and it is wrong. Checked three
+ways - adding an existing friend to a team by `playerId`, adding a new person by
+`name`, and re-reading the list immediately, after four seconds and after nineteen.
+The count never moved. What made the list shrink during collection 04's test was
+the refusal above, not the successful add. The old paragraph is struck through in
+`config/api.md` rather than deleted.
+
+**Collection 04's open question 1 is answered: `ONE_FRIEND_PER_TEAM` IS reachable
+through the app.** The path is the friends list - Add To Team on a friend already
+on one of your teams, choose the other team. `briefs/04.md` is updated. **04.3 was
+not re-captured**; it still states the limit in its table with no screenshot, which
+is accurate but under-illustrated. Whoever next touches collection 04 should give
+it a ninth capture. `specs/05/05.1.spec.ts` shows how to raise the modal and how to
+put the deleted friend back.
+
+### Deleting an account does not free its player - and it burnt an account
+
+**`DELETE /admins/user-delete/:id` leaves the player behind, anonymised.** Its name
+is blanked and its address is rewritten to `<userId>@scoryboard.com`, and an
+account created again at the **same email** is handed that same playerId back.
+Every friend record that ever pointed at it is still there, soft-deleted.
+
+`POST /friends/join/:shareCode` then revives one of those old records **instead of**
+taking over the record whose link was used. 05.4 came back with a nameless row on
+the friends list and its placeholder gone. `kb-05-claimer@yopmail.com` is burnt;
+the collection uses `kb-05-invitee@yopmail.com`, which has never been deleted.
+
+`scripts/seed-05.mjs` no longer deletes an account to correct its name - it stops
+and says to use a new address. **Every collection whose seed offers `--rebuild`
+should read this. A rebuilt account is not a new account.**
+
+### Five more behaviours now in config/api.md
+
+1. **A friend row linked to a real account is read-only.** Its **Edit** menu item
+   is `aria-disabled`, `GET /friends/:id/shareCode` answers `400 "Cannot generate
+   share code for a friend who is already registered."`, and its **Chat** button is
+   enabled - the opposite of a placeholder on all three.
+2. **POST and PUT treat a clashing email differently.** `POST /friends` with an
+   address that already belongs to a player links the two **silently**.
+   `PUT /friends/:id` refuses with `400 "A player with this email already exists."`,
+   which is what raises the **Email Already Exists** prompt. Its Yes re-sends with
+   `isReplaceAllow: true`, and **the name you typed is discarded** - the row takes
+   the account's own name.
+3. **The two invitation links do different things.** `GET /friends/invite-code` is
+   your account's - accepting adds a new row. `GET /friends/:id/shareCode` is one
+   record's - accepting hands that record over. Both produce
+   `/friendList?shareCode=<code>&playerId=<yours>` and both open the same dialog, so
+   the screen never says which is which. Both codes are stable per account and per
+   record.
+4. **Friendship is one-way**, and **a signed-out visitor loses the code**: the link
+   bounces to `/signin` with no query string, so signing in from there does not
+   resume the invitation.
+5. **A malformed email stops the Add Friend form with no message.** No request, no
+   error text - the button simply does nothing. The empty-name case does show
+   "This field is required." Duplicate friend names are accepted.
+
+### Fixtures
+
+Four accounts, two teams and five friends, all built by `node scripts/seed-05.mjs`
+(idempotent - verified: after the full capture suite it makes zero writes).
+
+| Row | Kind | Used by |
+|---|---|---|
+| Ade Nwosu | placeholder, no email | 05.3's edit and its clash |
+| Bo Lindqvist | placeholder with an email | shows an email alone is just text |
+| Cara KB (`kb-05-mate@`) | linked to a real account | 05.2/08, 05.3/04 |
+| Sam Ruiz | placeholder, on `KB 05 FC` | 05.1/03 - and the row that refusal deletes |
+| Nia Halvorsen | placeholder | 05.4 - `kb-05-invitee@` takes it over |
+
+The seed also **deletes the two teams every account is born with**. Their names
+carry the date the account was made - `Marc K FC 3008` - and 05.1 photographs the
+Select Team dropdown.
+
+Two fixtures are spent per run and put back by the specs themselves: Sam Ruiz by
+`reviveFriend()` (same record id, same place in the list), and Nia Halvorsen by an
+`afterAll` that deletes the claimed row and creates the placeholder again. She is
+the **last** entry in the list for that reason - a new record lands at the end, and
+anywhere else in the array one run of 05.4 would reorder every other capture.
+
+### Capture defects found and fixed in the specs
+
+- **05.4/04 came back as two blue dots in a large white square.** The accepted-
+  invitation dialog carries a 192px **Lottie** animation, which draws from
+  JavaScript - neither `animations: 'disabled'` nor `reducedMotion: 'reduce'`
+  settles it, and it has no end frame to wait on. New helper `hideLottie()` removes
+  the box; the dialog collapses to its heading, its message and Close.
+- **05.3/04 and 05.4/05 caught slivers of the rows above and below.** Both are
+  single friend rows and neither sits over a dimmed page, so both dropped the
+  `clipPad` that the modal captures need.
+- **Three assertions matched text that the app renders inside one element.** The
+  Team Limit Reached paragraphs, the Send Invitation explanation and the invitation
+  dialog's two sentences are each one node split by a line break.
+- **The Add Friend dialog's heading and its submit button carry the same words**,
+  so the heading is matched by role.
+- **Radix marks the page `aria-hidden` while a row menu is open**, so 05.2's
+  assertion that a linked row's Chat is enabled had to move above the menu.
+- **The invitation dialog uses a straight apostrophe and the removal warning uses a
+  curly one.** Both are matched as the app writes them.
+
+### Where to look hard in the drafts
+
+- **05.3's step 5.** The spec never selects **Yes** - merging cannot be undone,
+  because the merged row's Edit is greyed out afterwards. So the screenshot is a
+  **different** row, one the seed had already linked. The article says so. The merge
+  itself was performed twice during exploration, over the API and through the app,
+  so what Yes does is observed rather than reasoned - but no screenshot in the
+  article shows the row from step 1 after the merge.
+- **05.4/01 and 05.4/02 look almost identical.** They are the same panel, because
+  the app opens the same panel from both places; only the dialog heading differs. If
+  that reads as a duplicate to the reviewer, the fix is a product one.
+- **05.1's claim that adding somebody to a team from the Teams screen also adds them
+  to your friends list.** Verified on the wire - `POST /team-players` with a `name`
+  creates a friend record as a side effect - but not walked through the Teams UI in
+  this run.
+- **05.4's "sign in first" instruction.** The signed-out redirect to `/signin` was
+  watched once during exploration. What was not tried is whether signing in from
+  that screen ever resumes the invitation; the article says it does not.
+- **What "No, thanks" does.** Never selected. The article names the button and
+  claims nothing about it.
+
+### Flake
+
+**One, in 05.4's first test.** It failed before any capture and the next run cleared
+`test-results/`, so no artefact survives and it was not diagnosed. Three further
+runs of that file passed and the full six-test suite passed twice, before and after.
+If it returns, the likely candidate is `invitePanel()`, which waits on a link field
+whose value arrives from `GET /friends/invite-code`.
+
+Nothing else failed. Every spec restores its own fixture, and
+`node scripts/seed-05.mjs` reported zero writes after the full suite.
+
+Next: `/kb-brief 06`.

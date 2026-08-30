@@ -2000,3 +2000,273 @@ export function profileCounter(page: Page, label: string) {
   return page.getByText(label, { exact: true })
     .locator('xpath=ancestor-or-self::*[contains(@class,"cursor-pointer")][1]');
 }
+
+// --- collection 05: Friends -------------------------------------------------
+//
+// Everything below is read by specs/05/*.spec.ts. The accounts, the friends
+// list and the app's wording live in lib/fixtures-05.mjs, which
+// scripts/seed-05.mjs also reads - so a spec cannot drift from the seed.
+//
+// Two rules shape this block.
+//
+// **A refused Add To Team deletes the friend.** On Free a friend may be on one
+// of your teams only, and the second attempt answers 400 ONE_FRIEND_PER_TEAM
+// AND soft-deletes the friend record. 05.1 photographs that refusal, so its
+// spec spends a friend every run and puts it back with reviveFriend() in a
+// finally. Nothing else in the collection may touch KB05.GATE_FRIEND.
+//
+// **Merging and claiming cannot be undone in place.** Once a friend row is
+// linked to a real account its Edit control is greyed out and it has no share
+// code. So 05.3 photographs the confirm and stops, and takes its "after" from
+// the row the seed already linked. 05.4 does perform its claim - the whole
+// article is what the other person sees - and then rebuilds the placeholder.
+
+// @ts-ignore - plain JS module, no types
+import * as KB05 from './fixtures-05.mjs';
+
+export { KB05 };
+
+/**
+ * Collection 05's accounts, their tokens, the two teams and the friends list.
+ *
+ * Never hardcode an id: `scripts/seed-05.mjs` can legitimately rebuild an
+ * account, a team or a friend record and every id changes. Look them up here.
+ */
+export async function fixtures05() {
+  const read = async (key: 'free' | 'mate' | 'player' | 'claimer') => {
+    const email: string = KB05.ACCOUNTS[key];
+    const session = await mintSession(email);
+    const me = (await asUser(session.idToken, '/users/me')).body?.data;
+    if (!me) throw new Error(`${email} has no Scoryboard user. Run: node scripts/seed-05.mjs`);
+    return { email, token: session.idToken as string, ...me };
+  };
+
+  const free = await read('free');
+  const mate = await read('mate');
+  const player = await read('player');
+  const claimer = await read('claimer');
+
+  if (free.membership !== 'Free') {
+    throw new Error(
+      `${free.email} is ${free.membership}, not Free. 05.1's Free gate needs it Free. ` +
+      `Run: node scripts/seed-05.mjs`,
+    );
+  }
+
+  const owned = (await asUser(free.token, '/teams')).body?.data ?? [];
+  const teamId = (name: string) => {
+    const t = owned.find((x: any) => x.name === name);
+    if (!t) throw new Error(`Team "${name}" is missing. Run: node scripts/seed-05.mjs`);
+    return String(t.teamId ?? t.id);
+  };
+  const teams = { main: teamId(KB05.TEAMS.main), other: teamId(KB05.TEAMS.other) };
+
+  // The whole list, in order, and its order is asserted: every article here
+  // photographs the list, and a row rebuilt out of turn lands at the end.
+  const rows = (await asUser(free.token, '/friends')).body?.data ?? [];
+  const rowName = (f: any) => `${f.name ?? ''} ${f.lastName ?? ''}`.trim();
+  const order = rows.map(rowName);
+  const expected = KB05.FRIENDS.map((f: any) => f.name);
+  if (order.join('|') !== expected.join('|')) {
+    throw new Error(
+      `The friends list reads [${order.join(', ')}] and the specs expect ` +
+      `[${expected.join(', ')}]. Run: node scripts/seed-05.mjs`,
+    );
+  }
+
+  const friends = new Map<string, any>(rows.map((f: any) => [rowName(f), f]));
+  const friend = (name: string) => {
+    const f = friends.get(name);
+    if (!f) throw new Error(`Friend "${name}" is missing. Run: node scripts/seed-05.mjs`);
+    return f;
+  };
+
+  return { free, mate, player, claimer, teams, friends, friend };
+}
+
+/**
+ * Put back a friend record that a refused Add To Team deleted.
+ *
+ * The deletion is soft: re-posting the same `friendPlayerId` revives the SAME
+ * record id, so the row comes back where it was rather than at the end of the
+ * list. Creating it by name instead would make a NEW placeholder player, leave
+ * the old one on the team, and move the row - which is why this takes an id.
+ */
+export async function reviveFriend(token: string, friendPlayerId: string) {
+  const r = await asUser(token, '/friends', { method: 'POST', body: { playerId: friendPlayerId } });
+  if (!r.ok) {
+    throw new Error(`Could not revive friend ${friendPlayerId}: ${JSON.stringify(r.body)}`);
+  }
+  return String(r.body.data.id);
+}
+
+/** Delete a friend record over the API. Used by the specs that create one. */
+export async function deleteFriend(token: string, friendId: string) {
+  const r = await asUser(token, `/friends/${friendId}`, { method: 'DELETE' });
+  if (!r.ok) throw new Error(`Could not delete friend ${friendId}: ${JSON.stringify(r.body)}`);
+}
+
+/** Create a placeholder friend over the API, and return its record id. */
+export async function createFriend(token: string, name: string) {
+  const r = await asUser(token, '/friends', { method: 'POST', body: { name } });
+  if (!r.ok) throw new Error(`Could not create friend "${name}": ${JSON.stringify(r.body)}`);
+  return String(r.body.data.id);
+}
+
+/**
+ * Wait for the friends list to have finished loading.
+ *
+ * The page paints its heading and its Add Friend button before `GET /friends`
+ * lands, and it paints the rows before `GET /ratings` fills each one in, so
+ * neither the heading nor a row on its own is a safe gate. Wait for the LAST
+ * row the seed builds: the list arrives in one response, so the last name being
+ * on screen means all of them are.
+ */
+export async function friendListReady(
+  page: Page,
+  last: string = KB05.FRIENDS[KB05.FRIENDS.length - 1].name,
+) {
+  await expect(onScreen(page.getByText(KB05.LIST_HEADING, { exact: true })).first()).toBeVisible();
+  await expect(friendRow(page, last)).toBeVisible();
+}
+
+/**
+ * One row of the friends list.
+ *
+ * Anchored on the row's own Add To Team button rather than on a class: every
+ * row has one, and it is the only control every row carries. The whole row is
+ * itself a button, so an ancestor search that stopped at the first `div` would
+ * find the name's own wrapper instead.
+ */
+export function friendRow(page: Page, name: string) {
+  return onScreen(page.getByText(name, { exact: true })).first()
+    .locator(`xpath=ancestor::div[.//button[normalize-space()="${KB05.ADD_TO_TEAM.trigger}"]][1]`);
+}
+
+/**
+ * The three-dot control at the end of a friend row.
+ *
+ * It carries no text and no accessible name, so it is found as the row's only
+ * button with an empty label. `.last()` because the narrow-layout copies of
+ * Chat and Add To Team are icon-only too and sit earlier in the row - they have
+ * a zero-sized box at 1440 wide, but they are still in the DOM.
+ */
+export async function friendMenuButton(page: Page, name: string) {
+  const row = friendRow(page, name);
+  const empty = [];
+  for (const b of await row.getByRole('button').all()) {
+    if (!((await b.textContent())?.trim())) empty.push(b);
+  }
+  if (!empty.length) throw new Error(`No menu control on the row for "${name}"`);
+  return empty[empty.length - 1];
+}
+
+/** Open a friend row's menu and wait for both of its items. */
+export async function openFriendMenu(page: Page, name: string) {
+  await (await friendMenuButton(page, name)).click();
+  const menu = page.getByRole('menu');
+  await expect(menu).toBeVisible();
+  await expect(menu.getByRole('menuitem', { name: KB05.ROW_MENU.edit })).toBeVisible();
+  await expect(menu.getByRole('menuitem', { name: KB05.ROW_MENU.remove })).toBeVisible();
+  return menu;
+}
+
+/** Close whatever menu is open without choosing anything. */
+export async function closeFriendMenu(page: Page) {
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('menu')).toHaveCount(0);
+}
+
+/**
+ * The dialog on top.
+ *
+ * Radix leaves closed dialogs mounted, and this collection stacks them: the
+ * merge prompt opens over the Edit dialog and the Free gate opens over Add
+ * Player To Team. `.last()` is the one on top.
+ */
+export function topDialog(page: Page) {
+  return page.locator('[role="dialog"]').locator('visible=true').last();
+}
+
+/** Close every dialog on screen, confirming nothing. */
+export async function closeDialogs(page: Page) {
+  for (let i = 0; i < 6; i++) {
+    const open = page.locator('[role="dialog"]').locator('visible=true');
+    const before = await open.count();
+    if (!before) return;
+    await page.keyboard.press('Escape');
+    await expect
+      .poll(async () => page.locator('[role="dialog"]').locator('visible=true').count(),
+        { timeout: 5_000 })
+      .toBeLessThan(before);
+  }
+  await expect(page.locator('[role="dialog"]').locator('visible=true')).toHaveCount(0);
+}
+
+/**
+ * Open the Add Friend dialog and wait for the whole of it.
+ *
+ * Both fields and the invitation-link control have to be present: the dialog
+ * animates in and a capture gated on the heading alone catches it mid-slide.
+ */
+export async function openAddFriend(page: Page) {
+  await onScreen(page.getByRole('button', { name: KB05.ADD_BUTTON, exact: true })).first().click();
+  const d = topDialog(page);
+  // By role, not by text. The dialog's heading and its submit button carry the
+  // same words - "Add Friend" - so a text match inside the dialog is ambiguous
+  // and fails strictly.
+  await expect(d.getByRole('heading', { name: KB05.ADD_DIALOG.title })).toBeVisible();
+  await expect(d.getByText(KB05.ADD_DIALOG.nameLabel, { exact: true })).toBeVisible();
+  await expect(d.getByText(KB05.ADD_DIALOG.generate, { exact: true })).toBeVisible();
+  return d;
+}
+
+/**
+ * The "Send Invitation" panel, which replaces the body of whichever dialog it
+ * was opened from.
+ *
+ * Gated on the link field carrying a share code rather than on the heading: the
+ * panel renders before `GET /friends/invite-code` or
+ * `GET /friends/:id/shareCode` answers, and the link is the article's subject.
+ */
+export async function invitePanel(page: Page) {
+  const d = topDialog(page);
+  await d.getByText(KB05.EDIT_DIALOG.generate, { exact: true }).click();
+  await expect(d.getByText(KB05.INVITE_PANEL.title, { exact: true })).toBeVisible();
+  const field = d.locator('input[readonly]').first();
+  await expect(field).toHaveValue(/shareCode=[0-9a-f]{6,}/);
+  return { dialog: d, field };
+}
+
+/** The invitation link a friend row's own Generate invitation link produces. */
+export async function friendShareLink(token: string, friendId: string, playerId: string) {
+  const r = await asUser(token, `/friends/${friendId}/shareCode`);
+  if (!r.ok) throw new Error(`No share code for friend ${friendId}: ${JSON.stringify(r.body)}`);
+  return `${String(APP).replace(/\/$/, '')}/friendList?shareCode=${r.body.data.shareCode}&playerId=${playerId}`;
+}
+
+/**
+ * Hide the Lottie animation inside a dialog.
+ *
+ * The accepted-invitation dialog in 05.4 puts a 192px Lottie box above its
+ * message. Lottie draws to an inline SVG from JavaScript, so neither
+ * `animations: 'disabled'` nor `reducedMotion: 'reduce'` settles it - the
+ * capture catches whatever frame the player happened to be on, which is two
+ * blue dots in a large white square and reads as a broken image.
+ * docs/style-guide.md forbids capturing a half-rendered thing, and there is no
+ * frame to wait for: the animation has no settled end state a spec can gate on.
+ *
+ * So the box is removed before the capture and the dialog collapses to its
+ * heading, its message and its button. Matched on the SVG's own Lottie clip-path
+ * ids rather than on a Tailwind size class, which is what the markup would most
+ * likely change.
+ */
+export async function hideLottie(page: Page) {
+  await page.evaluate(() => {
+    for (const svg of Array.from(document.querySelectorAll('[role="dialog"] svg'))) {
+      if (!svg.innerHTML.includes('__lottie_element')) continue;
+      const box = svg.closest('div');
+      if (box) (box as HTMLElement).style.display = 'none';
+    }
+  });
+}

@@ -211,19 +211,92 @@ on screen. Worth having written down because the first two are the same message:
 | GET | `/friends/:id/shareCode` | Share code for one friend record | - |
 | POST | `/friends/join/:shareCode` | Claim your own friend record from a code | - |
 
-**(observed in app, 2026-08-29)** **`GET /friends` excludes a friend who has
-joined one of your teams**, and the Free limit of 14 is measured against that
-same filtered list. So adding a friend to a team frees a slot: an account with
-14 in the list plus one on a team accepts a fifteenth friend record. Isolated on
-staging by adding a friend to a team, watching `GET /friends` drop from 14 to 13,
-and then adding another successfully.
+~~**(observed in app, 2026-08-29)** `GET /friends` excludes a friend who has
+joined one of your teams, and the Free limit of 14 is measured against that same
+filtered list.~~ **CORRECTED 2026-08-30 by collection 05 - see the next
+paragraph.** `GET /friends` does not filter by team membership at all: a friend
+added to one of your teams stays in the list, and so does a person added to a
+team by name, whose friend record the team add creates. Isolated three ways -
+adding an existing friend to a team by `playerId`, adding a new person by `name`,
+and re-reading the list immediately, after four seconds and after nineteen. The
+count never moved. What made the list drop by one in 2026-08-29's test is below,
+and it was not the successful add.
+
+**(observed in app, 2026-08-30)** **A refused `POST /team-players` on the Free
+plan DELETES the friend.** On Free a friend may belong to one of your teams only.
+Asking for a second answers
+`400 {"errorCode":"ONE_FRIEND_PER_TEAM","reason":"On free plan, each friend can
+only be added to one team."}` - and on the way out the server **soft-deletes the
+friend record**. The person disappears from `GET /friends` while their team-player
+row stays live on the team they were already on.
+
+- Reproduced from the API and through the app. From the app it is worse, because
+  the friends list is where the **Add To Team** button lives: the reader selects
+  it on a row, gets a **Team Limit Reached** modal, closes it, and the row they
+  started from is gone.
+- The deletion is **soft**. `POST /friends {"playerId": <friendPlayerId>}`
+  revives the SAME record id, and a revived record keeps its place in the list.
+  Nothing in the app can do this - a reader can only type the name again, which
+  makes a NEW placeholder player while the old one stays on the team.
+- The **Add Player To Team** dialog hides any team the player is already on, so
+  the only way to reach the refusal from the friends list is a friend who is on
+  one team and an account that owns two. That is the fixture collection 05 seeds.
+- This also settles collection 04's open question 1, which recorded
+  `ONE_FRIEND_PER_TEAM` as apparently unreachable through the UI. It is
+  reachable, from the friends list. `briefs/04.md` says 04.3 should get a ninth
+  capture if a path is found; this is the path.
+
+**Worth a ticket.** A refusal should not delete data.
+
+**(observed in app, 2026-08-30)** **A friend row linked to a real account is
+read-only.** Where a friend record's `isRegistered` is true:
+
+- the row menu's **Edit** item is `aria-disabled="true"`; **Remove** is not;
+- `GET /friends/:id/shareCode` answers
+  `400 "Cannot generate share code for a friend who is already registered."`;
+- the row's **Chat** button is enabled, and goes to
+  `/chat?conversationId=direct_<uid>_<uid>`. On a placeholder it is `disabled`.
+
+**(observed in app, 2026-08-30)** **`POST` and `PUT` treat a clashing email
+differently.** `POST /friends` with an address that already belongs to a player
+links the new record to that player silently - `friendPlayerId` comes back as
+their playerId and the row carries their real name. `PUT /friends/:id` with the
+same address answers `400 "A player with this email already exists."`, and the
+app turns that into an **Email Already Exists** prompt whose Yes re-sends the
+call with `isReplaceAllow: true`. The merge replaces the record's player, and
+**the name you typed is discarded** - the row takes the account's own name.
+
+**(observed in app, 2026-08-30)** **The two invitation links, and what they do.**
+
+| Where | Code from | Link | Effect when accepted |
+|---|---|---|---|
+| Add Friend -> Generate invitation link | `GET /friends/invite-code` | `<app>/friendList?shareCode=<code>&playerId=<yours>` | adds the opener to your list as a NEW row |
+| A friend row -> Edit -> Generate invitation link | `GET /friends/:id/shareCode` | the same shape | the opener TAKES OVER that record - it keeps its id and gains their name |
+
+Both open the same **Friend List Invitation** dialog and the screen does not say
+which is which. Both codes are stable: the same account and the same record
+answer with the same code on every call. Accepting posts
+`POST /friends/join/:shareCode`.
+
+**Friendship is one-way.** The person who accepts is added to the inviter's list.
+Nothing is added to theirs - checked on both accounts after a claim.
+
+**A signed-out visitor loses the code.** Opening either link while signed out
+lands on `/signin` with no query string, so signing in from there does not resume
+the invitation. Sign in first, then open the link.
+
+**(observed in app, 2026-08-30)** **A malformed email stops the Add Friend form
+with no message.** Selecting **Add Friend** with `not-an-email` or `eve@` in the
+email field sends no request and renders no error. The empty-name case does
+render one - "This field is required." Duplicate names are accepted: two friends
+may carry the same name and the list shows two identical rows.
 
 A friend row carries two ids and they are not interchangeable:
 
 | Field | What it is | Used by |
 |---|---|---|
 | `id` | the friend record | `PUT /friends/:id`, `DELETE /friends/:id` |
-| `friendPlayerId` | the player behind it | `POST /team-players {"playerId": ...}` |
+| `friendPlayerId` | the player behind it | `POST /team-players {"playerId": ...}`, `POST /friends {"playerId": ...}` to revive a deleted row |
 
 
 ## Teams
