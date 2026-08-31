@@ -2985,6 +2985,49 @@ export async function boardReady08(page: Page, teamsJoined: number, marker: Loca
   await expect(onScreen(page.getByText(`${teamsJoined} Teams joined`)).first()).toBeVisible();
   await expect(marker).toBeVisible();
   await expect(page.locator('.animate-pulse')).toHaveCount(0);
+  await ownTeamsResolved(page);
+}
+
+/**
+ * Wait until the **External** badge has stopped being wrong.
+ *
+ * External marks a team that is not one of your OWN, and it is computed against
+ * the account's team list - which the app fetches separately from the
+ * leaderboard. Open a leaderboard screen by client-side navigation and every
+ * row is badged External for a moment, then the badges vanish when that list
+ * lands.
+ *
+ * Collection 08's first capture of the settings screen caught exactly that: all
+ * three of the owner's own teams came out marked External, which would have told
+ * the reader something untrue about a screen they own. Every owner-view gate here
+ * therefore waits for the count to reach zero.
+ *
+ * NOT for a non-owner's view. An Administrator looking at somebody else's teams
+ * sees the badge permanently and correctly, so this would never settle.
+ */
+export async function ownTeamsResolved(page: Page) {
+  await expect(page.getByText('External', { exact: true })).toHaveCount(0);
+}
+
+/**
+ * Open Manage Teams once, so the app knows which teams are the reader's own.
+ *
+ * This is the precondition `ownTeamsResolved()` needs, and finding it took a
+ * whole capture cycle. The badge is computed against the `teams` slice of the
+ * app's persisted store, and **only `/teams` fills that slice**. `/leaderboards`
+ * fires `GET /teams?all=true` too, but the answer never reaches the slice - so a
+ * session that signs in and goes straight to a leaderboard has an empty slice and
+ * marks every team the reader owns as External, and keeps doing it however long
+ * you wait. Ten seconds on the list changed nothing; one visit to `/teams` fixed
+ * it, and it stayed fixed across a full page load, because the slice is persisted.
+ *
+ * Call it after signing in and before opening any leaderboard screen that lists
+ * teams. A reader who has used the app at all has been to this page.
+ */
+export async function loadOwnTeams08(page: Page, aTeamName: string) {
+  await page.goto('/teams');
+  await expect(onScreen(page.getByText(aTeamName, { exact: true })).first()).toBeVisible();
+  await expect(page.locator('.animate-pulse')).toHaveCount(0);
 }
 
 /** The board's header card - crest, name, teams joined, the Teams and Views tiles. */
@@ -3006,14 +3049,20 @@ export function boardViewsCount(page: Page) {
     .locator('xpath=preceding-sibling::*[1]');
 }
 
-/** Wait for Edit Leaderboard to have loaded, and return the page heading. */
+/**
+ * Wait for Edit Leaderboard to have loaded, and return the page heading.
+ *
+ * Three gates, and the third one exists because of a bad capture. The Teams
+ * section arrives last - it waits on `/leaderboards/:id/teams`, which the
+ * appearance and name fields do not - and its rows are badged **External** until
+ * the account's own team list lands on top of them. See ownTeamsResolved().
+ */
 export async function settings08Ready(page: Page, name: string) {
   const h = onScreen(page.getByRole('heading', { name: `Edit Leaderboard - ${name}` })).first();
   await expect(h).toBeVisible();
-  // The Teams section is the last thing to arrive: it waits on
-  // /leaderboards/:id/teams, which the appearance and name fields do not.
   await expect(onScreen(page.getByText('Teams joined', { exact: true })).first()).toBeVisible();
   await expect(page.locator('.animate-pulse')).toHaveCount(0);
+  await ownTeamsResolved(page);
   return h;
 }
 

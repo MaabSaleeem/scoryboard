@@ -23,7 +23,8 @@ import {
   sidebarIdentity, moving08,
   fixtures08, table08Ready, restoreLeagueTeams,
   KB08, KB08_LEAGUE, KB08_TEAMS,
-  settings08Ready, board08Section, dialog08, leagueTeamRow, leagueTeamRemove,
+  leaderboardListReady, loadOwnTeams08, settings08Ready, board08Section, dialog08,
+  leagueTeamRow, leagueTeamRemove,
 } from '../../lib/kb';
 
 test.describe('08.3 Adding and removing teams', () => {
@@ -38,7 +39,14 @@ test.describe('08.3 Adding and removing teams', () => {
       [KB08_TEAMS.city, KB08_TEAMS.rovers, KB08_TEAMS.united].sort(),
     );
 
-    await signInAs(page, KB08.pro, `/leaderboards/${fx.leaderboard.id}/settings`);
+    await signInAs(page, KB08.pro, '/leaderboards');
+    await leaderboardListReady(page, 1, [KB08_LEAGUE]);
+    // Manage Teams first, and not for tidiness: only /teams fills the store
+    // slice the app checks a team's ownership against, and without it every team
+    // the reader owns is badged External on the screens below. See
+    // loadOwnTeams08().
+    await loadOwnTeams08(page, KB08_TEAMS.united);
+    await page.goto(`/leaderboards/${fx.leaderboard.id}/settings`);
     await quiet08(page);
     await settings08Ready(page, KB08_LEAGUE);
 

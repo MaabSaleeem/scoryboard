@@ -27,7 +27,7 @@ import {
   shot, quiet08, signInAs, onScreen,
   sidebarIdentity, moving08,
   fixtures08, KB08, KB08_LEAGUE, KB08_COMMENTS,
-  leaderboardListReady, leaderboardCard, cardShareButton,
+  loadOwnTeams08, leaderboardListReady, leaderboardCard, cardShareButton,
   dialog08, close08Dialog, shareLinkField, shareQrCode,
   boardReady08, boardViewsCount, commentBox, commentsPanel, commentTimes,
   settings08Ready, board08Section, KB08_TEAMS,
@@ -38,6 +38,12 @@ test.describe('08.5 Sharing, commenting on and deleting a leaderboard', () => {
     const fx = await fixtures08();
 
     await signInAs(page, KB08.pro, '/leaderboards');
+    // Manage Teams first, and not for tidiness: only /teams fills the store
+    // slice the app checks a team's ownership against, and without it every team
+    // the reader owns is badged External on the screens below. See
+    // loadOwnTeams08().
+    await loadOwnTeams08(page, KB08_TEAMS.united);
+    await page.goto('/leaderboards');
     await quiet08(page);
     await leaderboardListReady(page, 1, [KB08_LEAGUE]);
 

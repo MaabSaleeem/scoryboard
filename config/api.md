@@ -578,11 +578,31 @@ everybody else reads all three false, and then:
 So the league table, the player grid and the fixture list are readable by anyone
 signed in; the team list and the player list are not.
 
-In the UI the same split shows as: no **Create Match**, no **Payment** tab, no
-**Views** tile, and every team row badged **External**. `/leaderboards/:id/settings`
-does not render at all for a non-owner - it fails to its error boundary, **"This
-page couldn't load / Reload to try again, or go back"**, with no API call and no
-Access-denied screen.
+In the UI the same split shows as: no **Create Match**, no **Payment** tab and no
+**Views** tile. `/leaderboards/:id/settings` does not render at all for a
+non-owner - it fails to its error boundary, **"This page couldn't load / Reload to
+try again, or go back"**, with no API call and no Access-denied screen.
+
+The **External** badge on a team row is a separate thing and is easy to misread.
+It does not mark a role: it marks a team that is not one of **your own**. The
+Owner of a leaderboard holding their own teams sees no badge at all; an
+Administrator looking at somebody else's teams sees one on every row, on both the
+settings screen and the Team Stats table.
+
+**It also appears on the owner's OWN teams, and stays there, until the account has
+opened Manage Teams.** The badge is computed against the `teams` slice of the app's
+persisted Redux store, and only `/teams` fills that slice. `/leaderboards` fires
+`GET /teams?all=true` as well, but the result never reaches the slice - so an
+account that has visited the Leaderboards list and gone straight to a leaderboard
+sees every team it owns marked External, indefinitely. Open `/teams` once and the
+badges go, and stay gone across a full page load, because the slice is persisted to
+`localStorage`.
+
+Collection 08's first capture of the settings screen caught that: all three of the
+owner's own teams came out marked External. Its specs now open Manage Teams before
+they photograph an owner's view of a leaderboard, and gate on the badge count
+being zero. A reader who has used the app normally will have loaded that page; a
+reader who signs in and goes straight to a leaderboard will not.
 
 An **Administrator gets the whole settings screen**, Delete Leaderboard included.
 The only differences from the Owner's view are that their own admin row carries no

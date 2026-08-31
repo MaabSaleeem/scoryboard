@@ -27,7 +27,7 @@ import {
   sidebarIdentity, moving08,
   fixtures08, table08Ready,
   KB08, KB08_LEAGUE, KB08_TEAMS, KB08_TOP_SCORER, KB08_VENUE,
-  boardReady08, boardHeader, boardViewsCount, boardTab, matchesTab, teamFilter,
+  loadOwnTeams08, boardReady08, boardHeader, boardViewsCount, boardTab, matchesTab, teamFilter,
 } from '../../lib/kb';
 
 test.describe('08.4 Leaderboard statistics, players and matches', () => {
@@ -35,7 +35,13 @@ test.describe('08.4 Leaderboard statistics, players and matches', () => {
     const fx = await fixtures08();
     await table08Ready(fx);
 
-    await signInAs(page, KB08.pro, `/leaderboards/${fx.leaderboard.id}`);
+    await signInAs(page, KB08.pro, '/leaderboards');
+    // Manage Teams first, and not for tidiness: only /teams fills the store
+    // slice the app checks a team's ownership against, and without it every team
+    // the reader owns is badged External on the screens below. See
+    // loadOwnTeams08().
+    await loadOwnTeams08(page, KB08_TEAMS.united);
+    await page.goto(`/leaderboards/${fx.leaderboard.id}`);
     await quiet08(page);
     await boardReady08(page, 3, onScreen(page.getByText(KB08_TEAMS.united, { exact: true })).first());
 

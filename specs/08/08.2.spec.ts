@@ -22,15 +22,22 @@ import { test, expect } from '@playwright/test';
 import {
   shot, quiet08, signInAs, onScreen, unstickHeader,
   sidebarIdentity, moving08,
-  fixtures08, KB08, KB08_LEAGUE,
-  settings08Ready, board08Section, dialog08, close08Dialog,
+  fixtures08, KB08, KB08_LEAGUE, KB08_TEAMS,
+  leaderboardListReady, loadOwnTeams08, settings08Ready, board08Section, dialog08, close08Dialog,
 } from '../../lib/kb';
 
 test.describe('08.2 Your leaderboard settings screen', () => {
   test('the four sections the owner edits, and what a visitor gets instead', async ({ page }) => {
     const fx = await fixtures08();
 
-    await signInAs(page, KB08.pro, `/leaderboards/${fx.leaderboard.id}/settings`);
+    await signInAs(page, KB08.pro, '/leaderboards');
+    await leaderboardListReady(page, 1, [KB08_LEAGUE]);
+    // Manage Teams first, and not for tidiness: only /teams fills the store
+    // slice the app checks a team's ownership against, and without it every team
+    // the reader owns is badged External on the screens below. See
+    // loadOwnTeams08().
+    await loadOwnTeams08(page, KB08_TEAMS.united);
+    await page.goto(`/leaderboards/${fx.leaderboard.id}/settings`);
     await quiet08(page);
     await settings08Ready(page, KB08_LEAGUE);
 
