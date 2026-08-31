@@ -2935,7 +2935,7 @@ export async function leaderboardListReady(page: Page, count: number, names: str
   for (const name of names) {
     await expect(onScreen(page.getByText(name, { exact: true })).first()).toBeVisible();
   }
-  await expect(page.locator('.animate-pulse')).toHaveCount(0);
+  await settled08(page);
 }
 
 /** One leaderboard's card in the list, found from its name. */
@@ -2984,7 +2984,7 @@ export function boardTab(page: Page, label: string) {
 export async function boardReady08(page: Page, teamsJoined: number, marker: Locator) {
   await expect(onScreen(page.getByText(`${teamsJoined} Teams joined`)).first()).toBeVisible();
   await expect(marker).toBeVisible();
-  await expect(page.locator('.animate-pulse')).toHaveCount(0);
+  await settled08(page);
   await ownTeamsResolved(page);
 }
 
@@ -3061,7 +3061,7 @@ export async function settings08Ready(page: Page, name: string) {
   const h = onScreen(page.getByRole('heading', { name: `Edit Leaderboard - ${name}` })).first();
   await expect(h).toBeVisible();
   await expect(onScreen(page.getByText('Teams joined', { exact: true })).first()).toBeVisible();
-  await expect(page.locator('.animate-pulse')).toHaveCount(0);
+  await settled08(page);
   await ownTeamsResolved(page);
   return h;
 }
@@ -3167,13 +3167,28 @@ export function commentBox(page: Page) {
   return onScreen(page.getByPlaceholder('Write your comment...')).first();
 }
 
-/** The Comments panel that sits below every board tab. */
+/**
+ * The Comments panel that sits below every board tab.
+ *
+ * The spinner check is not belt and braces. The panel counts its comments and
+ * then keeps loading - it fetches the reply count behind "View n more replies"
+ * separately - and 08.5's first capture came back with a spinner sitting under
+ * the thread. docs/style-guide.md: a spinner is one of the things that must not
+ * appear.
+ */
 export async function commentsPanel(page: Page, total: number) {
   const h = onScreen(page.getByText(`Comments (${total})`, { exact: true })).first();
   await expect(h).toBeVisible();
+  await settled08(page);
   const panel = h.locator('xpath=ancestor::div[contains(@class,"rounded")][last()]');
   await expect(panel).toBeVisible();
   return panel;
+}
+
+/** No skeleton and no spinner anywhere on the page. */
+export async function settled08(page: Page) {
+  await expect(page.locator('.animate-pulse')).toHaveCount(0);
+  await expect(page.locator('.animate-spin')).toHaveCount(0);
 }
 
 /**

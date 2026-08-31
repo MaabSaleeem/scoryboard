@@ -28,7 +28,7 @@ import {
   sidebarIdentity, moving08,
   fixtures08, KB08, KB08_LEAGUE, KB08_COMMENTS,
   loadOwnTeams08, leaderboardListReady, leaderboardCard, cardShareButton,
-  dialog08, close08Dialog, shareLinkField, shareQrCode,
+  dialog08, close08Dialog, shareLinkField,
   boardReady08, boardViewsCount, commentBox, commentsPanel, commentTimes,
   settings08Ready, board08Section, KB08_TEAMS,
 } from '../../lib/kb';
@@ -58,10 +58,18 @@ test.describe('08.5 Sharing, commenting on and deleting a leaderboard', () => {
       clip: leaderboardCard(page, KB08_LEAGUE), annotate: share, mask,
     });
 
-    // 02 - the window. The link and the QR code are masked: both carry the
-    // leaderboard's id, which changes whenever the seed is rebuilt, and
-    // docs/style-guide.md masks share codes and QR codes. What the link looks
-    // like goes in the prose instead.
+    // 02 - the window, with the link and the QR code SHOWN.
+    //
+    // docs/style-guide.md masks share codes and QR codes - and in the same
+    // breath: "Do not mask the thing the article is about. If a share code is
+    // the subject, seed a fixed one and show it." Here it is the subject. The
+    // first run masked both and came back as two black slabs filling most of the
+    // window, which taught the reader nothing and hid the copy button as well -
+    // the same call collection 01 made about the TRENDING panel.
+    //
+    // What is on show is a staging URL for a fixture leaderboard: no person, no
+    // credential, nothing that outlives the seed. The id moves on a --rebuild,
+    // and the spec regenerates the capture when it does.
     await share.click();
     const dlg = await dialog08(page, 'Share Leaderboard');
     await expect(dlg.getByText('Share public link', { exact: true })).toBeVisible();
@@ -69,9 +77,7 @@ test.describe('08.5 Sharing, commenting on and deleting a leaderboard', () => {
       new RegExp(`/leaderboards/${fx.leaderboard.id}$`),
     );
     await expect(shareLinkField(page)).toHaveAttribute('readonly', '');
-    await shot(page, '08.5', '02-share-window', {
-      clip: dlg, clipPad: 24, mask: [shareLinkField(page), shareQrCode(page)],
-    });
+    await shot(page, '08.5', '02-share-window', { clip: dlg, clipPad: 24 });
     await close08Dialog(page);
 
     // 03 - the Comments panel. It sits below whichever board tab is open, so it
