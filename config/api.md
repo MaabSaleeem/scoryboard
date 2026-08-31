@@ -522,6 +522,168 @@ any pending team invites."
 | GET | `/leaderboards/:leaderboardId/banner?v=` | Fetch the banner | - |
 | DELETE | `/leaderboards/:leaderboardId/banner` | Remove the banner | - |
 
+**(observed in app, not in collection, 2026-08-31)** Two more paths the board page
+calls. Collection 08 found them on the wire.
+
+| Method | Path | For |
+|---|---|---|
+| GET | `/profile-view/leaderboard/:leaderboardId/viewers` | `{viewCount, viewers[{viewedAt, userId, playerId, name, avatarVersion}]}` - this is what fills the **Views** tile in the board header |
+| GET | `/profile-view/leaderboard/:leaderboardId/count` | `{viewCount}` only |
+
+`GET /promo-campaigns/active?screen=Leaderboard` is also fired on every board page
+load, so a campaign banner can appear over anything this collection photographs.
+
+### What the leaderboard read endpoints actually answer
+
+**(observed in app, 2026-08-31.)** Read off staging against a three-team league
+with four played matches.
+
+- `GET /leaderboards/:id/stats/teams` is the league table. Its fields are
+  `rank`, `isRanked`, `teamId`, `teamName`, `teamSize`, `teamMembers`,
+  `totalMatches`, `totalWins`, `totalLosses`, `goalScored`, `winStreak`,
+  `cleanSheets`, `totalYellowCards`, `totalRedCards`. **There is no draws column,
+  no goals-conceded column and no points column.** A drawn match shows up only as
+  the gap between `totalMatches` and `totalWins + totalLosses`. The screen mirrors
+  that: its columns are Rank, Teams, Members, Matches, Goals, Win/Loss.
+- `GET /leaderboards/:id/stats/players` is the player grid: `rank`, `playerName`,
+  `playerPosition`, `goals`, `assists`, `totalMatches`, `totalWins`,
+  `totalYellowCards`, `totalRedCards`, `teams[]`, `isRegistered`. A friend added
+  by name only comes back with the whole name in `playerName` and
+  `playerLastName: null`.
+- `GET /leaderboards/:id/teams` nests differently from everything else:
+  `[{leaderboardTeamId, team{id, name, isSystem, teamSize}, stats{...}}]`.
+- `GET /leaderboards/:id/teams/search?name=` searches **every team on the
+  platform**, not just yours, and excludes the ones already in the leaderboard.
+  `name=KB` returned 19 rows from four different collections; an empty `name`
+  returned 853. The Add Team window on the settings screen only looks narrow
+  because it lists your own addable teams until you type.
+
+### Leaderboard roles, and what a non-member cannot read
+
+**(observed in app, 2026-08-31.)** `GET /leaderboards/:id` answers `isOwner`,
+`isAdmin` and `isMember`. Owner and Administrator both read `isMember: true`;
+everybody else reads all three false, and then:
+
+| Path | Owner / Administrator | Anybody else |
+|---|---|---|
+| `GET /leaderboards/:id` | 200 | 200 |
+| `GET /leaderboards/:id/stats/teams` | 200 | **200** |
+| `GET /leaderboards/:id/stats/players` | 200 | **200** |
+| `GET /leaderboards/:id/matches` | 200 | **200** |
+| `GET /comments?commentType=leaderboard` | 200 | **200** |
+| `GET /leaderboards/:id/teams` | 200 | **403** |
+| `GET /leaderboards/:id/players` | 200 | **403** |
+| `POST /comments` on the leaderboard | 200 | **403** `"Only leaderboard members can comment on or like leaderboard content"` |
+
+So the league table, the player grid and the fixture list are readable by anyone
+signed in; the team list and the player list are not.
+
+In the UI the same split shows as: no **Create Match**, no **Payment** tab, no
+**Views** tile, and every team row badged **External**. `/leaderboards/:id/settings`
+does not render at all for a non-owner - it fails to its error boundary, **"This
+page couldn't load / Reload to try again, or go back"**, with no API call and no
+Access-denied screen.
+
+An **Administrator gets the whole settings screen**, Delete Leaderboard included.
+The only differences from the Owner's view are that their own admin row carries no
+Remove, and the team rows are badged External. In their own Leaderboards list the
+board appears badged **Admin** rather than Owner.
+
+`POST /leaderboards/:leaderboardId/admin` with `email` **links the account that
+already holds that address** - the id that comes back in `admins[]` is that
+account's own `playerId`, and they immediately read the board with
+`isAdmin: true`. It still reports `isRegistered: false` on the `adminPlayers` row,
+which is wrong; do not read anything into that field.
+
+### The leaderboard style field is read-only
+
+**(observed in app, 2026-08-31.)** `leaderboardSettingsSchema` and
+`createLeaderboardSchema` both carry `leaderboardStyle`, and `Leaderboard style *`
+is on screen at `/createLeaderboard` and on `/leaderboards/:id/settings`. On both
+screens the input is **`disabled`**, pre-filled `Football leaderboard`, with a tick
+icon rather than a chevron. There is no way to change it and no second option. The
+in-app **Create New Leaderboard** window does not show the field at all - it has
+exactly two controls, the logo and the name.
+
+### Creating one on Free never reaches the API
+
+**(observed in app, 2026-08-31.)** With one leaderboard already owned, selecting
+**Create New Leaderboard** on Free opens **Leaderboard Limit Reached** - "Free plan
+users can create only 1 leaderboard. Delete your current leaderboard or upgrade to
+Pro Membership to create another." plus the usual **FREE Upgrade (Beta)** button -
+and **no `POST /leaderboards` is sent**. The gate is client-side and fires instead
+of the form, so the reader never sees the create window at all. Every account is
+born with one leaderboard, so a Free account is at the limit from the moment it
+exists.
+
+### Two things that happen with no confirmation
+
+**(observed in app, 2026-08-31.)**
+
+- **Removing a team from a leaderboard is one click.** The **Remove** button on a
+  team row in the settings screen fires `DELETE /leaderboards/:id/teams/:teamId`
+  straight away. There is no dialog. Adding it back is `POST` with `{teamId}`, so
+  it is recoverable - but the statistics the removed team contributed disappear
+  from the table while it is out.
+- Deleting the leaderboard **is** confirmed, from either entry point - the
+  settings screen's DELETE LEADERBOARD section, or **Remove** on the card's kebab
+  menu in the list. Both open the same window: **Delete Leaderboard** / "This
+  action cannot be undone. This will permanently delete the leaderboard and remove
+  all associated data." / Cancel / Delete Leaderboard.
+
+### The "public link" is not public
+
+**(observed in app, 2026-08-31.)** The card's share control opens **Share
+Leaderboard**, which offers a read-only `Link` field, a copy button and a QR code,
+under the words "People with this link can view your board but can't change it.
+This is the link you should share on social media, on your website or elsewhere."
+The link is just `<origin>/leaderboards/<id>`, and a **signed-out** visitor who
+opens it is redirected to `/signin`. The recipient needs a Scoryboard account. The
+QR code's own `<title>` reads "Scan the QR code to view this tournament" on a
+leaderboard.
+
+### Comments on a leaderboard
+
+**(observed in app, 2026-08-31.)** Three things collection 08 had to learn the
+hard way.
+
+- `GET /comments` returns **top-level comments only**. A reply is invisible to that
+  listing - the parent carries a `replyCount` and nothing else - and lives behind
+  `GET /comments/:commentId/replies`. A seed that dedupes against the top-level
+  list alone will post every reply again on every run.
+- `DELETE /comments/:commentId` **exists** and is not in the Postman collection.
+  It answers `401 "Unauthorized to delete this comment"` even to the account that
+  wrote the comment, so in practice a comment cannot be taken back. The only way
+  to clear a thread is to delete the entity it hangs off.
+- The composer is a `textarea` with the placeholder `Write your comment...`, beside
+  an **Add Media** button and a **Comment** submit.
+
+### A match with no venue is Incomplete, not Scheduled
+
+**(observed in app, 2026-08-31.)** `POST /matches` without `clubLocationId`
+answers a match whose status is **`Incomplete`**, and the Matches tab shows it with
+a **Finish Setup** button instead of a fixture card. `PUT /matches/:id` with
+`{clubLocationId}` turns it `Scheduled`, and the card then reads the venue name and
+offers **Match Settings**. A future match can still be edited this way; a match
+whose date has passed cannot. Collection 09 owns the article.
+
+### Leaderboard app routes
+
+**(observed in app, 2026-08-31.)**
+
+| Route | Screen |
+|---|---|
+| `/leaderboards` | **Your Leaderboards (n)** - the list, with Create New Leaderboard and a per-card share control and kebab menu (Edit, Remove) |
+| `/leaderboards/:id` | the board. Team Stats is the bare path |
+| `/leaderboards/:id/playerStats` | the Player Stats grid, with a Pro-gated **Compare** |
+| `/leaderboards/:id/matches` | Past Matches / Upcoming Matches (`role="tab"`, Upcoming selected by default) and a **Select teams** filter |
+| `/leaderboards/:id/payment` | the leaderboard's payment requests - collection 17, not 08 |
+| `/leaderboards/:id/settings` | **Edit Leaderboard - &lt;name&gt;**: Profile Appearance, Basic Information, Roles, Teams, Delete Leaderboard |
+| `/createLeaderboard` | the onboarding Create Leaderboard step. Continue / Skip, and the only screen that shows the style field |
+
+The board's Comments section is not a route: **Comments** scrolls to a panel that
+sits below every tab.
+
 ## Comments and likes
 
 One comment API serves every entity. The only `commentType` the collection shows is

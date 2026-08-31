@@ -2765,3 +2765,435 @@ export async function withoutLeaderboard(
     }
   }
 }
+
+// ---------------------------------------------------------------------------
+// Collection 08 - Leaderboards & leagues
+// ---------------------------------------------------------------------------
+//
+// Four accounts and one three-team league. The screens are the Leaderboards
+// list, the board with its four tab routes, and the Edit Leaderboard settings
+// page. See briefs/08.md.
+//
+// Three things below exist because of what step 1 found on staging, not because
+// of taste:
+//
+//   * The **Views** tile in the board header counts every account that has ever
+//     opened the board, and these specs sign four of them in - so it rises
+//     between runs and is masked everywhere.
+//   * Almost every control on the settings screen is rendered TWICE, once for
+//     the wide layout and once for the narrow one, with the unused copy given a
+//     zero-sized box. Each team row and each admin row carries two Remove
+//     buttons. Everything here goes through onScreen().
+//   * Removing a team from a leaderboard has NO confirmation - one click and the
+//     DELETE has fired. 08.3 relies on that, and nothing else may click it.
+
+// @ts-ignore - plain JS module, no types
+import * as F08 from './fixtures-08.mjs';
+
+export const KB08 = F08.ACCOUNTS as Record<'pro' | 'admin' | 'free' | 'outsider', string>;
+export const KB08_PROFILES = F08.PROFILES;
+export const KB08_LEAGUE: string = F08.LEADERBOARD;
+export const KB08_THROWAWAY: string = F08.THROWAWAY;
+export const KB08_TEAMS = F08.TEAMS as Record<'united' | 'rovers' | 'city' | 'athletic', string>;
+export const KB08_TEAMS_IN_LEAGUE: string[] = F08.TEAMS_IN_LEAGUE;
+export const KB08_TABLE = F08.EXPECTED_TABLE as Record<string, Record<string, number>>;
+export const KB08_TOP_SCORER = F08.EXPECTED_TOP_SCORER as { playerName: string; goals: number };
+export const KB08_COMMENTS = F08.COMMENTS as { as: string; text: string; replyTo?: number }[];
+export const KB08_VENUE = F08.VENUE as { name: string; location: string };
+
+/**
+ * The collection's accounts, league, teams and matches, looked up rather than
+ * hardcoded.
+ *
+ * `scripts/seed-08.mjs --rebuild` deletes and recreates all four accounts, and
+ * every id changes when it does - so a spec that carried an id would point at a
+ * deleted row. That is the lesson collections 12 and 02 both learned the
+ * expensive way.
+ */
+export async function fixtures08() {
+  const session = async (key: keyof typeof KB08) => {
+    const email = KB08[key];
+    const token: string = (await mintSession(email)).idToken;
+    const me = (await asUser(token, '/users/me')).body?.data;
+    if (!me?.playerId) throw new Error(`${email} is not seeded. Run: node scripts/seed-08.mjs`);
+    return {
+      email,
+      token,
+      id: String(me.id),
+      playerId: String(me.playerId),
+      membership: String(me.membership),
+      name: `${me.name} ${me.lastName}`,
+    };
+  };
+  const pro = await session('pro');
+  const admin08 = await session('admin');
+  const free = await session('free');
+  const outsider = await session('outsider');
+
+  if (pro.membership !== 'Pro') {
+    throw new Error(`${pro.email} is ${pro.membership}, not Pro. Run: node scripts/seed-08.mjs`);
+  }
+  if (free.membership !== 'Free') {
+    throw new Error(`${free.email} is ${free.membership}, not Free. Run: node scripts/seed-08.mjs`);
+  }
+
+  const boards = (await asUser(pro.token, '/leaderboards')).body?.data ?? [];
+  const board = boards.find((b: any) => b.name === KB08_LEAGUE);
+  if (!board) throw new Error(`Leaderboard "${KB08_LEAGUE}" is missing. Run: node scripts/seed-08.mjs`);
+  // Nothing may be left over from a crashed 08.1: three specs photograph a
+  // heading that counts what Mo owns.
+  const owned = boards.filter((b: any) => b.isOwner);
+  if (owned.length !== 1) {
+    throw new Error(
+      `${pro.email} owns ${owned.length} leaderboards (${owned.map((b: any) => b.name).join(', ')}), `
+      + 'expected exactly 1. Run: node scripts/seed-08.mjs',
+    );
+  }
+
+  const teams = (await asUser(pro.token, '/teams?all=true')).body?.data ?? [];
+  const byName = (name: string) => {
+    const row = teams.find((t: any) => t.name === name);
+    if (!row) throw new Error(`Fixture team "${name}" is missing. Run: node scripts/seed-08.mjs`);
+    return String(row.teamId);
+  };
+  const team = {
+    united: byName(KB08_TEAMS.united),
+    rovers: byName(KB08_TEAMS.rovers),
+    city: byName(KB08_TEAMS.city),
+    athletic: byName(KB08_TEAMS.athletic),
+  };
+
+  return {
+    pro,
+    admin: admin08,
+    free,
+    outsider,
+    team,
+    leaderboard: { id: String(board.id), name: KB08_LEAGUE },
+    /** The league's team rows, flattened out of their nested shape. */
+    leagueTeams: async (): Promise<{ id: string; name: string }[]> => (
+      (await asUser(pro.token, `/leaderboards/${board.id}/teams`)).body?.data ?? []
+    ).map((r: any) => ({ id: String(r.team?.id ?? r.teamId), name: String(r.team?.name ?? '') })),
+  };
+}
+
+/**
+ * Assert the league table is the one lib/fixtures-08.mjs describes.
+ *
+ * A guard, not a wait: by the time a spec runs the seed is long finished. It is
+ * here so a half-run seed fails with a readable message rather than in a
+ * screenshot nobody looks at twice. Leaderboard statistics are written
+ * asynchronously after a match finishes, so expect.poll rather than a bare read.
+ */
+export async function table08Ready(fx: Awaited<ReturnType<typeof fixtures08>>) {
+  await expect.poll(async () => {
+    const rows = (await asUser(fx.pro.token, `/leaderboards/${fx.leaderboard.id}/stats/teams`))
+      .body?.data ?? [];
+    return Object.fromEntries(rows.map((r: any) => [r.teamName, {
+      rank: r.rank,
+      totalMatches: r.totalMatches,
+      totalWins: r.totalWins,
+      totalLosses: r.totalLosses,
+      goalScored: r.goalScored,
+      cleanSheets: r.cleanSheets,
+    }]));
+  }, {
+    message: `league table is not what lib/fixtures-08.mjs expects. Run: node scripts/seed-08.mjs`,
+    timeout: 60_000,
+  }).toMatchObject(KB08_TABLE);
+}
+
+/**
+ * Silence everything that can land on top of a leaderboard capture.
+ *
+ * `quiet()` covers Intercom, Stripe's frames, toasts and animations. The board
+ * page also fires `GET /promo-campaigns/active?screen=Leaderboard` on every
+ * load, so a campaign banner can appear over the header 08.4 photographs.
+ * Blocking the request is not enough on its own - the app registers a service
+ * worker, and a service worker's request never reaches page.route() - which is
+ * why blockPromos() is paired with a stylesheet here rather than trusted alone.
+ */
+export async function quiet08(page: Page) {
+  await quiet(page);
+  await page.addStyleTag({
+    content: `
+      [data-testid="promo-campaign"], [class*="promo-campaign"] { display: none !important; }
+    `,
+  });
+}
+
+/**
+ * Wait for the Leaderboards list to have finished loading, then return nothing.
+ *
+ * The heading paints as "Your Leaderboards (0)" before `GET /leaderboards`
+ * lands and re-renders it with the real count - caught on the first exploration
+ * pass, where a capture taken on the heading alone came back empty. So the gate
+ * is the count AND the card.
+ */
+export async function leaderboardListReady(page: Page, count: number, names: string[]) {
+  await expect(onScreen(page.getByText(`Your Leaderboards (${count})`)).first()).toBeVisible();
+  for (const name of names) {
+    await expect(onScreen(page.getByText(name, { exact: true })).first()).toBeVisible();
+  }
+  await expect(page.locator('.animate-pulse')).toHaveCount(0);
+}
+
+/** One leaderboard's card in the list, found from its name. */
+export function leaderboardCard(page: Page, name: string) {
+  return onScreen(page.getByText(name, { exact: true })).first()
+    .locator('xpath=ancestor::div[contains(@class,"rounded-[10px]")][last()]');
+}
+
+/**
+ * The share control on a leaderboard card.
+ *
+ * A round icon button sitting on the card's banner, with no accessible name and
+ * no test id. `border-white` is the only thing that separates it from the kebab
+ * beside it: the kebab is `text-white` too, but only the share button is drawn
+ * with a 2px white ring. Confirmed against the card component in the bundle.
+ */
+export function cardShareButton(page: Page, name: string) {
+  return onScreen(leaderboardCard(page, name).locator('button.border-white')).first();
+}
+
+/** The kebab menu trigger on a leaderboard card - Edit and Remove. */
+export function cardMenuButton(page: Page, name: string) {
+  return onScreen(
+    leaderboardCard(page, name).locator('button').filter({ has: page.locator('svg.lucide-ellipsis-vertical') }),
+  ).first();
+}
+
+/**
+ * One of the board's tabs. Team Stats, Player Stats, Matches, Payment, Comments.
+ *
+ * The labels are upper-cased by CSS, so the accessible name is title case -
+ * the same trap collections 14, 07 and 01 hit on GROUP A, the team tabs and
+ * DELETE ACCOUNT.
+ */
+export function boardTab(page: Page, label: string) {
+  return onScreen(page.getByRole('button', { name: label, exact: true })).first();
+}
+
+/**
+ * Wait for the board to have loaded, and return its header block.
+ *
+ * The header, the tile row and the tab strip all paint before
+ * `/leaderboards/:id` and `/stats/teams` land, so the gate is the teams count in
+ * the header plus a named row from whichever panel is on screen.
+ */
+export async function boardReady08(page: Page, teamsJoined: number, marker: Locator) {
+  await expect(onScreen(page.getByText(`${teamsJoined} Teams joined`)).first()).toBeVisible();
+  await expect(marker).toBeVisible();
+  await expect(page.locator('.animate-pulse')).toHaveCount(0);
+}
+
+/** The board's header card - crest, name, teams joined, the Teams and Views tiles. */
+export function boardHeader(page: Page) {
+  return onScreen(page.getByText(/Teams joined$/)).first()
+    .locator('xpath=ancestor::div[contains(@class,"rounded")][last()]');
+}
+
+/**
+ * The number beside the Views label in the board header.
+ *
+ * `GET /profile-view/leaderboard/:id/viewers` counts every account that has ever
+ * opened the board, and this collection signs four of them in - so it rises
+ * between runs and is masked. Only the number: the word Views is part of what
+ * the capture shows.
+ */
+export function boardViewsCount(page: Page) {
+  return onScreen(page.getByText('Views', { exact: true })).first()
+    .locator('xpath=preceding-sibling::*[1]');
+}
+
+/** Wait for Edit Leaderboard to have loaded, and return the page heading. */
+export async function settings08Ready(page: Page, name: string) {
+  const h = onScreen(page.getByRole('heading', { name: `Edit Leaderboard - ${name}` })).first();
+  await expect(h).toBeVisible();
+  // The Teams section is the last thing to arrive: it waits on
+  // /leaderboards/:id/teams, which the appearance and name fields do not.
+  await expect(onScreen(page.getByText('Teams joined', { exact: true })).first()).toBeVisible();
+  await expect(page.locator('.animate-pulse')).toHaveCount(0);
+  return h;
+}
+
+/**
+ * One section card on Edit Leaderboard, by its heading.
+ *
+ * Not `settingsSection()`: Profile Appearance is a `p`, not an `h2`, while
+ * BASIC INFORMATION, ROLES, TEAMS and DELETE LEADERBOARD are `h2`s. Match on
+ * either, case-insensitively - the DOM casing is inconsistent and the CSS
+ * upper-cases all of them anyway.
+ */
+export async function board08Section(page: Page, heading: string) {
+  const h = onScreen(
+    page.locator('main h2, main p').filter({ hasText: new RegExp(`^${heading}$`, 'i') }),
+  ).first();
+  await expect(h).toBeVisible();
+  const card = h.locator('xpath=ancestor::div[contains(@class,"rounded-lg")][1]');
+  await expect(card).toBeVisible();
+  return card;
+}
+
+/** One team's row in the Teams section of Edit Leaderboard. */
+export function leagueTeamRow(page: Page, name: string) {
+  return onScreen(page.locator('main').getByText(name, { exact: true })).first()
+    .locator('xpath=ancestor::div[contains(@class,"relative")][1]');
+}
+
+/**
+ * The Remove button on one team row.
+ *
+ * Every row carries two, one per layout, and the unused one has a zero-sized
+ * box. And there is no confirmation: this fires
+ * `DELETE /leaderboards/:id/teams/:teamId` on the click. Only 08.3 may click it,
+ * and only on the team it added itself.
+ */
+export function leagueTeamRemove(page: Page, name: string) {
+  return onScreen(leagueTeamRow(page, name).getByRole('button', { name: 'Remove', exact: true })).first();
+}
+
+/** The dialog that is on screen, waited for by its heading. */
+export async function dialog08(page: Page, heading: string) {
+  const dlg = onScreen(page.locator('[role="dialog"]')).filter({ hasText: heading }).first();
+  await expect(dlg).toBeVisible();
+  await expect(dlg.getByText(heading, { exact: true }).first()).toBeVisible();
+  return dlg;
+}
+
+/** Close the open dialog without confirming anything. */
+export async function close08Dialog(page: Page) {
+  const dlg = onScreen(page.locator('[role="dialog"]')).first();
+  const cancel = onScreen(dlg.getByRole('button', { name: 'Cancel', exact: true }));
+  if (await cancel.count()) await cancel.first().click();
+  else await onScreen(dlg.getByRole('button', { name: 'Close' })).first().click();
+  await expect(onScreen(page.locator('[role="dialog"]'))).toHaveCount(0);
+}
+
+/**
+ * The read-only Link field and the QR code in the Share Leaderboard window.
+ *
+ * Both carry the leaderboard's id, which changes whenever the seed is rebuilt,
+ * and docs/style-guide.md masks share codes and QR codes. The subject of the
+ * capture is where the control is and what the window offers, not this
+ * particular URL - so both are masked and the article says what the link looks
+ * like in prose instead.
+ */
+export function shareLinkField(page: Page) {
+  return onScreen(page.locator('input#link')).first();
+}
+
+export function shareQrCode(page: Page) {
+  return onScreen(page.locator('[role="dialog"] svg').filter({ hasText: /Scan the QR code/ })).first();
+}
+
+/** The comment composer on the board - a textarea, an Add Media and a Comment. */
+export function commentBox(page: Page) {
+  return onScreen(page.getByPlaceholder('Write your comment...')).first();
+}
+
+/** The Comments panel that sits below every board tab. */
+export async function commentsPanel(page: Page, total: number) {
+  const h = onScreen(page.getByText(`Comments (${total})`, { exact: true })).first();
+  await expect(h).toBeVisible();
+  const panel = h.locator('xpath=ancestor::div[contains(@class,"rounded")][last()]');
+  await expect(panel).toBeVisible();
+  return panel;
+}
+
+/**
+ * Every absolute timestamp in the Comments panel - "01:04 PM • Aug 31, 2026".
+ *
+ * It is the comment's own createdAt, so it is the day the seed ran and it moves
+ * on every --rebuild. docs/style-guide.md masks absolute dates that are not the
+ * point of the screenshot, and 08.5's point is the composer and the thread, not
+ * when the fixture was made.
+ */
+export function commentTimes(page: Page) {
+  return page.getByText(/^\d{2}:\d{2} (AM|PM) . \w{3} \d{1,2}, \d{4}$/);
+}
+
+/** The Past / Upcoming tabs on the Matches panel. They are real `role="tab"`s. */
+export function matchesTab(page: Page, label: 'Past Matches' | 'Upcoming Matches') {
+  return onScreen(page.getByRole('tab', { name: label, exact: true })).first();
+}
+
+/** The Select teams filter on the Matches panel. */
+export function teamFilter(page: Page) {
+  return onScreen(page.getByText('Select teams', { exact: true })).first()
+    .locator('xpath=ancestor-or-self::button[1]');
+}
+
+/**
+ * Put the leaderboard's teams back to the three the fixture describes.
+ *
+ * 08.3 adds KB 08 Athletic and takes it out again, and it must leave the league
+ * as it found it whether or not it got that far - docs/style-guide.md, "a spec
+ * that consumes or mutates a fixture puts it back itself". Idempotent: it reads
+ * the league first and writes only what is wrong.
+ */
+export async function restoreLeagueTeams(fx: Awaited<ReturnType<typeof fixtures08>>) {
+  const want = new Set(KB08_TEAMS_IN_LEAGUE.map((k) => (KB08_TEAMS as any)[k] as string));
+  for (const row of await fx.leagueTeams()) {
+    if (want.has(row.name)) { want.delete(row.name); continue; }
+    const gone = await asUser(
+      fx.pro.token, `/leaderboards/${fx.leaderboard.id}/teams/${row.id}`, { method: 'DELETE' },
+    );
+    if (!gone.ok) throw new Error(`DELETE league team ${row.name}: ${JSON.stringify(gone.body)}`);
+  }
+  for (const name of want) {
+    const teamId = Object.entries(KB08_TEAMS).find(([, v]) => v === name)?.[0];
+    const id = teamId ? (fx.team as any)[teamId] : undefined;
+    if (!id) throw new Error(`cannot restore "${name}" - no id`);
+    const back = await asUser(fx.pro.token, `/leaderboards/${fx.leaderboard.id}/teams`, {
+      method: 'POST', body: { teamId: id },
+    });
+    if (!back.ok) throw new Error(`POST league team ${name}: ${JSON.stringify(back.body)}`);
+  }
+}
+
+/**
+ * Delete every leaderboard Mo owns except the fixture one.
+ *
+ * 08.1 creates a throwaway to photograph the result of creating one, and has to
+ * remove it again: the "Your Leaderboards (1)" heading is on three other specs'
+ * captures. Runs in a `finally`, and is safe to call when nothing was created.
+ */
+export async function dropThrowaway08(fx: Awaited<ReturnType<typeof fixtures08>>) {
+  const boards = (await asUser(fx.pro.token, '/leaderboards')).body?.data ?? [];
+  for (const b of boards) {
+    if (!b.isOwner || b.name === KB08_LEAGUE) continue;
+    const gone = await asUser(fx.pro.token, `/leaderboards/${b.id}`, { method: 'DELETE' });
+    if (!gone.ok) {
+      throw new Error(
+        `DELETE /leaderboards/${b.id} ("${b.name}"): ${gone.status} `
+        + `${JSON.stringify(gone.body)} - delete it by hand, or three other specs will photograph it`,
+      );
+    }
+  }
+}
+
+/**
+ * The bits of chrome that move between runs, ready to hand to `shot({mask})`.
+ *
+ * Two of them, and both were caught in collection 08's first capture run:
+ *
+ *   * the unread-notification badge. `hideNotificationBadge()` scopes to
+ *     `sidebar()`, and on these pages the bell sits outside that container, so
+ *     it matched nothing and a red 6 went into the screenshot. Hiding it in the
+ *     page did not work either: the count arrives after the page has settled, so
+ *     the badge appeared after the call. A mask is evaluated at capture time,
+ *     which is the only moment that is late enough.
+ *   * every **Created on 31/08/2026** line. `createdOn()` takes `.first()`, and
+ *     08.1 photographs a list with two cards in it - the second card's date came
+ *     out unmasked.
+ *
+ * Deliberately NOT `.first()` and NOT `onScreen()`: a mask locator that matches
+ * several elements masks all of them, and an element with no box is a no-op.
+ */
+export function moving08(page: Page) {
+  return [
+    page.locator('div[class*="bg-red-500"][class*="rounded-full"]'),
+    page.getByText(/^Created on /),
+  ];
+}
