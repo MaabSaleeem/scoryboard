@@ -21,7 +21,7 @@ target.
 | ~~06~~ | ~~Following~~ | - | - | - | **retired** | - | **RETIRED 2026-08-31, merged into 05.** 06.1 became 05.5. Intercom collection 19733975 was empty before the merge and is empty after it; it must not be reused |
 | 07 | Teams | 11 | 63 | manager_pro | published | [briefs/07.md](../briefs/07.md) | 63 screenshots. **All eleven published by the reviewer 2026-08-29.** 07.7 and 07.9 retitled - the app has no ownership transfer and no Fan role. Accounts: `kb-manager-pro-07@`, `kb-fresh-07@`, six `kb-07-*@` |
 | 08 | Leaderboards & leagues | 5 | 30 | manager_pro | drafts on Intercom | [briefs/08.md](../briefs/08.md) | 30 screenshots. Found that **removing a team from a leaderboard has no confirmation at all**, that the league table carries **no points, no draws and no goals conceded**, that the Share Leaderboard "public link" sends a signed-out visitor to `/signin`, and that a comment can never be deleted - `DELETE /comments/:id` answers 401 even to its author. The **External** badge on a team row means "not one of your own", and it wrongly marks the owner’s own teams until the account has opened `/teams` once. Four accounts: `kb-manager-pro-08@`, `kb-08-admin@`, `kb-08-free@`, `kb-08-outsider@`. Four played matches; they cannot be undone |
-| 09 | Creating & scheduling matches | 7 | 44 | manager_pro | not started | - | - |
+| 09 | Creating & scheduling matches | 7 | 44 | manager_pro | drafts on Intercom | [briefs/09.md](../briefs/09.md) | 44 screenshots. Found that **Create Match creates the match** on the click, that **seven** fields decide Incomplete vs Scheduled - and a **leaderboard is one of them, even for a friendly** - and that **`DELETE /matches/:id` does not delete**, it sets `status: "Cancelled"`. 09.5 retitled "Editing or cancelling a match" - there is no delete anywhere in the app. 09.6's referee half narrowed: the Referee box only offers referees saved from a tournament, so it reads "No results found" for a manager who has never run one. The match **share link is not public** - a signed-out visitor gets Sign In and permanent skeletons. Four accounts: `kb-manager-pro-09@`, `kb-09-admin@`, `kb-09-player@`, `kb-referee-09@`. Two Scheduled fixtures on FIXED dates (24 and 30 Sept 2026); the seed refuses to run once they have passed |
 | 10 | Match day | 10 | 60 | manager_pro | not started | - | - |
 | 11 | Match insights & statistics | 3 | 9 | player | drafts on Intercom | [briefs/11.md](../briefs/11.md) | 9 screenshots. 11.1 retitled - the app has no form guide and no head-to-head record. Found that **a match outside a leaderboard writes no statistics at all** and that a player counts the matches they were in the LINEUP for. Accounts: `kb-player-11@`, `kb-11-owner@`. Four played matches; they cannot be undone. **All three published by the reviewer 2026-08-31, then all three rewritten for clarity and republished** |
 | 12 | Tournaments - setting one up | 10 (+2) | 80 | organiser | published | [briefs/12.md](../briefs/12.md) | 12 published, 80 screenshots. 12.11 and 12.12 added for Padel; not in the map |
@@ -2302,3 +2302,122 @@ Its Intercom collection `19733992` is empty and marked `retired: true`, as 03 an
 16 were. Totals are now 130 articles, 727 screenshots, 20 live collections.
 
 Next: pick from the remaining collections.
+
+---
+
+## Collection 09 - Creating & scheduling matches - 2026-08-31
+
+Seven articles, 44 screenshots, all sitting in Intercom collection `19733978` as
+**drafts**. Nothing published.
+
+| Article | Title | Intercom id | Shots |
+|---|---|---|---|
+| 09.1 | Creating a match | 16762189 | 10 |
+| 09.2 | Match statuses, and why a match is stuck on Incomplete | 16762191 | 5 |
+| 09.3 | Venue, date, kick-off time, duration and pitch | 16762193 | 6 |
+| 09.4 | Match tags, and attaching a match to a leaderboard | 16762195 | 5 |
+| 09.5 | Editing or cancelling a match | 16762196 | 5 |
+| 09.6 | Assigning a referee, and adding a banner or note | 16762197 | 6 |
+| 09.7 | Inviting people, sharing a preview and the matches calendar | 16762199 | 7 |
+
+Image URLs are pinned to **`67a299df04e14b628587ce1fe9c9661786925859`**. All 44
+verified 200 `image/png` on jsDelivr before publishing.
+
+### The three findings that shaped the collection
+
+- **Create Match creates the match.** The click fires
+  `POST /matches {"status":"Incomplete"}` and lands on `/matches/:id`, already a
+  real row. Nothing is confirmed. A reader who closes the tab leaves a half-built
+  match on their team's fixture list with a **Finish Setup** button on it. 09.2 is
+  that article, and it is the likeliest support ticket here.
+- **Seven fields decide Incomplete versus Scheduled**: `homeTeam`, `awayTeam`,
+  `leaderboardId`, `clubLocationId`, `date`, `duration`, `teamSize`. Isolated by
+  dropping one at a time. `tag` and the line-ups are not among them. The
+  leaderboard is the surprise - **a friendly kickabout needs one too**, and nothing
+  on the form says so. `config/api.md` had only the venue half, from collection 08.
+- **There is no delete.** `DELETE /matches/:id` answers "Match cancelled
+  successfully" and sets `status: "Cancelled"`; the row survives and still answers
+  200 by id, it just leaves every list. The gear menu offers *Configure
+  appearance*, *Edit* and *Cancel Match* and nothing else. **09.5 retitled**
+  "Editing or cancelling a match".
+
+### What differed from the brief
+
+Nothing structural: seven articles, 44 shots, none added or dropped. Five shot
+descriptions were corrected mid-run, all of them step-1 claims the app disagreed
+with. They are written up in [briefs/09.md](../briefs/09.md) under "What happened
+in step 2"; the short version:
+
+1. **"Match Preview (View Only)" is never on screen.** The `h1` says it and is
+   `display: none` at every desktop width. 09.4 and 09.5 now describe what a plain
+   Player actually gets - the match read-only, no gear, no form.
+2. **The empty referee list has two wordings**: *No options available* cold, *No
+   results found* once you type. And the list is seeded from the match's own
+   referee, so on a match that has one it looks like a working search. 09.6's shot
+   is taken on a match with no referee, with a name typed in.
+3. **The Game type badge changes on save, not on selection.** 09.4's shot 02 was
+   re-taken from the saved page.
+4. **The calendar's Day view opens on today**, and both fixtures are later in the
+   month, so the first capture was an empty column. It now picks 24 September.
+5. **The notifications panel says "Match scheduled"**, not "Match invitation" -
+   that is the home page's Trending wording, and the first capture was of Trending.
+
+### What was skipped
+
+Nothing. Two things could not be produced and are documented as absences rather
+than dropped:
+
+- **A reader choosing a referee.** The Referee box searches
+  `tournamentSelectionOnly=true`, which narrows it to referees you saved while
+  setting up a tournament. `isReferee` is settable through nothing a user can
+  reach. 09.6 shows the empty list and says why.
+- **A working public preview.** Photographed as it is - broken.
+
+### Look hard at these
+
+- **09.6's referee section.** The one article that documents an absence. If a
+  referee-registration flow exists outside a tournament, it is wrong. Collection 21
+  owns `21.1 Referee registration`, which `config/api.md` still lists as having no
+  endpoint.
+- **09.7's warning that the share link needs a Scoryboard account.** It
+  contradicts the app's own copy, deliberately. Second of two: collection 08 found
+  the same shape on a leaderboard's share link.
+- **09.5's "there is no undo".** True of the app. Not true of the API, where
+  `POST /matches/:id/status {"status":"Scheduled"}` revives a cancelled match. The
+  article documents the app.
+- **09.2's status list.** Incomplete, Scheduled, Cancelled and Finished were all
+  seen. **Live and Paused were not** - they are collection 10's, and are named here
+  from the API's enum.
+- **09.7 shot 02 is nothing but skeletons**, which `docs/style-guide.md` forbids.
+  Deliberate: the skeletons are the defect the article is about.
+
+### Two rendering faults, no article
+
+- **A team the reader does not own renders as a placeholder** - "Add Away Team",
+  "Not set", "Location not set" - until the app has loaded `/teams` once in that
+  session. Over data that is present. `warm09()` in `lib/kb.ts` is the specs' fix;
+  a reader following a link straight to a match has none. Worth a ticket.
+- **The match card does not redraw after Add Team.** The save lands, the window
+  closes, the button still says Add Away Team. 09.1 warns about it.
+
+### Flake
+
+None. The whole fourteen-test suite ran in one go and passed, and the seed
+reported zero writes afterwards.
+
+### The fixture is perishable
+
+The two seeded matches sit on **fixed** dates - 24 and 30 September 2026 - because
+a screenshot of a calendar has to say the same thing every run. A match created
+with a past date starts itself, so once those dates pass `scripts/seed-09.mjs`
+would build a Live match instead of a Scheduled one. **It refuses to run in that
+case** and names the date to move. Move both forward in `lib/fixtures-09.mjs`,
+`--rebuild`, re-capture. Every spec freezes its clock to 2026-09-01T09:00:00Z.
+
+Six throwaway matches are created and cancelled across a full run. A cancelled
+match cannot be deleted, so they accumulate on `kb-manager-pro-09@yopmail.com` -
+invisible everywhere, harmless.
+
+**The drafts are unreviewed. Nothing is published.**
+
+Next: pick from the remaining collections - 10, 15, 17, 18, 19, 20, 21, 22, 24.
