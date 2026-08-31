@@ -16,9 +16,12 @@ Nothing is invented. Gaps are listed under [Not in the collection](#not-in-the-c
     staging is `scoryboard-staging`. ID tokens expire after one hour; mint a fresh
     one per session (see [Session minting](#session-minting)).
   - **Admin** - `X-API-KEY: $SCORYBOARD_ADMIN_API_KEY`. Used by everything under
-    `/admins/*`, all of `/bookings/*`, `/matches/:id/facts`, `/padellevels/*`,
+    `/admins/*`, all of `/bookings/*`, ~~`/matches/:id/facts`~~, `/padellevels/*`,
     `/marketings/*` and `/tournaments/create/centernet`. 36 endpoints in total.
     No user token needed.
+    **(observed in app, 2026-08-31)** `/matches/:id/facts` is in that list because
+    the Postman collection sends the admin key with it. It does not need one: the
+    web app calls it with the signed-in user's bearer token on every match page.
 - Pagination: `?skip=<n>&limit=<n>` on list endpoints.
 - Images are versioned: `GET .../avatar?v=<version>` and `.../banner?v=<version>`.
   The version comes back on the parent entity. Omitting `v` may serve a cached image.
@@ -564,8 +567,8 @@ Comment edit and delete are not in the collection. See
 | POST | `/matches/:matchId/status` | Start, pause, finish | `status`: `Scheduled`, `Live`, `Paused`, `Finished`. **(observed in app, 2026-08-29)** A **Finished match is permanent**: this answers "Cannot update status of a Finished match", `PUT` answers "Cannot update match of a Finished match", and `DELETE` answers "Date must be at least one hour ahead of the current time" for any match whose date has passed. A player's statistics survive even the deletion of the team the match was played for. There is no way to undo a played match |
 | GET | `/matches/:matchId/Calendar` | Calendar entry (capital C, as in the collection) | - |
 | GET | `/matches/:matchId/league` | League table for a league match | - |
-| GET | `/matches/:id/facts` | Match facts and insights (**admin key**) | - |
-| GET | `/matches/:matchId/facts-stats` | Detailed fact stats | - |
+| GET | `/matches/:id/facts` | Match facts and insights. ~~admin key~~ **(observed in app, 2026-08-31)** the app calls it with the signed-in **user's** bearer token, on every match page. 200 for a player in the lineup. See [The Facts tab](#the-facts-tab---what-the-two-panels-actually-are) | - |
+| GET | `/matches/:matchId/facts-stats` | Detailed fact stats. Called on the same page, same auth | - |
 | POST | `/matches/:matchId/banner` | Upload a match banner | multipart, field `banner` |
 | GET | `/matches/:matchId/banner?v=` | Fetch the banner | - |
 | PUT | `/matches/:matchId` | Save an uploaded banner | `bannerToken` |
@@ -624,6 +627,103 @@ writing 10.6 and 10.8.
 | DELETE | `/matches/:matchId/events/:eventId` | Delete an event | - |
 | POST | `/matches/:id/events/media` | Upload feed media, returns a token | multipart, field `media` |
 | GET | `/matches/:matchEventId/media/:filename` | Fetch feed media | - |
+
+### The Facts tab - what the two panels actually are
+
+**(observed in app, 2026-08-31.)** Read off the wire and off the screen together,
+by collection 11. Two endpoints back one card on the match page.
+
+`GET /matches/:id/facts` answers already-written sentences, five per team:
+
+```json
+{"status":"OK","data":{
+  "homeTeam":[{"text":"KB 11 Rovers has scored  2 consecutive goals in its last 5 games","teamName":"KB 11 Rovers"}, ...],
+  "awayTeam":[ ... ]}}
+```
+
+The five are: consecutive goals scored, goals conceded, days since the last game,
+the formation used most, and cards received - each "in its last 5 games". The app
+renders the strings as it receives them, double space and all. The **Insights**
+panel is exactly this, coloured by side: `bg-sky-50` for `homeTeam`, `bg-rose-50`
+for `awayTeam`, whatever the sentence says.
+
+`GET /matches/:id/facts-stats` answers the match, the leaderboard, and a block per
+team:
+
+```json
+{"match":{...,"startedAt":...,"finishedAt":...,"statsCalculatedAt":...,"queueName":"..."},
+ "leaderboard":{"name":"KB 11 Sunday League","id":"..."},
+ "homeTeam":{"details":{...},
+   "stats":{"totalWins":2,"totalLosses":1,"totalMatches":4,"goalScored":8,
+            "winStreak":2,"cleanSheets":1,"totalYellowCards":1,"totalRedCards":0,
+            "teamMembers":5,"isRanked":true,"rank":1},
+   "biggestWin":{...},"biggestLoss":{...}},
+ "awayTeam":{ ... }}
+```
+
+The **Statistics so far** panel is exactly that, two columns. Three things follow,
+and all three matter to anyone writing about this screen.
+
+- **It is not a head-to-head record.** Each column is that team's whole record in
+  the leaderboard. Proved on staging with a third team: on a Rovers v City page
+  the columns read 4 matches and 3, and Rovers' *Biggest win* was **4-0 against a
+  team that is not City**.
+- **There is no `conceded` figure and no draw count.** So *Goals conceded per
+  match* renders as a dash for both teams, always, and *Drawn* is computed in the
+  browser as `totalMatches - totalWins - totalLosses`. The conceded figure does
+  exist on `GET /teams/:id/stats`; it is simply not in this payload.
+- **`rank` is the leaderboard position** shown at the top of the panel.
+
+**Both panels are empty exactly when the match has no `leaderboardId`.** `facts`
+answers two empty arrays and `facts-stats` answers no team `stats`, and the screen
+reads "No insights available yet" and "No statistics available yet". Isolated
+against the match `tag`, which was the other candidate:
+
+| `tag` | `leaderboardId` | insights |
+|---|---|---|
+| `league` | set | 5 per team |
+| `friendly` | set | 5 per team |
+| `league` | absent | none |
+| `friendly` | absent | none |
+
+The Facts tab is **identical before and after a match**. A future-dated match
+between the same two teams showed the same five insights and the same statistics.
+
+### statsCalculatedAt, and how long the numbers take
+
+**(observed in app, 2026-08-31.)** The match object carries `startedAt`,
+`finishedAt`, `statsCalculatedAt` and `queueName`. Measured across collection 11's
+four matches, `statsCalculatedAt - finishedAt` was **1.6, 5.7, 6.4 and 6.8
+seconds**. That is the lag the note under [Match events](#match-events) describes
+and the subject of article 11.3. Nothing in the app announces it: the screen shows
+the old numbers, then the new ones.
+
+### What the statistics endpoints actually count
+
+**(observed in app, 2026-08-31.)** Four rules, each isolated on staging by
+collection 11's fixture - three teams, one leaderboard, four played matches.
+
+1. **A clean sheet is not simply conceding nothing.** A **0-0 draw scored no
+   clean sheet for either team**; a 4-0 win scored one. Read off
+   `GET /teams/:id/stats` both times. So the count behaves like "won without
+   conceding" - stated as an observation, because no endpoint documents the rule.
+2. **A player is counted for matches they were in the LINEUP for.** A team that
+   played four matches with one member left out of one of them reads
+   `matches: 4`, and that member's `winLossDraws.totalMatches` reads 3. Wins,
+   losses and draws follow the lineup too.
+3. **`GET /players/:id/matches` does not agree with that.** It returned the match
+   the player was left out of - it lists their teams' fixtures, not the ones they
+   played. So the Matches list on Home and the Matches tile beside it count
+   different things.
+4. **`POST /matches` accepts a short or an empty `players[]`.** A one-player and
+   an empty home lineup were both accepted on a `5 VS 5` match, and the match
+   played and wrote statistics normally.
+
+And one small thing that catches a seed out:
+
+- **A future-dated match is born `Incomplete`, not `Scheduled`.** Only a match
+  whose date is at least an hour ahead can be `DELETE`d, so a future-dated match
+  is the only throwaway match a spec can clean up after itself.
 
 ## Players
 

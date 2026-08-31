@@ -2439,3 +2439,329 @@ export async function setFollow(
     throw new Error(`${following ? 'follow' : 'unfollow'} ${kind}/${id}: ${JSON.stringify(r.body)}`);
   }
 }
+
+// --- collection 11: Match insights & statistics -----------------------------
+//
+// Everything below is read by specs/11/*.spec.ts. The accounts, teams, squads,
+// the four matches and the expected statistics live in lib/fixtures-11.mjs,
+// which scripts/seed-11.mjs also reads - so a spec cannot drift from the seed.
+//
+// This collection photographs derived numbers, so the rule that shapes it is
+// that no spec may change one. Every capture is a read. The single exception is
+// 11.1's empty-state shot, which creates a match with no leaderboard,
+// photographs it and deletes it in a `finally` - and a match outside a
+// leaderboard writes no statistics at all, so nothing it does can show up in a
+// number anywhere else.
+
+// @ts-ignore - plain JS module, no types
+import {
+  ACCOUNTS as KB11, PROFILES as KB11_PROFILES, TEAMS as KB11_TEAMS,
+  LEADERBOARD as KB11_LEAGUE, SQUADS as KB11_SQUADS, POSITIONS as KB11_POSITIONS,
+  MATCH_DEFAULTS as KB11_MATCH, MATCHES as KB11_MATCHES,
+  EXPECTED_PLAYER_STATS as KB11_PLAYER_STATS,
+  EXPECTED_TEAM_STATS as KB11_TEAM_STATS,
+} from './fixtures-11.mjs';
+
+export {
+  KB11, KB11_PROFILES, KB11_TEAMS, KB11_LEAGUE, KB11_SQUADS, KB11_POSITIONS,
+  KB11_MATCH, KB11_MATCHES, KB11_PLAYER_STATS, KB11_TEAM_STATS,
+};
+
+/**
+ * The collection's accounts, teams and matches, looked up rather than hardcoded.
+ *
+ * `scripts/seed-11.mjs --rebuild` deletes and recreates both accounts, and every
+ * id changes when it does. A spec that carried an id would then point at a
+ * deleted row - the lesson collections 12 and 02 both learned.
+ *
+ * Matches come back keyed by the `key` in lib/fixtures-11.mjs, matched on their
+ * date. The four dates are distinct, which is what makes that safe.
+ */
+export async function fixtures11() {
+  const session = async (email: string) => {
+    const token: string = (await mintSession(email)).idToken;
+    const me = (await asUser(token, '/users/me')).body?.data;
+    if (!me?.playerId) throw new Error(`${email} is not seeded. Run: node scripts/seed-11.mjs`);
+    return {
+      email, token, id: String(me.id), playerId: String(me.playerId), membership: me.membership,
+    };
+  };
+  const player = await session(KB11.player);
+  const owner = await session(KB11.owner);
+
+  const teams = (await asUser(owner.token, '/teams?all=true')).body?.data ?? [];
+  const byName = (name: string) => {
+    const row = teams.find((t: any) => t.name === name);
+    if (!row) throw new Error(`Fixture team "${name}" is missing. Run: node scripts/seed-11.mjs`);
+    return String(row.teamId);
+  };
+  const team = {
+    home: byName(KB11_TEAMS.home),
+    away: byName(KB11_TEAMS.away),
+    third: byName(KB11_TEAMS.third),
+  };
+
+  const played = (await asUser(
+    owner.token,
+    `/teams/${team.home}/matches?scheduleType=Past&includeIncomplete=true&limit=50&skip=0`,
+  )).body?.data?.result ?? [];
+  const match: Record<string, string> = {};
+  for (const plan of KB11_MATCHES) {
+    const day = plan.date.slice(0, 10);
+    const row = played.find(
+      (m: any) => String(m.date).slice(0, 10) === day && m.status === 'Finished',
+    );
+    if (!row) throw new Error(`Match "${plan.key}" (${day}) has not been played. Run: node scripts/seed-11.mjs`);
+    match[plan.key] = String(row.id);
+  }
+
+  const board = ((await asUser(owner.token, '/leaderboards')).body?.data ?? [])
+    .find((b: any) => b.name === KB11_LEAGUE);
+  if (!board) throw new Error(`Leaderboard "${KB11_LEAGUE}" is missing. Run: node scripts/seed-11.mjs`);
+
+  return { player, owner, team, match, leaderboard: { id: String(board.id), name: KB11_LEAGUE } };
+}
+
+/**
+ * Assert the seeded statistics are the numbers lib/fixtures-11.mjs expects.
+ *
+ * They are written asynchronously after a match finishes - measured at between
+ * 1.6 and 6.8 seconds across this collection's four matches, which is what
+ * article 11.3 is about. A capture taken before they land shows zeroes.
+ *
+ * This is a guard rather than a wait for something in progress: by the time a
+ * spec runs, the seed is long finished. It exists so a half-run seed fails here,
+ * with a readable message, rather than in a screenshot nobody looks at twice.
+ *
+ * expect.poll rather than a wait on a duration - docs/style-guide.md.
+ */
+export async function stats11Ready(fx: Awaited<ReturnType<typeof fixtures11>>) {
+  await expect.poll(async () => {
+    const s = (await asUser(fx.player.token, `/players/${fx.player.playerId}/stats`)).body?.data ?? {};
+    return {
+      totalMatches: s.winLossDraws?.totalMatches,
+      wins: s.winLossDraws?.wins,
+      losses: s.winLossDraws?.losses,
+      draws: s.winLossDraws?.draws,
+      goalsScored: s.goalsScored,
+      assists: s.assists,
+      playerOfMatch: s.playerOfMatch,
+      yellowCards: s.yellowCards,
+      redCards: s.redCards,
+    };
+  }, { timeout: 60_000, intervals: [2000] }).toEqual(KB11_PLAYER_STATS);
+
+  await expect.poll(async () => {
+    const s = (await asUser(fx.owner.token, `/teams/${fx.team.home}/stats`)).body?.data?.stats ?? {};
+    return {
+      matches: s.matches, wins: s.wins, draws: s.draws, losses: s.losses,
+      goals: s.goals, conceded: s.conceded, cleanSheets: s.cleanSheets,
+      winStreak: s.winStreak, yellowCards: s.yellowCards, playerOfMatch: s.playerOfMatch,
+    };
+  }, { timeout: 60_000, intervals: [2000] }).toEqual(KB11_TEAM_STATS);
+}
+
+/**
+ * Open a match page and wait for it to have finished loading.
+ *
+ * Never `waitUntil: 'networkidle'` here. The match screen holds a live presence
+ * connection open - the ONLINE badge on the feed - so the network never goes
+ * idle and the navigation times out at 30 seconds every time. Wait for content.
+ *
+ * `marker` is text that proves the section this spec cares about has arrived.
+ * The tab strip, the banner and the section headings all paint before any fetch
+ * lands, so none of them is a safe gate.
+ */
+export async function openMatch(page: Page, matchId: string, marker: string) {
+  await page.goto(`/match/${matchId}`, { waitUntil: 'domcontentloaded' });
+  await expect(onScreen(page.getByText(marker, { exact: true })).first())
+    .toBeVisible({ timeout: 30_000 });
+}
+
+/**
+ * One section of the match page, by the id its tab scrolls to.
+ *
+ * `match-details`, `feed`, `facts`, `lineup`, `payment`, `keys`. These are the
+ * app's own anchors, and each is also carried on a `data-tour` attribute, so
+ * they are as stable as anything on this screen gets - far more so than walking
+ * up from a heading, because every card here sits four unnamed divs deep.
+ */
+export function matchSection(page: Page, id: string) {
+  return page.locator(`#${id}`);
+}
+
+/**
+ * The white card inside a match section, rather than the section wrapper.
+ *
+ * `#facts` is a bare wrapper whose box starts a few pixels above the card it
+ * holds, and those pixels are the banner photo behind - a clip of the wrapper
+ * comes back with a dark seam along its top edge. The card itself is the only
+ * child.
+ */
+export function matchSectionCard(page: Page, id: string) {
+  return matchSection(page, id).locator('> div').first();
+}
+
+/**
+ * One tab trigger on the match page, by its label.
+ *
+ * The strip is rendered twice - a wide layout and a narrow one - and both copies
+ * carry the same accessible name, so `onScreen()` is what disambiguates them.
+ *
+ * NOT `[data-tab-trigger="facts"]`. That attribute is only on the copy that is
+ * off-screen at 1440 wide, so the obvious-looking selector resolves to nothing
+ * visible and the capture fails with "element(s) not found". The labels are upper
+ * case in the DOM here - `FACTS`, not `Facts` - unlike the team page's, which are
+ * upper-cased by CSS.
+ *
+ * And there is no clipping the strip as a whole. Both `[role="tablist"]`
+ * containers have **zero height** - one is `h-0 p-0` and the other has no box at
+ * all - and the tabs overflow them, so `onScreen()` discards both and falls
+ * through to the Pay tablist in the payment section 3,200 pixels down the page.
+ * That is what 11.1's first capture came back as on its first run. Where a shot
+ * needs the strip in it, take the viewport.
+ */
+export function matchTab(page: Page, label: string) {
+  return onScreen(page.getByRole('tab', { name: label, exact: true })).first();
+}
+
+/**
+ * The Insights or the Statistics so far panel inside the Facts card.
+ *
+ * Both are bordered boxes headed by a blue paragraph. Found from that heading
+ * and walked up one bordered ancestor, which is the box itself.
+ */
+export async function factsPanel(page: Page, heading: 'Insights' | 'Statistics so far') {
+  const h = onScreen(matchSection(page, 'facts').getByText(heading, { exact: true })).first();
+  await expect(h).toBeVisible();
+  const box = h.locator('xpath=ancestor::div[contains(@class,"rounded-xl")][contains(@class,"border")][1]');
+  await expect(box.getByText(heading, { exact: true })).toBeVisible();
+  return box;
+}
+
+/**
+ * The grid of ten statistic tiles on a TEAM page.
+ *
+ * Collection 02's statTiles() finds the PLAYER grid, by a label only the player
+ * grid carries. This one uses Clean sheets, which only the team grid carries.
+ * The two grids share six labels and differ in four, and picking the wrong one
+ * is silent: both are ten tiles in the same layout.
+ */
+export async function teamStatTiles(page: Page) {
+  const grid = statTile(page, 'Clean sheets')
+    .locator('xpath=ancestor::div[contains(@class,"grid")][1]');
+  await expect(grid.getByText(/^winning streaks$/i)).toBeVisible();
+  await expect(grid.getByText(/^goals \/ conceded$/i)).toBeVisible();
+  return grid;
+}
+
+/**
+ * One of the two tiles labelled CARD.
+ *
+ * They carry the same label and are told apart only by a coloured rectangle:
+ * `bg-[#FC334F]` is the red card and `bg-[#FEC43B]` the yellow one. On the tile
+ * grids red comes first; in the Player Stats and Leaderboards tables the yellow
+ * column comes first. Article 11.2 says so, because nothing on screen does.
+ */
+export function cardTile(page: Page, colour: 'red' | 'yellow') {
+  const swatch = colour === 'red' ? 'FC334F' : 'FEC43B';
+  return onScreen(page.locator(`div[class*="${swatch}"]`)).first()
+    .locator('xpath=ancestor::div[contains(@class,"rounded-lg")][contains(@class,"border")][1]');
+}
+
+/**
+ * The per-player table behind a team's Player Stats tab.
+ *
+ * Found from the Rank column header rather than from the tab: the tab paints
+ * before the fetch lands, and the table replaces a set of empty rows.
+ */
+export async function playerStatsTable(page: Page) {
+  const header = onScreen(page.locator('main').getByText('Rank', { exact: true })).first();
+  await expect(header).toBeVisible();
+  // NOT a rounded/bordered ancestor. Every row here is its OWN rounded card and
+  // the column headers are a bare grid, so the nearest rounded ancestor of the
+  // Rank header is the header strip alone - a clip of it comes back as eight
+  // words and no numbers, and an assertion inside it finds no player at all.
+  // The only element holding the headers and the rows together is the
+  // wide-layout wrapper.
+  const table = header.locator('xpath=ancestor::div[contains(@class,"xl:block")][1]');
+  await expect(table.getByText('Assists', { exact: true })).toBeVisible();
+  return table;
+}
+
+/**
+ * One member's row in that table, found by their position.
+ *
+ * Position is the only cell that is unique per row here: the persona is the only
+ * member with a profile, so she is the only one whose Position is anything but a
+ * dash. Matching on the name instead picks up the avatar's initials too.
+ */
+export function playerStatsRow(table: Locator, position: string) {
+  return table.getByText(position, { exact: true })
+    .locator('xpath=ancestor::div[contains(@class,"grid")][1]');
+}
+
+/**
+ * Create a match that belongs to no leaderboard, hand it to `body`, then delete
+ * it however that goes.
+ *
+ * This is the one fixture in collection 11 that a spec makes for itself, and it
+ * is the only way to photograph the Facts tab's empty state: insights and
+ * statistics are absent exactly when a match has no leaderboard. That was
+ * isolated on staging against the match tag, the other candidate - a friendly
+ * that IS in a leaderboard has full insights. The tag here is `league`, the same
+ * as the four seeded matches, so nothing in the capture suggests otherwise.
+ *
+ * The date is fixed and far in the future for two reasons. A match whose date
+ * has passed cannot be deleted - DELETE answers "Date must be at least one hour
+ * ahead of the current time" - and a match created with a past date starts
+ * itself within seconds. A fixed future date is a deliberate trade: it goes
+ * stale eventually, and 2027-09-09 buys a year of runs.
+ */
+export async function withoutLeaderboard(
+  fx: Awaited<ReturnType<typeof fixtures11>>,
+  body: (matchId: string) => Promise<void>,
+) {
+  const sheet = async (teamId: string, names: string[]) => {
+    const rows = ((await asUser(fx.owner.token, `/teams/${teamId}/players?includeFans=true`))
+      .body?.data ?? []).filter((m: any) => !m.isDeleted);
+    return names.map((name, i) => {
+      const row = rows.find(
+        (m: any) => [m.player?.name, m.player?.lastName].filter(Boolean).join(' ') === name,
+      );
+      if (!row) throw new Error(`${name} is not on ${teamId}. Run: node scripts/seed-11.mjs`);
+      return { teamPlayerId: String(row.id), position: KB11_POSITIONS[i] };
+    });
+  };
+  const made = await asUser(fx.owner.token, '/matches', {
+    method: 'POST',
+    body: {
+      homeTeam: {
+        teamId: fx.team.home,
+        formation: KB11_MATCH.formation,
+        players: await sheet(fx.team.home, KB11_SQUADS.home.lineup),
+      },
+      awayTeam: {
+        teamId: fx.team.away,
+        formation: KB11_MATCH.formation,
+        players: await sheet(fx.team.away, KB11_SQUADS.away.lineup),
+      },
+      date: '2027-09-09T18:00:00.000Z',
+      duration: KB11_MATCH.duration,
+      teamSize: KB11_MATCH.teamSize,
+      tag: KB11_MATCH.tag,
+    },
+  });
+  if (!made.ok) throw new Error(`POST /matches (no leaderboard): ${JSON.stringify(made.body)}`);
+  const matchId = String(made.body.data.id);
+  try {
+    await body(matchId);
+  } finally {
+    const gone = await asUser(fx.owner.token, `/matches/${matchId}`, { method: 'DELETE' });
+    if (!gone.ok) {
+      throw new Error(
+        `DELETE /matches/${matchId}: ${gone.status} ${JSON.stringify(gone.body)} - delete it by hand`,
+      );
+    }
+  }
+}
