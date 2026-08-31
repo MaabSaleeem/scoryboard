@@ -24,7 +24,7 @@ import {
   fixtures08, table08Ready, restoreLeagueTeams,
   KB08, KB08_LEAGUE, KB08_TEAMS,
   leaderboardListReady, loadOwnTeams08, settings08Ready, board08Section, dialog08,
-  leagueTeamRow, leagueTeamRemove,
+  leagueTeamRow, leagueTeamsList, leagueTeamRemove,
 } from '../../lib/kb';
 
 test.describe('08.3 Adding and removing teams', () => {
@@ -90,11 +90,19 @@ test.describe('08.3 Adding and removing teams', () => {
       await expect(cont).toBeEnabled();
       await shot(page, '08.3', '04-add-team-chosen', { clip: dlg, clipPad: 24, annotate: cont });
 
-      // 05 - four teams. Gate on the new row rather than on the window closing:
-      // the section re-reads /leaderboards/:id/teams after the POST.
+      // 05 - four teams under Teams joined. Gate on the new row rather than on the
+      // window closing: the section re-reads /leaderboards/:id/teams after the
+      // POST. Clipped to the list, so the new row is the whole subject.
       await cont.click();
       const four = await board08Section(page, 'TEAMS');
       await expect(four.getByText(KB08_TEAMS.athletic, { exact: true })).toBeVisible();
+      // The whole section, like shot 01 and shot 06. Clipping tighter does not
+      // work: pad it small and the "Teams joined" label above is sliced through
+      // the letters; pad it enough to include the label and the Remove column at
+      // the right is sliced instead, because a Remove button is absolutely
+      // positioned outside this container. A sliced control is worse than a wider
+      // frame. What changes between 05 and 06 is which control the article is
+      // pointing at.
       await shot(page, '08.3', '05-teams-section-four', {
         clip: four, annotate: leagueTeamRow(page, KB08_TEAMS.athletic), mask,
       });
@@ -103,10 +111,18 @@ test.describe('08.3 Adding and removing teams', () => {
       // point is that there is no second step after this click. Each row carries
       // two Remove buttons, one per layout, and only one has a box - hence
       // onScreen() inside leagueTeamRemove().
+      //
+      // Clipped to the whole TEAMS section, which is the smallest thing that
+      // actually contains a Remove button. Each one is `position: absolute` and
+      // is placed to the right of its own row, so it falls outside both the row's
+      // box and the rows list's box - two runs of this spec came back with no
+      // control in the picture before that was pinned down. The wider frame also
+      // shows the reader that Remove sits opposite the row it belongs to.
       const remove = leagueTeamRemove(page, KB08_TEAMS.athletic);
       await expect(remove).toBeVisible();
+      const section = await board08Section(page, 'TEAMS');
       await shot(page, '08.3', '06-team-row-remove', {
-        clip: leagueTeamRow(page, KB08_TEAMS.athletic), clipPad: 16, annotate: remove,
+        clip: section, annotate: remove, mask,
       });
 
       // The click that restores the fixture. Not a capture - there is nothing new

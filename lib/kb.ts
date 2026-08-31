@@ -3084,10 +3084,36 @@ export async function board08Section(page: Page, heading: string) {
   return card;
 }
 
-/** One team's row in the Teams section of Edit Leaderboard. */
+/**
+ * One team's row in the Teams section of Edit Leaderboard.
+ *
+ * Found from the bordered card the name sits in, then up one level - because the
+ * row's two Remove buttons are siblings of that card, not children of it.
+ *
+ * The obvious `ancestor::div[contains(@class,"relative")][1]` does not work, and
+ * it cost 08.3 a capture run: the team name is wrapped in its own
+ * `div.overflow-hidden.relative` for the marquee that truncates long names, so
+ * the nearest `relative` ancestor is inside the card and contains no buttons at
+ * all.
+ */
 export function leagueTeamRow(page: Page, name: string) {
   return onScreen(page.locator('main').getByText(name, { exact: true })).first()
-    .locator('xpath=ancestor::div[contains(@class,"relative")][1]');
+    .locator('xpath=ancestor::div[contains(@class,"border") and contains(@class,"rounded-lg")][1]/..');
+}
+
+/**
+ * The list of team rows under "Teams joined", and the only thing a capture of a
+ * Remove control can be clipped to.
+ *
+ * A row's Remove button is `position: absolute` and sits to the RIGHT of the
+ * bordered card, so it falls outside the row's own bounding box - clip to the row
+ * and the button is not in the picture. 08.3's first run proved it: shot 06 came
+ * back as a bare team name with no control and no outline in it. This container
+ * spans the full column, so it holds the cards and the buttons both.
+ */
+export function leagueTeamsList(page: Page) {
+  return onScreen(page.locator('main').getByText('Teams joined', { exact: true })).first()
+    .locator('xpath=following-sibling::div[1]');
 }
 
 /**
