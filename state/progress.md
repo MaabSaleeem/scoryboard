@@ -20,7 +20,7 @@ target.
 | 05 | Friends | 5 | 26 | manager_free | drafts on Intercom | [briefs/05.md](../briefs/05.md) | 26 screenshots. **05.1-05.4 published by the reviewer 2026-08-31; 05.5 is a draft.** Collection 06 was retired into this one 2026-08-31 - 06.1 became 05.5. Found that a **refused Add To Team deletes the friend** (ONE_FRIEND_PER_TEAM), which also answers collection 04's open question 1. Accounts: `kb-manager-free-05@`, `kb-05-mate@`, `kb-05-player@`, `kb-05-invitee@`. `kb-05-claimer@` is burnt - see the session log |
 | ~~06~~ | ~~Following~~ | - | - | - | **retired** | - | **RETIRED 2026-08-31, merged into 05.** 06.1 became 05.5. Intercom collection 19733975 was empty before the merge and is empty after it; it must not be reused |
 | 07 | Teams | 11 | 63 | manager_pro | published | [briefs/07.md](../briefs/07.md) | 63 screenshots. **All eleven published by the reviewer 2026-08-29.** 07.7 and 07.9 retitled - the app has no ownership transfer and no Fan role. Accounts: `kb-manager-pro-07@`, `kb-fresh-07@`, six `kb-07-*@` |
-| 08 | Leaderboards & leagues | 5 | 30 | manager_pro | not started | - | - |
+| 08 | Leaderboards & leagues | 5 | 30 | manager_pro | drafts on Intercom | [briefs/08.md](../briefs/08.md) | 30 screenshots. Found that **removing a team from a leaderboard has no confirmation at all**, that the league table carries **no points, no draws and no goals conceded**, that the Share Leaderboard "public link" sends a signed-out visitor to `/signin`, and that a comment can never be deleted - `DELETE /comments/:id` answers 401 even to its author. The **External** badge on a team row means "not one of your own", and it wrongly marks the owner’s own teams until the account has opened `/teams` once. Four accounts: `kb-manager-pro-08@`, `kb-08-admin@`, `kb-08-free@`, `kb-08-outsider@`. Four played matches; they cannot be undone |
 | 09 | Creating & scheduling matches | 7 | 44 | manager_pro | not started | - | - |
 | 10 | Match day | 10 | 60 | manager_pro | not started | - | - |
 | 11 | Match insights & statistics | 3 | 9 | player | drafts on Intercom | [briefs/11.md](../briefs/11.md) | 9 screenshots. 11.1 retitled - the app has no form guide and no head-to-head record. Found that **a match outside a leaderboard writes no statistics at all** and that a player counts the matches they were in the LINEUP for. Accounts: `kb-player-11@`, `kb-11-owner@`. Four played matches; they cannot be undone. **All three published by the reviewer 2026-08-31, then all three rewritten for clarity and republished** |
@@ -2129,6 +2129,153 @@ full three-spec suite passed in one go afterwards. The seed reported zero writes
 after it.
 
 Next: `/kb-brief 08`, which needs the leaderboard-route question answered first.
+
+### 2026-08-31 - collection 08. All five articles are drafts.
+
+| Article | Title as published | Intercom ID | Shots | Pinned commit |
+|---|---|---|---|---|
+| 08.1 | Creating a leaderboard | 16760527 | 7 | `217f65f` |
+| 08.2 | Your leaderboard settings screen | 16760641 | 6 | `f908fa3` |
+| 08.3 | Adding and removing teams | 16760678 | 6 | `f8c3ece` |
+| 08.4 | Leaderboard statistics, players and matches | 16760742 | 6 | `0ae3932` |
+| 08.5 | Sharing, commenting on and deleting a leaderboard | 16760763 | 5 | `83c9706` |
+
+All five sit in Intercom collection `19733977`, all `state: "draft"`, all with
+`parent_ids: [19733977]`. Thirty screenshots. Every embedded image URL was
+re-fetched off the published article bodies at the end of the run: **30/30 return
+200 with an `image/*` content type**, and no article carries `<ol start=`.
+
+**The drafts are unreviewed and nothing is published.**
+
+Titles are as `config/articles.yaml` writes them. Nothing was added, dropped or
+retitled. 08.1 has seven shots rather than eight and 08.2 has six rather than
+five, both with reasons in the brief; the collection total is the 30 the map
+estimated.
+
+### What collection 08 found
+
+Appended to `config/api.md`, marked `(observed in app, 2026-08-31)`.
+
+- **The league table has no points column, no draws column and no
+  goals-conceded column.** `GET /leaderboards/:id/stats/teams` carries none of
+  them either. Win/Loss reads "1/1", and a draw is only the gap between Matches
+  and win + loss. The fixture was built so one row proves it: KB 08 Rovers,
+  played 3, won 1, lost 1.
+- **Removing a team from a leaderboard has no confirmation.** One click and
+  `DELETE /leaderboards/:id/teams/:teamId` has fired. Adding it back restores its
+  figures, but nothing warns you first. Deleting the leaderboard itself *is*
+  confirmed, from both entry points.
+- **A comment can never be taken back.** `DELETE /comments/:commentId` exists,
+  is not in the Postman collection, and answers `401 "Unauthorized to delete this
+  comment"` to the account that wrote it. And `GET /comments` returns top-level
+  comments only - a reply lives behind `/comments/:id/replies` and is invisible to
+  that listing. The seed posted its reply twice on the first run because of it,
+  and the only repair was `--rebuild`.
+- **Commenting and liking on a leaderboard are members-only.** `403 "Only
+  leaderboard members can comment on or like leaderboard content"` to anybody who
+  is neither Owner, Administrator, nor a player on one of its teams - although the
+  composer is still drawn for them.
+- **A non-member reads more than you would guess.** The league table, the player
+  grid, the fixtures and the comments all answer 200 to anybody signed in.
+  `/leaderboards/:id/teams` and `/leaderboards/:id/players` answer 403.
+- **The Share Leaderboard "public link" is not public.** It offers a link, a copy
+  button and a QR code under "People with this link can view your board", and a
+  signed-out visitor who opens it is sent to `/signin`. The QR code's own `<title>`
+  says "tournament" on a leaderboard.
+- **`Leaderboard style` is a disabled field reading "Football leaderboard"** on
+  both screens that show it, and the in-app Create window does not show it at all.
+- **The Free create-leaderboard gate is client-side** - selecting Create New
+  Leaderboard on Free opens Leaderboard Limit Reached and sends no POST, so the
+  reader never sees the form. Every account is born with one leaderboard, so a
+  Free account is at the limit from the moment it exists.
+- **An Administrator gets the whole settings screen**, Delete Leaderboard
+  included. A non-owner gets the app's error boundary - "This page couldn't load"
+  - with no API call and no Access-denied screen.
+- **The Views tile comes from `GET /profile-view/leaderboard/:id/viewers`**, which
+  is not in the Postman collection.
+- **A match created with no `clubLocationId` is `Incomplete`, not `Scheduled`**,
+  and the Matches tab offers Finish Setup instead of a fixture card. `PUT` with a
+  venue fixes it, on a future match only.
+
+### The External badge, and the capture it spoiled
+
+08.2's first capture of the settings screen showed all three of the owner's own
+teams badged **External**. It is not a role marker: it marks a team that is not one
+of *your own*, and it is computed against the `teams` slice of the app's persisted
+Redux store - which **only `/teams` fills**. `/leaderboards` fires
+`GET /teams?all=true` as well, and the answer never reaches the slice. So a session
+that signs in and goes straight to a leaderboard marks every team the reader owns
+External, indefinitely: ten seconds on the list changed nothing, and one visit to
+Manage Teams fixed it and stayed fixed across a full page load.
+
+`loadOwnTeams08()` opens `/teams` before every owner-view capture and
+`ownTeamsResolved()` gates on the badge count being zero. 08.2's article carries it
+as a troubleshooting line, because a reader can hit it too.
+
+### What else was fixed mid-run
+
+Every one of these was found by looking at a screenshot, not at an exit code.
+
+- **Three different things on these pages are a red circle**, and the mask was
+  hitting two of them. The unread badge is `w-5 h-5 absolute`; the dot marking an
+  unregistered player is `h-2.5 absolute`; a player's initials avatar is neither,
+  because the avatar palette includes `bg-red-500`. One run painted out a player's
+  face; the next turned all fifteen dots into black squares.
+- **A hover highlight.** Playwright leaves the mouse where it last clicked and
+  these tables shade the row under it, so one row came out shaded for no reason a
+  reader could see. `parkPointer()`.
+- **A spinner** under the comment thread: "Comments (1)" paints before the reply
+  counts land. `settled08()` waits on `.animate-pulse` and `.animate-spin`.
+- **Four locators walked to the wrong element** - the team row (its name is
+  wrapped in a marquee `div.relative`), both stats tables (CSS grids with no
+  `rounded` ancestor on a header cell) and the fixture card (several `rounded`
+  descendants). All four are found by structure now.
+- **A Remove button is `position: absolute`** and sits outside its own row's box,
+  so two attempts at a tight clip came back with no control in the picture. 08.3's
+  last two shots are the whole TEAMS section; what changes between them is which
+  control the article points at.
+- **The board header shot** clipped to the banner card alone and showed footballs
+  with neither the tiles nor the tab strip. It is a viewport capture now.
+- **08.5's share window is unmasked.** The plan masked the link and the QR code;
+  doing it filled most of the window with two black slabs and hid the copy button
+  with them. docs/style-guide.md, in the paragraph that lists QR codes: "Do not
+  mask the thing the article is about."
+
+### Where to look hard in 08
+
+- **08.5 says the Owner or an Administrator can delete a leaderboard.** An
+  Administrator is given the whole DELETE LEADERBOARD section and its button, and
+  that is what the article is written from. **It was not tested** - confirming it
+  would have destroyed four unrepeatable matches. If the API refuses an
+  Administrator, that line is wrong.
+- **08.2 says an administrator added by email is matched to their account.** True
+  for an address that already has one - the id returned is that account's own
+  `playerId` and they immediately read the board with `isAdmin: true`. What happens
+  to an address with no account was not tested.
+- **08.4 says Compare needs Pro.** Read off `config/api.md`'s list of client-side
+  gates rather than seen refused: the persona is Pro, so the control was live.
+- **08.5 says a non-member's comment is refused.** Proved over the API, not
+  through the browser - the refusal raises an error toast, which the style guide
+  will not have in a capture. What the reader actually sees on screen is unknown.
+- **`adminPlayers[].isRegistered` reads `false` for an account that exists.**
+  Assumed to be a bug in that field. No article repeats it.
+
+### Flake
+
+None. The five specs were run individually while their captures were fixed, then
+the whole seven-test suite was run in one go and passed. The seed reported zero
+writes afterwards, and the league was back to three teams.
+
+### A leftover session from another collection
+
+The in-app browser this session opened was still signed in as
+`kb-player-11@yopmail.com`, collection 11's persona. Its Leaderboards list was on
+screen before anything was typed. Nothing was changed and no call was made as her;
+the storage was cleared and the rest of the exploration ran through Playwright in
+its own context. Worth knowing that the shared browser keeps a session between
+sessions.
+
+Next: pick from the remaining collections - 09, 10, 15, 17, 18, 19, 20, 21, 22, 24.
 
 ### The remaining collections were filtered - 2026-08-29
 

@@ -1259,6 +1259,96 @@
       ],
       "published_at": "2026-08-31T08:25:00.000Z",
       "status": "published"
+    },
+    "08.1": {
+      "intercom_id": "16760527",
+      "collection": "08",
+      "intercom_collection_id": "19733977",
+      "brief": "briefs/08.md",
+      "spec": "specs/08/08.1.spec.ts",
+      "commit_sha": "217f65fc8e67591235f7598ab4f615ef3d77707d",
+      "screenshots": [
+        "screenshots/08/08.1/01-leaderboards-list.a122a7b3.png",
+        "screenshots/08/08.1/02-create-window-pro.9491e8b3.png",
+        "screenshots/08/08.1/03-create-window-named.4145a0ab.png",
+        "screenshots/08/08.1/04-list-after-create.a2733d31.png",
+        "screenshots/08/08.1/05-new-board-empty.ae07ff4a.png",
+        "screenshots/08/08.1/06-leaderboards-list-free.6c7f8628.png",
+        "screenshots/08/08.1/07-limit-modal-free.9583f138.png"
+      ],
+      "published_at": "2026-08-31T12:44:11.000Z",
+      "status": "draft"
+    },
+    "08.2": {
+      "intercom_id": "16760641",
+      "collection": "08",
+      "intercom_collection_id": "19733977",
+      "brief": "briefs/08.md",
+      "spec": "specs/08/08.2.spec.ts",
+      "commit_sha": "f908fa3622f3e47394eecbef31445a014f03507b",
+      "screenshots": [
+        "screenshots/08/08.2/01-settings-full.05cee662.png",
+        "screenshots/08/08.2/02-appearance.5f644add.png",
+        "screenshots/08/08.2/03-basic-information.6b7ccce5.png",
+        "screenshots/08/08.2/04-roles.aa2ba0f8.png",
+        "screenshots/08/08.2/05-add-admin-window.4e7b366f.png",
+        "screenshots/08/08.2/06-settings-blocked.771009fb.png"
+      ],
+      "published_at": "2026-08-31T13:01:34.000Z",
+      "status": "draft"
+    },
+    "08.3": {
+      "intercom_id": "16760678",
+      "collection": "08",
+      "intercom_collection_id": "19733977",
+      "brief": "briefs/08.md",
+      "spec": "specs/08/08.3.spec.ts",
+      "commit_sha": "f8c3ece7315e1f33b9ad1392336d4e886694b6f9",
+      "screenshots": [
+        "screenshots/08/08.3/01-teams-section-three.91d15999.png",
+        "screenshots/08/08.3/02-add-team-window.2394873d.png",
+        "screenshots/08/08.3/03-add-team-picker.b0366c54.png",
+        "screenshots/08/08.3/04-add-team-chosen.62a7275b.png",
+        "screenshots/08/08.3/05-teams-section-four.742e489c.png",
+        "screenshots/08/08.3/06-team-row-remove.8fae2fe6.png"
+      ],
+      "published_at": "2026-08-31T13:09:34.000Z",
+      "status": "draft"
+    },
+    "08.4": {
+      "intercom_id": "16760742",
+      "collection": "08",
+      "intercom_collection_id": "19733977",
+      "brief": "briefs/08.md",
+      "spec": "specs/08/08.4.spec.ts",
+      "commit_sha": "0ae393231d3108df40d77e9f9d4ecf0f0856f493",
+      "screenshots": [
+        "screenshots/08/08.4/01-board-header.6e970273.png",
+        "screenshots/08/08.4/02-team-stats.98351adc.png",
+        "screenshots/08/08.4/03-player-stats.7d203b89.png",
+        "screenshots/08/08.4/04-matches-upcoming.732360db.png",
+        "screenshots/08/08.4/05-matches-past.ce2e0ca9.png",
+        "screenshots/08/08.4/06-matches-team-filter.d8e74065.png"
+      ],
+      "published_at": "2026-08-31T13:18:04.000Z",
+      "status": "draft"
+    },
+    "08.5": {
+      "intercom_id": "16760763",
+      "collection": "08",
+      "intercom_collection_id": "19733977",
+      "brief": "briefs/08.md",
+      "spec": "specs/08/08.5.spec.ts",
+      "commit_sha": "83c9706e32ececf533f700145fae6d1a11585328",
+      "screenshots": [
+        "screenshots/08/08.5/01-card-share-control.e4daf621.png",
+        "screenshots/08/08.5/02-share-window.8cc3fceb.png",
+        "screenshots/08/08.5/03-comments-panel.91805bf8.png",
+        "screenshots/08/08.5/04-comment-typed.af73e7da.png",
+        "screenshots/08/08.5/05-delete-window.88813b41.png"
+      ],
+      "published_at": "2026-08-31T13:22:13.000Z",
+      "status": "draft"
     }
   }
 }
