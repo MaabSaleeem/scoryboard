@@ -23,7 +23,7 @@ target.
 | 08 | Leaderboards & leagues | 8 | 40 | manager_pro | not started | - | - |
 | 09 | Creating & scheduling matches | 8 | 50 | manager_pro | not started | - | - |
 | 10 | Match day | 11 | 65 | manager_pro | not started | - | - |
-| 11 | Match insights & statistics | 3 | 9 | player | drafts on Intercom | [briefs/11.md](../briefs/11.md) | 9 screenshots. 11.1 retitled - the app has no form guide and no head-to-head record. Found that **a match outside a leaderboard writes no statistics at all** and that a player counts the matches they were in the LINEUP for. Accounts: `kb-player-11@`, `kb-11-owner@`. Four played matches; they cannot be undone. **All three published by the reviewer 2026-08-31; 11.2 and 11.3 rewritten for clarity and republished afterwards** |
+| 11 | Match insights & statistics | 3 | 9 | player | drafts on Intercom | [briefs/11.md](../briefs/11.md) | 9 screenshots. 11.1 retitled - the app has no form guide and no head-to-head record. Found that **a match outside a leaderboard writes no statistics at all** and that a player counts the matches they were in the LINEUP for. Accounts: `kb-player-11@`, `kb-11-owner@`. Four played matches; they cannot be undone. **All three published by the reviewer 2026-08-31, then all three rewritten for clarity and republished** |
 | 12 | Tournaments - setting one up | 10 (+2) | 80 | organiser | published | [briefs/12.md](../briefs/12.md) | 12 published, 80 screenshots. 12.11 and 12.12 added for Padel; not in the map |
 | 13 | Tournaments - groups, brackets & phases | 11 | 55 | organiser | drafts on Intercom | [briefs/13.md](../briefs/13.md) | flag: TOURNAMENT_FEATURE_ENABLED. 11 drafts, 55 screenshots. 13.8 retitled. Account: kb-organiser-13@yopmail.com |
 | 14 | Tournaments - the fixture schedule | 8 | 37 | organiser | drafts on Intercom | [briefs/14.md](../briefs/14.md) | flag: TOURNAMENT_FEATURE_ENABLED. 8 drafts, 37 screenshots. 14.5 retitled - fixtures cannot be deleted. Account: kb-organiser-14@yopmail.com |
@@ -1946,7 +1946,14 @@ team's own rather than repeating the seven it shares with the player grid. 11.3'
 opening dropped "nothing announces it". No screenshot changed, so both are still
 pinned to the commits above, and `scripts/publish-article.mjs` read the live state
 off Intercom and left them published rather than knocking them back to draft.
-11.1 was not touched.
+
+**11.1 was given the same pass straight afterwards.** Its opening became a
+two-item list instead of one compound sentence; "It is the easiest thing to
+misread on the screen, because the two teams sit either side of one label" was cut
+as the same kind of leak; and the "Drawn is worked out, not counted" paragraph was
+dropped outright - how the app derives that figure is not something a reader needs.
+So all three articles have had the pass, none of the nine screenshots changed, and
+all three are still published.
 
 ### 11.1 is retitled, and it matters
 
