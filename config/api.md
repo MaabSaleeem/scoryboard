@@ -687,6 +687,23 @@ a **Finish Setup** button instead of a fixture card. `PUT /matches/:id` with
 offers **Match Settings**. A future match can still be edited this way; a match
 whose date has passed cannot. Collection 09 owns the article.
 
+**Completed by collection 09, 2026-08-31.** The venue is one of **seven** fields,
+not the only one. Isolated by posting a full body and dropping one field at a
+time; each of these on its own leaves the match `Incomplete`:
+
+`homeTeam`, `awayTeam`, `leaderboardId`, `clubLocationId`, `date`, `duration`,
+`teamSize`.
+
+Two are **not** required: `tag` (it defaults to `friendly`) and the line-ups (a
+match with two empty `players[]` arrays goes `Scheduled`).
+
+The `leaderboardId` requirement is the surprising one - **a friendly with no
+league still has to be attached to a leaderboard** before the app calls it
+Scheduled. And the change is one-way: `PUT {clubLocationId: null}` and
+`{leaderboardId: null}` are both refused ("Invalid input"), `{clubLocationId: ""}`
+answers "Invalid ObjectId". A Scheduled match can never be pushed back to
+Incomplete.
+
 ### Leaderboard app routes
 
 **(observed in app, 2026-08-31.)**
@@ -745,8 +762,8 @@ Comment edit and delete are not in the collection. See
 |---|---|---|---|
 | POST | `/matches` | Create a match | `homeTeam{teamId, formation, players[{teamPlayerId, position}]}`, `awayTeam{...}`, `date` (ISO), `duration` (e.g. `"60 min"`); optional `clubLocationId`, `teamSize` (e.g. `"5 VS 5"`), `bookingId`, `tag` (e.g. `friendly`, `league`) |
 | PUT | `/matches/:matchId` | Update anything on the match | any of `date`, `clubLocationId`, `leaderboardId`, `duration`, `teamSize`, `homeTeam`, `awayTeam` (lineup and formation), `bannerToken` |
-| DELETE | `/matches/:matchId` | Delete a match | - |
-| POST | `/matches/:matchId/status` | Start, pause, finish | `status`: `Scheduled`, `Live`, `Paused`, `Finished`. **(observed in app, 2026-08-29)** A **Finished match is permanent**: this answers "Cannot update status of a Finished match", `PUT` answers "Cannot update match of a Finished match", and `DELETE` answers "Date must be at least one hour ahead of the current time" for any match whose date has passed. A player's statistics survive even the deletion of the team the match was played for. There is no way to undo a played match |
+| DELETE | `/matches/:matchId` | ~~Delete a match~~ **Cancel** a match. **(observed in app, 2026-08-31)** It does not delete: it answers `{"message":"Match cancelled successfully"}` and sets `status: "Cancelled"`. The row survives and still answers 200 by id - it simply stops appearing in the calendar, in a team's match lists and in a leaderboard's. It is what the gear menu's **Cancel Match** does, and it is a clean way for a spec to dispose of a match it created. `PUT /matches/:id {"status":"Cancelled"}` does the same and works on an Incomplete match, which `POST /status` refuses | - |
+| POST | `/matches/:matchId/status` | Start, pause, finish | `status`: `Scheduled`, `Live`, `Paused`, `Finished`. **(observed in app, 2026-08-31)** There is a sixth status, `Cancelled`, and this endpoint cannot set it - see `DELETE` below. It also refuses everything while a match is `Incomplete`: "Cannot update status of a Incomplete match". A `Cancelled` match *can* be revived with `{"status":"Scheduled"}`, but no control in the web app does that. **(observed in app, 2026-08-29)** A **Finished match is permanent**: this answers "Cannot update status of a Finished match", `PUT` answers "Cannot update match of a Finished match", and `DELETE` answers "Date must be at least one hour ahead of the current time" for any match whose date has passed. A player's statistics survive even the deletion of the team the match was played for. There is no way to undo a played match |
 | GET | `/matches/:matchId/Calendar` | Calendar entry (capital C, as in the collection) | - |
 | GET | `/matches/:matchId/league` | League table for a league match | - |
 | GET | `/matches/:id/facts` | Match facts and insights. ~~admin key~~ **(observed in app, 2026-08-31)** the app calls it with the signed-in **user's** bearer token, on every match page. 200 for a player in the lineup. See [The Facts tab](#the-facts-tab---what-the-two-panels-actually-are) | - |
@@ -809,6 +826,103 @@ writing 10.6 and 10.8.
 | DELETE | `/matches/:matchId/events/:eventId` | Delete an event | - |
 | POST | `/matches/:id/events/media` | Upload feed media, returns a token | multipart, field `media` |
 | GET | `/matches/:matchEventId/media/:filename` | Fetch feed media | - |
+
+### Match app routes, and what the match page shows whom
+
+**(observed in app, 2026-08-31, by collection 09.)** Recorded by wrapping
+`window.fetch` in the page for a whole exploration, and by opening the same match
+as four accounts.
+
+| Route | Screen |
+|---|---|
+| `/matches/:id` | the match page. **`/matches` with no id is Page not found** |
+| `/match/:id/preview` | the "public link" the Share window hands out |
+| `/schedule` | **Scheduled Matches** - the calendar. Three views: Day (`lucide-list`), Week (`lucide-columns2`), Month (`lucide-grid3x3`, the default and the only one labelled) |
+| `/match/create` | in the route enum, **dead**. Create Match posts a match and goes to `/matches/:id` |
+| `/match/invite` | in the route enum, **dead**. Renders the match-page shell with empty tabs. Nothing in the bundle navigates to it |
+| `/match/congratulations` | in the route enum, never reached |
+
+The heading is the role tell:
+
+| Who | Heading | Header controls | Gear menu | START MATCH |
+|---|---|---|---|---|
+| Owner | Match Settings | Add to Calendar, Show Tour, gear | Configure appearance / Edit / Cancel Match | yes |
+| team Administrator | Match Settings | same | same | yes |
+| assigned referee | *(no heading)* | same | same | yes. No PAYMENT tab |
+| anybody else | **Match Preview (View Only)** | none | none | no |
+
+Two things about that header. **Add to Calendar and Show Tour appear only once the
+match is Scheduled** - an Incomplete match has the gear alone, so a half-built
+match can still be cancelled from the app. And **none of the three has an id, an
+aria-label or a test id**; the only stable handles are `#show-tour-button` (which
+is absent while the match is Incomplete) and the `lucide-calendar` icon on the Add
+to Calendar button.
+
+**A team the reader does not own renders as a placeholder** until the app has
+loaded `/teams` once in that session. Open `/matches/:id` straight from the
+address bar as somebody who is not the owner of both sides and the page reads
+"Add Away Team", "Not set" for the leaderboard and the referee, and "Location not
+set" for the venue - over data `GET /matches/:id` returns perfectly. Going to
+`/teams` and back renders every one of them. Proved twice each way with a
+plain-Player account. Collection 08 hit the same store slice, where it showed up
+as a wrongly applied **External** badge.
+
+**The public link is not public.** A signed-out visitor at `/match/:id/preview`
+gets a **Sign In** button, five empty tab labels and grey skeletons that never
+resolve - held 20 seconds, no console error. `/matches/:id` signed out redirects
+to `/signin`. The Share window meanwhile says "People with this link can view your
+board but can't change it. This is the link you should share on social media, on
+your website or elsewhere." Second of two: collection 08 found the same class of
+defect on a leaderboard's share link.
+
+**Nobody has to be invited to a match.** Every account in either line-up gets a
+`MatchInvitation` notification when the match is created - verified, two of them
+on a squad member who was sent nothing by hand. The **referee is not notified at
+all**.
+
+### Endpoints the collection lacks, observed on the wire
+
+| Method | Path | Where |
+|---|---|---|
+| POST | `/matches` with body `{"status":"Incomplete"}` | what **Create Match** sends. From a team page it also carries `homeTeam{teamId, formation, players:[]}` and `teamSize` |
+| GET | `/players/:playerId/matches?includeIncomplete=true&startDate=&endDate=` | `/schedule` - the calendar's own source, and the only listing that carries Incomplete rows |
+| GET | `/teams?name=<query>` | the Add Team window's search box. Teams already on the match are filtered out |
+| GET | `/team-players/search?query=&searchType=referee&tournamentSelectionOnly=true&limit=&skip=` | the match **Referee** field. See below |
+| GET | `/matches/:id/payment-requests?teamIds=&limit=&skip=` | the match page's PAYMENT panel |
+| GET | `/matches/:id/payments?teamIds=&limit=&skip=` | same |
+| GET | `/promo-campaigns/active?screen=Match` | every match page load |
+| PATCH | `/players/:playerId/referee-settings` | requires `saveForFutureTournaments`; answers 403 "user does not have permission" to anybody but that player |
+| PUT | `/users/:id {"isTourCompleted": true}` | **Skip Tour** on the match page's guided tour. A full replace, so it clears the account's `bio` as a side effect - the same defect this file records for the profile photo |
+
+**The match Referee field can only offer referees you have saved.**
+`tournamentSelectionOnly=true` narrows the search to your own saved referees, and
+the only call that saves one is `POST /tournaments/:id/referee` with
+`saveForFutureTournaments: true`. Drop that parameter and the same endpoint
+searches every referee on the platform, which is presumably why it is there. So a
+football manager with no tournament reads **"No results found"** whatever they
+type. `isReferee` lives on the player record and is settable through nothing a
+user can reach: `PUT /users/:id {isReferee: true}` is ignored, `defaultProfile:
+"Referee"` sets a different field, and the PATCH above is self-only.
+
+`PUT /matches/:id {refereePlayerId}` accepts **any** playerId, referee or not, so
+a seed can put somebody on a match that a reader could never choose.
+
+### PUT /matches/:matchId - the fields the collection does not list
+
+**(observed in app, 2026-08-31.)** Beyond `date`, `clubLocationId`,
+`leaderboardId`, `duration`, `teamSize`, `homeTeam`, `awayTeam` and `bannerToken`:
+
+| Field | Notes |
+|---|---|
+| `pitchNumber` | free text. `""` clears it. Only in the gear menu's **Edit** dialog - the inline MATCH DETAILS form has no pitch field |
+| `note` | up to 250 characters, with a counter. `""` clears it. Editable both in the Edit dialog and in place on the **FEED** panel (**Add Note** when empty, **Edit** when set, then an **Edit Note** window with **Save**) |
+| `refereePlayerId` | any playerId, as above |
+| `status` | `"Cancelled"` works here and nowhere else |
+| `tag` | full enum: `friendly`, `league`, `cup`, `tournament`, `pre season`, `casualBooking`, `party`, `camp`, `onlineBooking`, `blockBooking`, `bubbleFootball`, `leagueFixture`, `function`, `transferMarket`. The **Game type** dropdown offers seven of them and **all seven work** - the label-to-value map is not a plain lower-case ("Pre Season" stores `pre season` with a space, "Casual Booking" stores `casualBooking`), so sending a lower-cased label by hand is refused and reads like an app bug when it is not |
+
+The line-up positions accept a **suffixed** variant the enum in
+[Match events](#match-events) does not list: saving the inline form sent
+`CenterBack-1` alongside `CenterBack`, and it was accepted.
 
 ### The Facts tab - what the two panels actually are
 
@@ -1016,6 +1130,24 @@ So the header search reaches players, teams, leaderboards and tournaments.
 The collection's "Create" referee request has an empty URL. The only API trace of
 becoming a referee is `defaultProfile: "Referee"` on `POST /users`. TODO: find the
 real referee-registration call for 21.1.
+
+**(observed in app, 2026-08-31, by collection 09.)** Narrowed, but not solved.
+`isReferee` is a field on the **player** record, and nothing a user can reach sets
+it:
+
+- `PUT /users/:userId {"isReferee": true}` answers 200 and leaves it `false`.
+- `PUT /users/:userId {"defaultProfile": "Referee"}` sets `defaultProfile` and
+  leaves `isReferee` `false`.
+- `PATCH /players/:playerId/referee-settings` (the app's own
+  `updatePlayerRefereeSettings`) requires `saveForFutureTournaments`, answers 200
+  to the player themselves and 403 "user does not have permission" to anybody
+  else - and still leaves `isReferee` `false`.
+
+The only call in the whole bundle that *creates* a referee is
+`POST /tournaments/:id/referee`, which is where the app's own "Referee added" toast
+comes from. So on present evidence **there is no way to become a referee outside a
+tournament**, and the match Referee field is unusable for a manager who has never
+run one. Collection 21 owns the article; collection 09 documents the empty field.
 
 ## Notifications
 

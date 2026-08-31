@@ -3344,3 +3344,585 @@ export function moving08(page: Page) {
 export async function parkPointer(page: Page) {
   await page.mouse.move(0, 0);
 }
+
+// ---------------------------------------------------------------------------
+// collection 09: Creating & scheduling matches
+// ---------------------------------------------------------------------------
+//
+// The match page is one long page with a tab strip that scrolls to sections
+// rather than swapping them, so everything is in the DOM at once and nearly
+// every locator here needs onScreen() or a container to scope it.
+//
+// Two things about it govern all seven specs.
+//
+// 1. **The page renders differently before and after the match is complete.**
+//    An `Incomplete` match shows an editable MATCH DETAILS **form** with a Save
+//    changes button. A `Scheduled` one shows a read-only **detail strip** -
+//    referee, leaderboard, date, venue, pitch, kick-off, team size, duration -
+//    and the form is gone. Editing then happens in the gear menu's Edit dialog.
+//    A spec must know which of the two it is looking at.
+//
+// 2. **A team the reader does not own renders as a placeholder until the app has
+//    loaded /teams once.** Open `/matches/:id` directly as somebody who is not
+//    the owner of both sides and the page reads "Add Away Team", "Not set" and
+//    "Location not set" over perfectly good data. Going to /teams first fixes it.
+//    Collection 08 hit the same store slice, where it showed up as a wrong
+//    External badge. warm09() is the fix; call it before every match capture that
+//    is not made as the owner.
+
+// @ts-ignore - plain JS module, no types
+import * as F09 from './fixtures-09.mjs';
+
+export const KB09 = F09.ACCOUNTS as Record<'pro' | 'admin' | 'player' | 'referee', string>;
+export const KB09_PROFILES = F09.PROFILES;
+export const KB09_LEADERBOARD: string = F09.LEADERBOARD;
+export const KB09_TEAMS = F09.TEAMS as Record<'united' | 'rovers', string>;
+export const KB09_VENUES = F09.VENUES as Record<'astro' | 'park', { name: string; location: string }>;
+export const KB09_MATCHES = F09.MATCHES as {
+  key: string; home: string; away: string; date: string; venue: string;
+  duration: string; teamSize: string; tag: string; pitchNumber?: string;
+  note?: string; referee?: boolean;
+}[];
+export const KB09_GAME_TYPES = F09.GAME_TYPES as { label: string; tag: string }[];
+export const KB09_TEAM_SIZES: string[] = F09.TEAM_SIZES;
+export const KB09_DEFAULTS = F09.MATCH_DEFAULTS as { duration: string; teamSize: string; formation: string };
+export const KB09_POSITIONS: string[] = F09.POSITIONS;
+export const KB09_SQUADS = F09.SQUADS;
+
+/**
+ * The clock every collection-09 spec freezes to: 2026-09-01T09:00:00Z.
+ *
+ * Two screens need it. `/schedule` opens on whatever month the browser thinks it
+ * is, and both fixtures are in September. And the Scheduled match page carries a
+ * live "Match starts in 23d 08h 00m 00s" countdown that ticks every second - a
+ * capture of it is different every run unless the clock is pinned.
+ *
+ * Call it AFTER signing in. The Firebase token exchange needs a real clock.
+ */
+export const FROZEN_NOW_09 = new Date(F09.FROZEN_NOW);
+
+export async function freezeClock09(page: Page) {
+  await page.clock.setFixedTime(FROZEN_NOW_09);
+}
+
+/**
+ * Look the collection-09 fixtures up by the values the seed used.
+ *
+ * Never a hardcoded id: the seed can legitimately rebuild a match, and a
+ * hardcoded id would then point at a Cancelled row that still answers 200.
+ */
+export async function fixtures09() {
+  const session = await mintSession(KB09.pro);
+  const token: string = session.idToken;
+  const me = (await asUser(token, '/users/me')).body?.data;
+
+  const teams = (await asUser(token, '/teams?all=true')).body?.data ?? [];
+  const teamId = (name: string) => {
+    const row = teams.find((t: any) => t.name === name);
+    if (!row) throw new Error(`Team "${name}" is missing. Run: node scripts/seed-09.mjs`);
+    return String(row.teamId);
+  };
+
+  const boards = (await asUser(token, '/leaderboards')).body?.data ?? [];
+  const board = boards.find((b: any) => b.isOwner && b.name === KB09_LEADERBOARD);
+  if (!board) throw new Error(`Leaderboard "${KB09_LEADERBOARD}" is missing. Run: node scripts/seed-09.mjs`);
+
+  const venue = async (key: 'astro' | 'park') => {
+    const want = KB09_VENUES[key].name;
+    const rows = (await asUser(token, `/club-locations?query=${encodeURIComponent(want)}`)).body?.data ?? [];
+    const row = rows.find((v: any) => v.name === want && !v.isDeleted);
+    if (!row) throw new Error(`Venue "${want}" is missing. Run: node scripts/seed-09.mjs`);
+    return String(row.id);
+  };
+
+  // Matched on the seeded date, which is fixed per fixture, and Cancelled rows are
+  // skipped - a crashed spec leaves one behind and it keeps its date.
+  const listed = (await asUser(
+    token,
+    `/players/${me.playerId}/matches?includeIncomplete=true&startDate=2026-01-01&endDate=2027-12-31`,
+  )).body?.data;
+  const rows = listed?.result ?? listed ?? [];
+  const matchByKey: Record<string, string> = {};
+  for (const plan of KB09_MATCHES) {
+    const day = plan.date.slice(0, 10);
+    const row = (Array.isArray(rows) ? rows : []).find(
+      (m: any) => String(m.date ?? '').slice(0, 10) === day && m.status !== 'Cancelled',
+    );
+    if (!row) throw new Error(`Match "${plan.key}" (${day}) is missing. Run: node scripts/seed-09.mjs`);
+    matchByKey[plan.key] = String(row.id);
+  }
+
+  return {
+    token,
+    userId: String(me.id),
+    playerId: String(me.playerId),
+    teams: { united: teamId(KB09_TEAMS.united), rovers: teamId(KB09_TEAMS.rovers) },
+    leaderboard: { id: String(board.id), name: board.name as string },
+    venue,
+    match: matchByKey,
+    detail: async (id: string) => (await asUser(token, `/matches/${id}`)).body?.data,
+    /** A bare Incomplete match, exactly as the app's Create Match button makes one. */
+    async throwaway(homeTeamId?: string) {
+      const body: Record<string, unknown> = { status: 'Incomplete' };
+      if (homeTeamId) {
+        body.homeTeam = { teamId: homeTeamId, formation: KB09_DEFAULTS.formation, players: [] };
+        body.teamSize = KB09_DEFAULTS.teamSize;
+      }
+      const r = await asUser(token, '/matches', { method: 'POST', body });
+      if (!r.ok) throw new Error(`POST /matches: ${JSON.stringify(r.body)}`);
+      return String(r.body.data.id);
+    },
+    /**
+     * Dispose of a match a spec created.
+     *
+     * DELETE does not delete - it answers "Match cancelled successfully" and sets
+     * status Cancelled. A Cancelled row is invisible in the calendar, in a team's
+     * match lists and in the leaderboard's, so this is a clean teardown even
+     * though nothing is removed. PUT {status} is the fallback for the cases
+     * DELETE refuses.
+     */
+    async cancel(id: string) {
+      let r = await asUser(token, `/matches/${id}`, { method: 'DELETE' });
+      if (!r.ok) r = await asUser(token, `/matches/${id}`, { method: 'PUT', body: { status: 'Cancelled' } });
+      return r.status;
+    },
+  };
+}
+
+/** Everything that must be off-screen before a collection-09 capture. */
+export async function quiet09(page: Page) {
+  await page.addStyleTag({
+    content: `
+      #intercom-container, .intercom-lightweight-app, #intercom-frame,
+      iframe[name^="__privateStripe"], #stripeDataLayerFrame,
+      [data-testid="promo-campaign"], [role="status"], [aria-live="polite"] {
+        display: none !important;
+      }
+      *, *::before, *::after {
+        animation: none !important;
+        transition: none !important;
+        caret-color: transparent !important;
+      }
+    `,
+  });
+  await expect(page.locator('#intercom-container')).toBeHidden();
+}
+
+/**
+ * Load Manage Teams once, so a team the reader does not own resolves.
+ *
+ * Not tidiness. Open `/matches/:id` straight from the address bar as somebody who
+ * is not the owner of both teams and the page renders "Add Away Team", "Not set"
+ * for the leaderboard and referee, and "Location not set" for the venue - over
+ * data that is perfectly present in `GET /matches/:id`. Going to /teams first
+ * fills the store slice the match page reads those names out of, and the same
+ * page then renders every one of them. Proved on staging 2026-08-31 with the
+ * plain-Player account, twice each way.
+ */
+export async function warm09(page: Page) {
+  await page.goto('/teams');
+  await expect(
+    page.getByText(/Manage Teams|Add Team|Create Team/i).first(),
+  ).toBeVisible({ timeout: 30_000 });
+}
+
+/**
+ * The match page's own header menus, in DOM order.
+ *
+ * There is no id, no aria-label and no test id on any of them, and how many there
+ * are depends on the match's status:
+ *
+ *   Incomplete   [gear]
+ *   Scheduled    [Add to Calendar] [gear]
+ *
+ * plus the language menu down in the footer, which is inside `main` as well. So
+ * neither `.first()` nor `.last()` finds the gear on both. The Add to Calendar
+ * button is the one carrying a `lucide-calendar` icon; excluding it leaves the
+ * gear first in the DOM, before the footer's.
+ *
+ * Every caller asserts what the opened menu says, so a change in the app fails
+ * the spec rather than photographing the wrong menu.
+ */
+export function matchGear(page: Page) {
+  return page
+    .locator('button[aria-haspopup="menu"]')
+    .filter({ hasNot: page.locator('svg.lucide-calendar') })
+    .first();
+}
+
+export function matchAddToCalendar(page: Page) {
+  return page
+    .locator('button[aria-haspopup="menu"]')
+    .filter({ has: page.locator('svg.lucide-calendar') })
+    .first();
+}
+
+/** Open the gear menu and prove it is the gear menu. */
+export async function openMatchGear(page: Page) {
+  await matchGear(page).click();
+  const menu = page.locator('[role="menu"]').first();
+  await expect(menu).toBeVisible();
+  await expect(menu.getByText('Cancel Match', { exact: true })).toBeVisible();
+  return menu;
+}
+
+/**
+ * The share button - the pill beside the tab strip that opens **Share a match**.
+ *
+ * It carries no id, no aria-label, no title and no text, and it is not a menu, so
+ * every obvious handle is missing. What is left: among the buttons in `main` that
+ * have no text and no `aria-haspopup`, it is the only one holding an `svg.w-5.h-5`
+ * (the header's three icons are `w-6 h-6` and two of them are menus). Checked
+ * against every textless button on the page, 2026-08-31.
+ *
+ * openShareMatch() asserts the window it opens, so a change in the app fails the
+ * spec rather than clicking something else.
+ */
+export function shareMatch09(page: Page) {
+  return onScreen(
+    page
+      .locator('main button:not([aria-haspopup])')
+      .filter({ has: page.locator('svg.w-5.h-5') })
+      .filter({ hasNotText: /\S/ }),
+  ).first();
+}
+
+/** Open the Share a match window and prove it. */
+export async function openShareMatch(page: Page) {
+  await shareMatch09(page).click();
+  const dlg = namedDialog09(page, 'Share a match');
+  await expect(dlg).toBeVisible({ timeout: 30_000 });
+  await expect(dlg.getByText('Share public link', { exact: true })).toBeVisible();
+  return dlg;
+}
+
+/** Open the Add to Calendar menu and prove it. */
+export async function openAddToCalendar(page: Page) {
+  await matchAddToCalendar(page).click();
+  const menu = page.locator('[role="menu"]').first();
+  await expect(menu).toBeVisible();
+  await expect(menu.getByText('Google', { exact: true })).toBeVisible();
+  return menu;
+}
+
+/**
+ * The notification bell in the sidebar, and the panel it opens.
+ *
+ * The bell is a bare inline `svg` with no button, no role, no id and no
+ * aria-label, wrapped in a `div.relative` inside a `cursor-pointer` row - so every
+ * role-based query misses it, and `svg.lucide-bell` finds only the `md:hidden`
+ * mobile copy, which has a zero-sized box. The class trio on the desktop one is
+ * what identifies it.
+ *
+ * The panel is headed "Notifications (n)" and its rows read
+ * "Match scheduled <home> X <away> on <date> at <venue>" - note **Match
+ * scheduled**, not "Match invitation", which is how the same `MatchInvitation`
+ * notification is worded in the home page's Trending strip. 09.7 photographed the
+ * Trending strip by mistake on its first run and would have said the wrong thing.
+ */
+export function notificationBell09(page: Page) {
+  // The `>` matters. `filter({has: ...})` matches any `div.relative` that has such
+  // an svg ANYWHERE inside it, and `.first()` then returns an outer wrapper that
+  // is not the bell - the click lands on empty sidebar and nothing opens. The
+  // child combinator names the bell's own wrapper.
+  return onScreen(page.locator('div.relative:has(> svg.w-6.h-6.text-neutral-600)')).first();
+}
+
+export async function openNotifications09(page: Page) {
+  await notificationBell09(page).click();
+  // Gate on the panel's own control rather than on a role: the panel is a portal
+  // whose outer element carries no heading role.
+  await expect(page.getByText('Mark all as read', { exact: true })).toBeVisible({ timeout: 30_000 });
+  // The innermost box that holds the header AND a row. Filtering on the header
+  // alone returns the header strip - "Notifications (2)", Refresh and Mark all as
+  // read sit in a container of their own, above the list.
+  const panel = page.locator('div')
+    .filter({ hasText: 'Mark all as read' })
+    .filter({ hasText: /Match scheduled/ })
+    .last();
+  await expect(panel).toBeVisible();
+  return panel;
+}
+
+/**
+ * Every relative timestamp in the notifications panel - "5 minutes ago".
+ *
+ * It is the notification's own createdAt against the wall clock, so it moves on
+ * every run and on every re-seed. docs/style-guide.md masks dates that are not the
+ * point of the screenshot, and 09.7's point is that the notification exists at
+ * all, not when it arrived.
+ */
+export function notificationTimes09(page: Page) {
+  return page.getByText(/^\d+ (second|minute|hour|day|month|year)s? ago$/);
+}
+/**
+ * The one dialog on screen, whichever it is.
+ *
+ * `.last()` and not `.first()`, because a window opened from the match page sits
+ * on top of nothing - but do NOT hold on to this while you work inside a window.
+ * Several controls in the Update your match dialog open their own popover with
+ * `role="dialog"` on it - the venue picker is one - and `.last()` then points at
+ * the popover instead of the window. Use namedDialog09() for anything you need to
+ * keep a handle on.
+ */
+export function dialog09(page: Page) {
+  return page.getByRole('dialog').last();
+}
+
+/**
+ * A dialog identified by its own heading, so the handle survives whatever the
+ * dialog opens on top of itself.
+ *
+ * 09.3 spent two runs on this: clicking the venue box inside Update your match
+ * opens a suggestion popover that is also a `role="dialog"`, so the handle from
+ * `.last()` moved onto the popover and every field lookup after it timed out
+ * waiting for an input that was never in there.
+ */
+export function namedDialog09(page: Page, heading: string) {
+  // `page.locator('[role="dialog"]')` and not `getByRole('dialog')`, and
+  // `hasText` and not a nested `getByRole('heading')`. Both halves matter.
+  //
+  // Radix marks a dialog's content `aria-hidden` while a Select inside it is open,
+  // which takes the dialog out of the accessibility tree - so an ARIA-based
+  // locator resolves to NOTHING the moment you open one of the dialog's own
+  // dropdowns. 09.6 lost two captures to that: the Configure appearance window
+  // and the Referee box both open a Select, and the clip locator went dead at
+  // exactly the moment the shot was taken. A CSS attribute selector does not care.
+  return page.locator('[role="dialog"]').filter({ hasText: heading });
+}
+
+/**
+ * Close whatever windows are open, innermost first.
+ *
+ * One press is not enough. A Select, a date picker or a suggestion list opened
+ * inside a window is its own `role="dialog"` popover sitting on top of it, and the
+ * window's Close button underneath is not clickable until that has gone. 09.6 hung
+ * here with the theme list still open over the Configure appearance window.
+ *
+ * Counted rather than timed, so nothing waits on a duration.
+ */
+export async function closeDialog09(page: Page) {
+  const dialogs = page.locator('[role="dialog"]');
+  // Escape twice, unconditionally. The first press closes whatever popover is
+  // open inside the window - a Select, a date picker, a suggestion list - and the
+  // second closes the window. Clicking Close first does not work: while a Select
+  // is open the button underneath it is not clickable and the click waits out its
+  // whole timeout. Counting the popovers does not work either, because a Radix
+  // Select's popover is not a `role="dialog"` and the count never changes.
+  for (let i = 0; i < 4; i += 1) {
+    if ((await dialogs.count()) === 0) return;
+    await page.keyboard.press('Escape');
+  }
+  // A suggestion list that reopens while its box still has focus survives Escape
+  // however many times you press it - the Referee box does exactly that. Take the
+  // focus off it by clicking the window's own heading, then use Close.
+  const win = dialogs.first();
+  const heading = win.locator('h1, h2').first();
+  if (await heading.count()) await heading.click({ force: true });
+  const close = win.getByRole('button', { name: 'Close' });
+  if (await close.count()) await close.last().click({ force: true });
+  await expect(dialogs).toHaveCount(0);
+}
+
+/**
+ * Open the gear menu's Edit dialog - "Update your match".
+ *
+ * It prefills from the match, which is worth knowing because it does NOT on an
+ * Incomplete one: there is nothing to prefill, so the same dialog opens blank
+ * with placeholder crests reading YT and OT. The one field that never prefills is
+ * Referee, even when the match has one. See lib/fixtures-09.mjs.
+ */
+export async function openUpdateMatch(page: Page) {
+  const menu = await openMatchGear(page);
+  await menu.getByText('Edit', { exact: true }).click();
+  const dlg = namedDialog09(page, 'Update your match');
+  await expect(dlg).toBeVisible();
+  return dlg;
+}
+
+/** Open the gear menu's Configure appearance window. */
+export async function openConfigureAppearance(page: Page) {
+  const menu = await openMatchGear(page);
+  await menu.getByText('Configure appearance', { exact: true }).click();
+  const dlg = namedDialog09(page, 'Configure appearance');
+  await expect(dlg).toBeVisible();
+  return dlg;
+}
+
+/**
+ * The MATCH DETAILS form, which exists only while the match is Incomplete.
+ *
+ * Its selects are real `select` elements behind styled triggers, so selectOption
+ * works: `leaderboard`, `teamSize` and `tag`.
+ */
+export async function matchForm09(page: Page) {
+  const form = page.locator('form').filter({ has: page.getByRole('button', { name: 'Save changes' }) }).first();
+  await expect(form).toBeVisible();
+  return form;
+}
+
+/** No skeleton and no spinner anywhere on the page. */
+export async function settled09(page: Page) {
+  await expect(page.locator('.animate-pulse')).toHaveCount(0);
+  await expect(page.locator('.animate-spin')).toHaveCount(0);
+}
+
+/**
+ * The MATCH DETAILS card - the teams, the score, the countdown and, on a
+ * Scheduled match, the detail strip under them.
+ *
+ * This is the subject of most of this collection's captures, and clipping to it
+ * is what keeps them off the FEED panel below.
+ *
+ * Note the **lower case**. The card's caption reads MATCH DETAILS on screen and
+ * its text is `match details` - it is uppercased by CSS, the same
+ * `text-transform` trap collections 14, 01 and 07 hit on GROUP A, DELETE ACCOUNT
+ * and the team tabs. `getByText('MATCH DETAILS', {exact: true})` matches the two
+ * tab buttons instead, whose text really is upper case, and the first version of
+ * this helper walked up from a tab and returned the tab strip.
+ */
+export async function matchCard09(page: Page) {
+  await settled09(page);
+  const caption = page.getByText('match details', { exact: true });
+  await expect(caption).toBeVisible({ timeout: 30_000 });
+  const card = caption.locator('xpath=ancestor::div[contains(@class,"bg-white")][1]');
+  await expect(card).toBeVisible();
+  return card;
+}
+
+/**
+ * The read-only detail strip on a Scheduled match: referee, leaderboard, date,
+ * venue, pitch, kick-off, team size, duration.
+ *
+ * Scoped by the venue name, which is the one value in it that is unique to this
+ * collection's fixtures. The strip has no heading and no test id.
+ *
+ * Waiting for it is also how a spec knows a Save landed: on an Incomplete match
+ * the strip does not exist at all, and the editable form stands in its place.
+ */
+export async function detailStrip09(page: Page, venueName: string) {
+  const cell = page.getByText(venueName, { exact: true }).first();
+  await expect(cell).toBeVisible({ timeout: 30_000 });
+  const strip = cell.locator('xpath=ancestor::div[count(div) >= 4][1]');
+  await expect(strip).toBeVisible();
+  return strip;
+}
+
+/**
+ * The FEED panel - the note line, the livestream placeholder and Comment.
+ *
+ * Same lower-case trap as matchCard09: the caption reads FEED on screen and its
+ * text is `Feed`.
+ */
+export async function feedPanel09(page: Page) {
+  await settled09(page);
+  const caption = page.getByText('Feed', { exact: true }).first();
+  await expect(caption).toBeVisible({ timeout: 30_000 });
+  const panel = caption.locator('xpath=ancestor::div[contains(@class,"bg-white")][1]');
+  await expect(panel).toBeVisible();
+  return panel;
+}
+
+/**
+ * The live countdown, for masking.
+ *
+ * freezeClock09() pins it, so it reads the same every run and is normally left
+ * visible - it is part of what the reader sees. Mask it only where the shot is
+ * about something else and the extra digits distract.
+ */
+export function countdown09(page: Page) {
+  return page.getByText('Match starts in').locator('xpath=..');
+}
+
+/** A date cell in either date picker, by the accessible name the app gives it. */
+export function dayCell(page: Page, name: string) {
+  return page.getByRole('button', { name, exact: true });
+}
+
+/** Step the visible month of an open date picker. */
+export async function nextMonth(page: Page) {
+  await page.getByRole('button', { name: 'Go to the Next Month' }).click();
+}
+
+/**
+ * A fixture card on a team page, scoped by something inside it.
+ *
+ * The cards carry no heading and no test id; the venue name and the Finish Setup
+ * button are what tell one from another.
+ */
+export async function fixtureCard09(page: Page, marker: string | RegExp) {
+  const inner = typeof marker === 'string'
+    ? page.getByText(marker, { exact: true }).first()
+    : page.getByText(marker).first();
+  await expect(inner).toBeVisible({ timeout: 30_000 });
+  // Filtered from the outside in rather than walked up from the marker. Walking
+  // up with `ancestor::div[.//*[contains(text(),"VS")]][1]` returned the
+  // three-row details grid - the nearest ancestor on that axis - and 09.2's fifth
+  // capture came back as a 640x150 sliver of two icons. Asking for the innermost
+  // rounded box that holds BOTH the marker and the HOME badge names the card
+  // itself.
+  const card = page.locator('div[class*="rounded"]')
+    .filter({ has: typeof marker === 'string' ? page.getByText(marker, { exact: true }) : page.getByText(marker) })
+    .filter({ has: page.getByText('HOME', { exact: true }) })
+    .last();
+  await expect(card).toBeVisible();
+  return card;
+}
+
+/**
+ * The /schedule calendar's three view buttons.
+ *
+ * A segmented control of three icon buttons. Only the third carries a text
+ * label; all three carry `data-state` "on" or "off", and the icon class is what
+ * tells them apart:
+ *
+ *   lucide-list      Day - one day, with a month picker beside it
+ *   lucide-columns2  Week
+ *   lucide-grid3x3   Month - the default, and the only one labelled
+ */
+export function calendarView(page: Page, which: 'day' | 'week' | 'month') {
+  const icon = { day: 'lucide-list', week: 'lucide-columns2', month: 'lucide-grid3x3' }[which];
+  return page.locator(`button:has(svg.${icon})`).first();
+}
+
+/**
+ * Wait for the calendar to have drawn its month and its fixtures.
+ *
+ * "Scheduled Matches" is styled as a heading but is not one - it has no heading
+ * role - so this matches the text. Gating on the fixture count as well is what
+ * proves the month's fetch landed: the grid draws its empty cells first.
+ */
+export async function calendarReady09(page: Page, entries: number) {
+  await expect(page.getByText('Scheduled Matches', { exact: true }).first())
+    .toBeVisible({ timeout: 30_000 });
+  await expect(
+    page.getByText(`${KB09_TEAMS.united} vs ${KB09_TEAMS.rovers}`),
+  ).toHaveCount(entries, { timeout: 30_000 });
+  // The calendar keeps a spinner beside Create Match while it refetches, and it
+  // came out in the middle of 09.1's first capture before this line existed.
+  await settled09(page);
+}
+
+/**
+ * The signed-in user's identity in the sidebar. Masked in every capture that
+ * includes it - docs/style-guide.md.
+ */
+export function sidebarIdentity09(page: Page, name: string) {
+  return page.getByText(name, { exact: true }).first();
+}
+
+/**
+ * The things on these screens that move between runs, for masking.
+ *
+ * The unread-notification badge is the only one that must always be masked: the
+ * count depends on what the other three accounts have done since, and no article
+ * is about it. `w-5` is what tells it apart from a player's unregistered dot and
+ * from an initials avatar - collection 08 painted out a player's face before that
+ * was pinned down.
+ */
+export function moving09(page: Page) {
+  return [
+    page.locator('div[class*="bg-red-500"][class*="rounded-full"][class*="absolute"][class*="w-5"]'),
+    page.getByText(/^Joined Since /),
+  ];
+}
