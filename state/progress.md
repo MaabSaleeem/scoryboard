@@ -23,7 +23,7 @@ target.
 | 08 | Leaderboards & leagues | 8 | 40 | manager_pro | not started | - | - |
 | 09 | Creating & scheduling matches | 8 | 50 | manager_pro | not started | - | - |
 | 10 | Match day | 11 | 65 | manager_pro | not started | - | - |
-| 11 | Match insights & statistics | 3 | 9 | player | not started | - | - |
+| 11 | Match insights & statistics | 3 | 9 | player | drafts on Intercom | [briefs/11.md](../briefs/11.md) | 9 screenshots. 11.1 retitled - the app has no form guide and no head-to-head record. Found that **a match outside a leaderboard writes no statistics at all** and that a player counts the matches they were in the LINEUP for. Accounts: `kb-player-11@`, `kb-11-owner@`. Four played matches; they cannot be undone |
 | 12 | Tournaments - setting one up | 10 (+2) | 80 | organiser | published | [briefs/12.md](../briefs/12.md) | 12 published, 80 screenshots. 12.11 and 12.12 added for Padel; not in the map |
 | 13 | Tournaments - groups, brackets & phases | 11 | 55 | organiser | drafts on Intercom | [briefs/13.md](../briefs/13.md) | flag: TOURNAMENT_FEATURE_ENABLED. 11 drafts, 55 screenshots. 13.8 retitled. Account: kb-organiser-13@yopmail.com |
 | 14 | Tournaments - the fixture schedule | 8 | 37 | organiser | drafts on Intercom | [briefs/14.md](../briefs/14.md) | flag: TOURNAMENT_FEATURE_ENABLED. 8 drafts, 37 screenshots. 14.5 retitled - fixtures cannot be deleted. Account: kb-organiser-14@yopmail.com |
@@ -1921,3 +1921,193 @@ gap the article documents, showing up in the tooling.
 
 None in this half. 05.5 was run three times and passed each time; the seed
 reported zero writes afterwards.
+
+### 2026-08-31 - collection 11. All three articles are drafts.
+
+| Article | Title as published | Intercom ID | Shots | Pinned commit |
+|---|---|---|---|---|
+| 11.1 | Match facts - insights and Statistics so far | 16756932 | 4 | `a1fdaf5` |
+| 11.2 | How team and player statistics are calculated | 16756936 | 3 | `6e58965` |
+| 11.3 | When your statistics update after a match | 16756939 | 2 | `1548298` |
+
+All three sit in Intercom collection `19733980`, all `state: "draft"`, all
+`parent_type: "collection"`. Nine screenshots. Every embedded image URL was
+re-fetched off the published article bodies at the end of the run: **9/9 return
+200 with an `image/*` content type**, and no article carries `<ol start=`.
+
+**The drafts are unreviewed and nothing is published.**
+
+### 11.1 is retitled, and it matters
+
+The map called it *"Match facts, insights, form and head-to-head"*. **Two of
+those four things do not exist.** Published as **"Match facts - insights and
+Statistics so far"**, which is the app's own wording.
+
+- **No form guide.** There is no row of W/D/L badges anywhere in Scoryboard. The
+  Insights panel is where that information lives, as five sentences per team,
+  each about "its last 5 games".
+- **No head-to-head record.** The panel that looks like one, *Statistics so far*,
+  is **each team's whole record in the leaderboard**, shown side by side. The
+  article says so in as many words, because it is the easiest thing on the screen
+  to misread.
+
+`config/articles.yaml` is unchanged, as it was for 01.3, 07.7 and 07.9 - the map
+stays the map.
+
+### How the head-to-head question was settled
+
+Not by reasoning. The fixture was built to answer it: a **third team**, KB 11
+Athletic, and a fourth match Rovers won **4-0** against it, which Pia was not in
+the lineup for.
+
+On the Rovers v City page the two columns then read **four matches and three**,
+and Rovers' *Biggest win* renders as **4-0 against a team that is not the
+opponent**. Both are in screenshot `11.1/03`. It cannot be a head-to-head record.
+
+That fourth match paid for itself four times: it settled the head-to-head
+question, it gave 11.2 its whole argument (the player reads 3 where the team
+reads 4), it produced the only clean sheet, and it took *Winning Streaks* to 2.
+
+### Five things about statistics that were not known before
+
+All five are now in `config/api.md`, marked `(observed in app, 2026-08-31)`.
+
+1. **A match outside a leaderboard writes nothing, and shows nothing.** The Facts
+   tab reads "No insights available yet" / "No statistics available yet", and no
+   figure is ever counted. Isolated against the match **tag**, which was the
+   other candidate: a `friendly` in a leaderboard has all five insights, and a
+   `league` outside one has none. Screenshot `11.1/04` is that empty state.
+2. **A player is counted for matches they were in the LINEUP for.** The team reads
+   4, the member left out of one reads 3. But `GET /players/:id/matches` returns
+   the match she was left out of - so the **Matches list and the Matches tile
+   count different things**, which is a ticket waiting to happen and is now
+   answered in 11.2.
+3. **A clean sheet is not simply conceding nothing.** The 0-0 draw scored **none**
+   for either team; the 4-0 win scored one. The article says "matches the team
+   won without conceding" - stated as what the number does, not as a rule the
+   product documents. See the open questions.
+4. **Statistics are written 1.6 to 6.8 seconds after the final whistle**, measured
+   off `statsCalculatedAt` minus `finishedAt` on all four matches. The match
+   object also carries `queueName`. 11.3 says "within seven seconds" and tells the
+   reader to reload, because nothing announces it.
+5. **`GET /matches/:id/facts` is not admin-only.** `config/api.md` had it under
+   the admin key because the Postman collection sends one. The app calls it with
+   the signed-in user's bearer token, on every match page.
+
+### Two product gaps worth a ticket
+
+- **Goals conceded per match is always a dash**, for both teams, on every match.
+  `GET /matches/:id/facts-stats` carries no conceded figure at all, so no data
+  will fix it. The article sends the reader to the team's GOALS / CONCEDED tile
+  instead.
+- **Two tiles are both labelled CARD**, on the player grid and the team grid, told
+  apart only by a coloured rectangle. **Red comes first on the tiles; yellow comes
+  first in the Player Stats and Leaderboards tables.** Nothing on screen says
+  which is which. 11.2 does.
+
+### Where to look hard in the drafts
+
+- **11.2's claim about Rank.** The Player Stats table ranks members 1st to 5th and
+  the ordering could not be worked out: goals clearly outweigh matches played
+  (Pia, 3 matches, is above Otto, 4), but Rory is above Pia on identical goals and
+  assists, and Otto and Sam have *identical rows* and different ranks. The article
+  describes the column and explicitly does not claim a formula. If the reviewer
+  knows the rule, that paragraph should be rewritten.
+- **11.2's clean-sheet sentence.** "Matches the team won without conceding" is the
+  simplest reading consistent with two observations (0-0 gave none, 4-0 gave one).
+  It is not a documented rule and a win-to-nil by one goal was never tested.
+- **11.1's insight line "It's been 0 days since KB 11 Rovers's last game".** It
+  disagrees with the match dates - the last match is 20 August and this was read
+  on 31 August - so it appears to count from when the match row was created. It
+  will therefore read differently on every re-run of the spec. **Deliberately not
+  masked:** it is one of the five lines the article is about, and a black bar
+  through the middle of the subject is worse than a number that drifts.
+- **11.3's "reload the page" instruction.** The lag was measured on the API. What
+  was not tested is whether any screen updates itself - the article says reload,
+  which is safe advice either way, but it is advice rather than an observation.
+- **11.1's step 1 navigation.** "From Home, in the MATCHES panel, select Past
+  Matches" was walked. "You can also reach it from the MATCHES tab on a team" was
+  seen but not walked through to a match.
+- **Two claims were cut from 11.2's first draft** for being unverified: that a
+  named substitute who never came on still counts towards Matches, and that a
+  mis-credited goal is corrected on the FEED tab. Neither was tested. The second
+  survives in the weaker form the API does support - a live match can be
+  corrected, a finished one cannot.
+
+### Changed during step 2
+
+Four mechanical fixes, all written into `briefs/11.md` under "Changed during step
+2" and into `lib/kb.ts`. None changed what an article says.
+
+1. **11.1's first capture became a viewport shot.** The brief planned a clip of
+   the tab strip. Both of the strip's `[role="tablist"]` containers have **zero
+   height** and the tabs overflow them, so `onScreen()` discarded both and
+   `.first()` fell through to the **Pay** tablist in the payment section, 3,200
+   pixels down the page - which is what the first run photographed. The viewport
+   is the better shot anyway.
+2. **All three of 11.2's captures gained `clipPad: 12`.** The annotated MATCHES
+   tile is in the grid's top-left corner and the annotated table row is full
+   width, so the red rectangle was being drawn outside the clip and came back
+   missing two of its four edges.
+3. **11.2's third capture gained an annotation the brief did not plan** - the
+   persona's row. It is the article's whole argument and the shot was not pointing
+   at it.
+4. **The Facts card is clipped to the card, not to `#facts`.** That wrapper's box
+   starts a few pixels above the white card and those pixels are the banner photo,
+   so the first run had a dark seam across the top edge.
+
+Two selector traps that **collections 09 and 10 will hit**, because they own this
+screen:
+
+- **`waitUntil: 'networkidle'` never resolves on a match page.** The presence
+  connection behind the feed's ONLINE badge keeps the network busy and every
+  navigation times out at 30 seconds. `openMatch()` waits for content instead.
+- **The MATCH ENDED pill is `Match Ended` in the DOM**, upper-cased by CSS - the
+  same trap as GROUP A in 14 and DELETE ACCOUNT in 01.
+
+### The fixture, and why it cannot be repaired
+
+Two accounts, `kb-player-11@` and `kb-11-owner@`, both Free. Three teams, one
+leaderboard, **four played matches** on consecutive Thursdays in August 2026.
+`node scripts/seed-11.mjs` builds all of it and reported **0 writes** on a second
+run, again after the exploration probes, and again after the full three-spec
+suite.
+
+Two of the three teams cost nothing to make: `KB 11 Athletic` and the leaderboard
+are both **renamed from what the account was born with**. Free may own exactly one
+leaderboard, and renaming kept the friend count at 12 of an allowance of 14.
+
+**A finished match cannot be reopened, edited or deleted.** So the seed never
+touches a match it did not have to create, and it verifies both scorelines and all
+eighteen expected figures at the end. If a number ever comes out wrong the only
+repair is `node scripts/seed-11.mjs --rebuild`, which deletes both accounts and
+starts from nothing. There is nothing smaller.
+
+### The one mutation any spec here makes
+
+11.1's empty-state capture needs a match that belongs to no leaderboard.
+`withoutLeaderboard()` creates one dated **2027-09-09**, photographs it and
+deletes it in a `finally`. Both halves of that date are forced: a match whose date
+has passed **cannot** be deleted, and one created with a past date **starts
+itself** within seconds. It is tagged `league`, like the four seeded matches, so
+nothing in the frame suggests a friendly is the reason it is empty. Checked after
+the full suite: no stray match exists, on any of the three teams.
+
+### Unreachable
+
+- **The leaderboard screens.** `/leaderboard/:id/standings` and the
+  `/stats/teams`, `/stats/players` and `/results` tails are all in the app's route
+  enum and all answer **Page not found** when opened by URL. Nothing in collection
+  11 needs them - but **collection 08 owns them and should expect to have to find
+  the real path.**
+- **The statistics lag, as a picture.** No screen shows statistics being
+  calculated. Measured off the API instead.
+- **A form guide.** There is not one.
+
+### Flake
+
+None. Each spec was run at least twice while its selectors were fixed, and the
+full three-spec suite passed in one go afterwards. The seed reported zero writes
+after it.
+
+Next: `/kb-brief 08`, which needs the leaderboard-route question answered first.
