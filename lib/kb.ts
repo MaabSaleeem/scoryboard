@@ -3188,6 +3188,40 @@ export function commentTimes(page: Page) {
   return page.getByText(/^\d{2}:\d{2} (AM|PM) . \w{3} \d{1,2}, \d{4}$/);
 }
 
+/**
+ * One of the board's two stats tables, found from a column heading.
+ *
+ * The tables are CSS grids, not `<table>`s: a header row of plain divs, then a
+ * sibling `div.space-y-3` holding one grid row per team or player. So the panel is
+ * the nearest ancestor that has that rows container as a child.
+ *
+ * `ancestor::div[contains(@class,"rounded")][last()]` does not work and cost 08.4
+ * a run - the header cell has no `rounded` ancestor at all, so the locator
+ * resolved to nothing and the failure read as a missing table row.
+ *
+ * Pass `Win/Loss` for the league table and `Assists` for the player grid.
+ */
+export function statsPanel08(page: Page, headerCell: string) {
+  return onScreen(page.locator('main').getByText(headerCell, { exact: true })).first()
+    .locator('xpath=ancestor::div[div[contains(@class,"space-y-3")]][1]');
+}
+
+/**
+ * One fixture card on the Matches panel, found from something printed on it.
+ *
+ * The cards are the children of a `div.space-y-4` inside the active tab panel, and
+ * they carry a long generated class list with no id and no test hook - so the card
+ * is "the ancestor whose parent is that container". Walking up by class does not
+ * work: several nested divs inside a card carry `rounded-*` too, and 08.4's first
+ * run picked one of those and could not find the VS in it.
+ *
+ * The panel renders a wide and a narrow layout, so onScreen() is not optional.
+ */
+export function fixtureCard08(page: Page, marker: string) {
+  return onScreen(page.locator('main').getByText(marker, { exact: true })).first()
+    .locator('xpath=ancestor::div[parent::div[contains(@class,"space-y-4")]][1]');
+}
+
 /** The Past / Upcoming tabs on the Matches panel. They are real `role="tab"`s. */
 export function matchesTab(page: Page, label: 'Past Matches' | 'Upcoming Matches') {
   return onScreen(page.getByRole('tab', { name: label, exact: true })).first();
@@ -3268,7 +3302,30 @@ export async function dropThrowaway08(fx: Awaited<ReturnType<typeof fixtures08>>
  */
 export function moving08(page: Page) {
   return [
-    page.locator('div[class*="bg-red-500"][class*="rounded-full"]'),
+    // Three different things on these pages are a red circle, and two of them
+    // must not be masked. `w-5` is what tells them apart, and both of the others
+    // reached a published-looking capture before it was pinned down:
+    //
+    //   w-5 h-5   absolute   the unread-notification badge          <- mask this
+    //   h-2.5     absolute   the dot marking an unregistered player
+    //   (no size) static     a player's initials avatar
+    //
+    // Without `absolute`, Ike KB's face was painted out of the player grid.
+    // Without `w-5`, every player's dot became a dark square.
+    page.locator('div[class*="bg-red-500"][class*="rounded-full"][class*="absolute"][class*="w-5"]'),
     page.getByText(/^Created on /),
   ];
+}
+
+/**
+ * Move the pointer off the page content.
+ *
+ * Playwright leaves the mouse wherever it last clicked, and these tables give the
+ * row under the cursor a pale blue background. 08.4's player grid came back with
+ * one row highlighted for no reason a reader could see - it was simply where the
+ * Player Stats tab had been. Park the pointer before any capture that follows a
+ * click.
+ */
+export async function parkPointer(page: Page) {
+  await page.mouse.move(0, 0);
 }

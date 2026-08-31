@@ -27,7 +27,8 @@ import {
   sidebarIdentity, moving08,
   fixtures08, table08Ready,
   KB08, KB08_LEAGUE, KB08_TEAMS, KB08_TOP_SCORER, KB08_VENUE,
-  loadOwnTeams08, boardReady08, boardHeader, boardViewsCount, boardTab, matchesTab, teamFilter,
+  loadOwnTeams08, boardReady08, boardViewsCount, boardTab, statsPanel08,
+  fixtureCard08, matchesTab, teamFilter, parkPointer,
 } from '../../lib/kb';
 
 test.describe('08.4 Leaderboard statistics, players and matches', () => {
@@ -51,16 +52,23 @@ test.describe('08.4 Leaderboard statistics, players and matches', () => {
     // joined, the two tiles, Create Match, and the tab strip under it. Create
     // Match and the Payment tab are here because Mo owns the board: somebody who
     // is neither Owner nor Administrator sees neither, and no Views tile.
-    const header = boardHeader(page);
+    //
+    // A viewport capture, not a clip. boardHeader() resolves to the banner card
+    // alone, and the first run came back as a picture of footballs with no tiles
+    // and no tab strip in it - the two things the article is about to explain.
+    // The top of the page is the smallest honest frame for "here is the board".
     await expect(onScreen(page.getByRole('button', { name: 'Create Match' }))).toHaveCount(1);
     await expect(boardTab(page, 'Payment')).toBeVisible();
-    await shot(page, '08.4', '01-board-header', { clip: header, mask });
+    await expect(onScreen(page.getByText('Views', { exact: true })).first()).toBeVisible();
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await page.waitForFunction(() => window.scrollY === 0);
+    await parkPointer(page);
+    await shot(page, '08.4', '01-board-header', { mask });
 
     // 02 - the league table. Six columns: Rank, Teams, Members, Matches, Goals,
     // Win/Loss. The three rows are asserted because the article quotes them, and
     // because a table that came out in the wrong order would still look right.
-    const table = onScreen(page.locator('main').getByText('Win/Loss', { exact: true })).first()
-      .locator('xpath=ancestor::div[contains(@class,"rounded")][last()]');
+    const table = statsPanel08(page, 'Win/Loss');
     await expect(table.getByText('1st', { exact: true })).toBeVisible();
     await expect(table.getByText(KB08_TEAMS.united, { exact: true })).toBeVisible();
     await expect(table.getByText('2/0', { exact: true })).toBeVisible();
@@ -74,10 +82,11 @@ test.describe('08.4 Leaderboard statistics, players and matches', () => {
     // Assists, and two card columns. A friend added by name has no position, so
     // the column reads "-" for most rows; Mo has one because he has an account.
     await boardTab(page, 'Player Stats').click();
+    await parkPointer(page);
     await expect(page).toHaveURL(new RegExp(`/leaderboards/${fx.leaderboard.id}/playerStats$`));
     const top = onScreen(page.locator('main').getByText(KB08_TOP_SCORER.playerName, { exact: true })).first();
     await expect(top).toBeVisible();
-    const grid = top.locator('xpath=ancestor::div[contains(@class,"rounded")][last()]');
+    const grid = statsPanel08(page, 'Assists');
     await expect(grid.getByText('Assists', { exact: true })).toBeVisible();
     await expect(grid.getByText('1st', { exact: true })).toBeVisible();
     await shot(page, '08.4', '03-player-stats', { clip: grid, mask });
@@ -87,10 +96,10 @@ test.describe('08.4 Leaderboard statistics, players and matches', () => {
     // venue, the tag and both crests; a match with no venue would read
     // "Finish Setup" instead, and that is collection 09's article.
     await boardTab(page, 'Matches').click();
+    await parkPointer(page);
     await expect(page).toHaveURL(new RegExp(`/leaderboards/${fx.leaderboard.id}/matches$`));
     await expect(matchesTab(page, 'Upcoming Matches')).toHaveAttribute('data-state', 'active');
-    const upcoming = onScreen(page.getByText(KB08_VENUE.name, { exact: true })).first()
-      .locator('xpath=ancestor::div[contains(@class,"rounded")][last()]');
+    const upcoming = fixtureCard08(page, KB08_VENUE.name);
     await expect(upcoming.getByText('VS', { exact: true })).toBeVisible();
     await shot(page, '08.4', '04-matches-upcoming', { clip: upcoming, mask });
 
@@ -98,6 +107,7 @@ test.describe('08.4 Leaderboard statistics, players and matches', () => {
     // Match Results button. A viewport shot rather than a clip: the point is the
     // whole list and its ordering, not one card.
     await matchesTab(page, 'Past Matches').click();
+    await parkPointer(page);
     await expect(matchesTab(page, 'Past Matches')).toHaveAttribute('data-state', 'active');
     await expect(onScreen(page.getByText('3 - 1', { exact: true })).first()).toBeVisible();
     await expect(onScreen(page.getByText('2 - 2', { exact: true })).first()).toBeVisible();
