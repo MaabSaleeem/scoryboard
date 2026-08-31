@@ -21,7 +21,7 @@ target.
 | ~~06~~ | ~~Following~~ | - | - | - | **retired** | - | **RETIRED 2026-08-31, merged into 05.** 06.1 became 05.5. Intercom collection 19733975 was empty before the merge and is empty after it; it must not be reused |
 | 07 | Teams | 11 | 63 | manager_pro | published | [briefs/07.md](../briefs/07.md) | 63 screenshots. **All eleven published by the reviewer 2026-08-29.** 07.7 and 07.9 retitled - the app has no ownership transfer and no Fan role. Accounts: `kb-manager-pro-07@`, `kb-fresh-07@`, six `kb-07-*@` |
 | 08 | Leaderboards & leagues | 5 | 30 | manager_pro | drafts on Intercom | [briefs/08.md](../briefs/08.md) | 30 screenshots. Found that **removing a team from a leaderboard has no confirmation at all**, that the league table carries **no points, no draws and no goals conceded**, that the Share Leaderboard "public link" sends a signed-out visitor to `/signin`, and that a comment can never be deleted - `DELETE /comments/:id` answers 401 even to its author. The **External** badge on a team row means "not one of your own", and it wrongly marks the owner’s own teams until the account has opened `/teams` once. Four accounts: `kb-manager-pro-08@`, `kb-08-admin@`, `kb-08-free@`, `kb-08-outsider@`. Four played matches; they cannot be undone |
-| 09 | Creating & scheduling matches | 7 | 44 | manager_pro | drafts on Intercom | [briefs/09.md](../briefs/09.md) | 44 screenshots. Found that **Create Match creates the match** on the click, that **seven** fields decide Incomplete vs Scheduled - and a **leaderboard is one of them, even for a friendly** - and that **`DELETE /matches/:id` does not delete**, it sets `status: "Cancelled"`. 09.5 retitled "Editing or cancelling a match" - there is no delete anywhere in the app. 09.6's referee half narrowed: the Referee box only offers referees saved from a tournament, so it reads "No results found" for a manager who has never run one. The match **share link is not public** - a signed-out visitor gets Sign In and permanent skeletons. Four accounts: `kb-manager-pro-09@`, `kb-09-admin@`, `kb-09-player@`, `kb-referee-09@`. Two Scheduled fixtures on FIXED dates (24 and 30 Sept 2026); the seed refuses to run once they have passed |
+| 09 | Creating & scheduling matches | 7 | 44 | manager_pro | drafts on Intercom | [briefs/09.md](../briefs/09.md) | 44 screenshots. Found that **Create Match creates the match** on the click, that **seven** fields decide Incomplete vs Scheduled - and a **leaderboard is one of them, even for a friendly** - and that **`DELETE /matches/:id` does not delete**, it sets `status: "Cancelled"`. 09.5 retitled "Editing or cancelling a match" - there is no delete anywhere in the app. 09.6's referee half narrowed: the Referee box only offers referees saved from a tournament, so it reads "No results found" for a manager who has never run one. The match **share link is not public** - a signed-out visitor gets Sign In and permanent skeletons. Four accounts: `kb-manager-pro-09@`, `kb-09-admin@`, `kb-09-player@`, `kb-referee-09@`. Two Scheduled fixtures on FIXED dates (24 and 30 Sept 2026); the seed refuses to run once they have passed. **All seven were published by the reviewer 2026-08-31, two minutes after the run posted them as drafts** |
 | 10 | Match day | 10 | 60 | manager_pro | not started | - | - |
 | 11 | Match insights & statistics | 3 | 9 | player | drafts on Intercom | [briefs/11.md](../briefs/11.md) | 9 screenshots. 11.1 retitled - the app has no form guide and no head-to-head record. Found that **a match outside a leaderboard writes no statistics at all** and that a player counts the matches they were in the LINEUP for. Accounts: `kb-player-11@`, `kb-11-owner@`. Four played matches; they cannot be undone. **All three published by the reviewer 2026-08-31, then all three rewritten for clarity and republished** |
 | 12 | Tournaments - setting one up | 10 (+2) | 80 | organiser | published | [briefs/12.md](../briefs/12.md) | 12 published, 80 screenshots. 12.11 and 12.12 added for Padel; not in the map |
@@ -2418,6 +2418,29 @@ Six throwaway matches are created and cancelled across a full run. A cancelled
 match cannot be deleted, so they accumulate on `kb-manager-pro-09@yopmail.com` -
 invisible everywhere, harmless.
 
-**The drafts are unreviewed. Nothing is published.**
+### All seven were published two minutes after the run - not by the run
+
+Worth writing down, because the timestamps look alarming until you read them.
+
+`scripts/publish-article.mjs` POSTed each article and Intercom answered
+`state=draft` every time - that is in the run's own output, and `state/manifest.json`
+records `draft` for all seven. The last POST landed at **16:09:45Z**. Reading the
+seven back afterwards, every one says `state: "published"`, and every one was
+updated inside a **four-second window at 16:11:22-16:11:26Z**, in creation order.
+
+Nothing in this session touched Intercom between those two moments. This is the
+reviewer doing what the workflow says they do: read the drafts and publish them.
+Collection 08 shows the same shape from earlier the same day - its manifest still
+says `draft`, and Intercom has had those articles published since ~13:30Z.
+
+**They were left alone.** Flipping them back would take live articles off the help
+centre, which is the exact failure `publish-article.mjs` was rewritten to prevent.
+The manifest will correct itself on the next re-publish, which reads the live state
+before it decides.
+
+So: the run published drafts, and only drafts. **Whether the content was reviewed
+before that publish is not something this session can see** - the reviewer may have
+read them, or may have published the collection wholesale. Everything under "Look
+hard at these" above still wants a human eye, published or not.
 
 Next: pick from the remaining collections - 10, 15, 17, 18, 19, 20, 21, 22, 24.
