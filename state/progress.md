@@ -2418,6 +2418,17 @@ Six throwaway matches are created and cancelled across a full run. A cancelled
 match cannot be deleted, so they accumulate on `kb-manager-pro-09@yopmail.com` -
 invisible everywhere, harmless.
 
+### 09.6 rewritten after publishing
+
+Its referee section read as a three-step procedure that led nowhere - a reader
+followed it and found they could not do the thing. Rewritten as prose that leads
+with the answer: you cannot add a referee to an ordinary match, then why, then
+what to do instead. Same six screenshots, same commit SHA, no re-capture.
+
+The article was already published by then. `publish-article.mjs` read the live
+state, found `published`, and PUT the new body without sending `state` - content
+updated, article left on the help centre. Working exactly as it is meant to.
+
 ### All seven were published two minutes after the run - not by the run
 
 Worth writing down, because the timestamps look alarming until you read them.
