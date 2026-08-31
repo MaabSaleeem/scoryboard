@@ -7,8 +7,8 @@
 
 meta:
   collections: 22
-  articles: 146
-  screenshots: 801
+  articles: 130
+  screenshots: 727
   # 13, 14 and 15 were split by sport on 2026-08-28 after walking both game
   # types through every tab. These totals count what this file lists: they do
   # not yet include collection 12's two padel articles, which are published
@@ -92,27 +92,23 @@ collections:
     name: Leaderboards & leagues
     persona_default: manager_pro
     articles:
-      - {id: "08.1", title: "What a leaderboard is and when to create one", shots: 2}
-      - {id: "08.2", title: "Creating a leaderboard", flags: [free_pro, role], shots: 8}
-      - {id: "08.3", title: "Your leaderboard settings screen", flags: [role], shots: 5}
-      - {id: "08.4", title: "Adding and removing teams", flags: [role], shots: 6}
-      - {id: "08.5", title: "Leaderboard admins", flags: [free_pro, role], shots: 4}
-      - {id: "08.6", title: "Reading the league table, and how ranking is worked out", shots: 4}
-      - {id: "08.7", title: "Leaderboard statistics, players and matches", shots: 6}
-      - {id: "08.8", title: "Sharing, commenting on and deleting a leaderboard", flags: [role], shots: 5}
+      - {id: "08.1", title: "Creating a leaderboard", flags: [free_pro, role], shots: 8}
+      - {id: "08.2", title: "Your leaderboard settings screen", flags: [role], shots: 5}
+      - {id: "08.3", title: "Adding and removing teams", flags: [role], shots: 6}
+      - {id: "08.4", title: "Leaderboard statistics, players and matches", shots: 6}
+      - {id: "08.5", title: "Sharing, commenting on and deleting a leaderboard", flags: [role], shots: 5}
 
   - id: "09"
     name: Creating & scheduling matches
     persona_default: manager_pro
     articles:
-      - {id: "09.1", title: "Creating a match - the three steps", shots: 10}
-      - {id: "09.2", title: "Creating a match from the calendar, or quick-creating one", shots: 6}
-      - {id: "09.3", title: "Match statuses, and why a match is stuck on Incomplete", shots: 5}
-      - {id: "09.4", title: "Venue, date, kick-off time, duration and pitch", shots: 6}
-      - {id: "09.5", title: "Match tags, and attaching a match to a leaderboard", flags: [role], shots: 5}
-      - {id: "09.6", title: "Editing, cancelling or deleting a match", flags: [role], shots: 5}
-      - {id: "09.7", title: "Assigning a referee, and adding a banner or note", flags: [role], shots: 6}
-      - {id: "09.8", title: "Inviting people, sharing a preview and the matches calendar", shots: 7}
+      - {id: "09.1", title: "Creating a match", shots: 10}
+      - {id: "09.2", title: "Match statuses, and why a match is stuck on Incomplete", shots: 5}
+      - {id: "09.3", title: "Venue, date, kick-off time, duration and pitch", shots: 6}
+      - {id: "09.4", title: "Match tags, and attaching a match to a leaderboard", flags: [role], shots: 5}
+      - {id: "09.5", title: "Editing, cancelling or deleting a match", flags: [role], shots: 5}
+      - {id: "09.6", title: "Assigning a referee, and adding a banner or note", flags: [role], shots: 6}
+      - {id: "09.7", title: "Inviting people, sharing a preview and the matches calendar", shots: 7}
 
   - id: "10"
     name: Match day
@@ -128,7 +124,6 @@ collections:
       - {id: "10.8", title: "The match feed and commentary", flags: [free_pro], shots: 8}
       - {id: "10.9", title: "Recording a match that has already been played", shots: 5}
       - {id: "10.10", title: "Live viewers, and following a match from another device", shots: 4}
-      - {id: "10.11", title: "After the match - the league table, rating and results", shots: 5}
 
   - id: "11"
     name: Match insights & statistics
@@ -226,15 +221,13 @@ collections:
     articles:
       - {id: "17.1", title: "Collecting money through Scoryboard - an overview", shots: 5}
       - {id: "17.2", title: "Setting up your payout account", flags: [role, money], shots: 12, note: "Stripe Connect onboarding, hardest capture in the project"}
-      - {id: "17.3", title: "Payout account statuses, and what each one blocks", flags: [role, money], shots: 6}
-      - {id: "17.4", title: "Requesting payment - choosing a source", flags: [role, money], shots: 9}
-      - {id: "17.5", title: "Choosing who to charge, and setting the amount and due date", flags: [role, money], shots: 7}
-      - {id: "17.6", title: "Fees - passing them on or absorbing them", flags: [role, money], shots: 5}
-      - {id: "17.7", title: "Editing, cancelling and sending reminders", flags: [role, money], shots: 6}
-      - {id: "17.8", title: "Tracking money you have asked for", flags: [role, money], shots: 5}
-      - {id: "17.9", title: "When your payout arrives", flags: [money], shots: 3}
-      - {id: "17.10", title: "Paying a request you have received", persona: player, flags: [money], shots: 8}
-      - {id: "17.11", title: "Payment statuses, failed payments and refunds", flags: [money], shots: 6}
+      - {id: "17.3", title: "Requesting payment - choosing a source", flags: [role, money], shots: 9}
+      - {id: "17.4", title: "Choosing who to charge, and setting the amount and due date", flags: [role, money], shots: 7}
+      - {id: "17.5", title: "Fees - passing them on or absorbing them", flags: [role, money], shots: 5}
+      - {id: "17.6", title: "Editing, cancelling and sending reminders", flags: [role, money], shots: 6}
+      - {id: "17.7", title: "Tracking money you have asked for", flags: [role, money], shots: 5}
+      - {id: "17.8", title: "Paying a request you have received", persona: player, flags: [money], shots: 8}
+      - {id: "17.9", title: "Payment statuses, failed payments and refunds", flags: [money], shots: 6}
 
   - id: "18"
     name: Chat & messaging
@@ -242,12 +235,8 @@ collections:
     articles:
       - {id: "18.1", title: "Chat overview - conversations, direct messages and groups", shots: 6}
       - {id: "18.2", title: "Creating and setting up a group chat", flags: [role], shots: 6}
-      - {id: "18.3", title: "Group admins and managing members", flags: [role], shots: 7}
-      - {id: "18.4", title: "Sending messages, photos and files", shots: 5}
-      - {id: "18.5", title: "Replying, forwarding, reacting, editing and deleting", shots: 9}
-      - {id: "18.6", title: "Read receipts, who is online, and chat emails", shots: 5}
-      - {id: "18.7", title: "Chat on the Free plan - truncated messages and locked attachments", flags: [free_pro], shots: 6, note: "needs Free and Pro capture of the same thread"}
-      - {id: "18.8", title: "Leaving, deleting and reporting", flags: [role], shots: 6}
+      - {id: "18.3", title: "Replying, forwarding, reacting, editing and deleting", shots: 9}
+      - {id: "18.4", title: "Leaving, deleting and reporting", flags: [role], shots: 6}
 
   - id: "19"
     name: Comments, likes & ratings
@@ -275,7 +264,6 @@ collections:
       - {id: "21.1", title: "Becoming a referee, and your referee profile", flags: [role], shots: 7}
       - {id: "21.2", title: "Accepting an invitation and seeing your assigned matches", flags: [role], shots: 5}
       - {id: "21.3", title: "Refereeing a match - what you can and cannot do", flags: [role], shots: 6}
-      - {id: "21.4", title: "Your referee statistics and availability", flags: [role], shots: 5}
 
   - id: "22"
     name: Venues & club locations
@@ -285,14 +273,11 @@ collections:
       - {id: "22.2", title: "Tournament-only venues and saving venues for reuse", flags: [role], shots: 4}
 
   - id: "23"
-    name: Powerleague & CentreNet bookings
+    name: Powerleague & CentreNet bookings (retired - dropped)
+    retired: true
     persona_default: manager_free
-    note: "Partner-initiated records. High ticket volume because the user did not start the action."
-    articles:
-      - {id: "23.1", title: "How a Powerleague booking becomes a Scoryboard match", shots: 5}
-      - {id: "23.2", title: "Why your booked match was not created", shots: 3}
-      - {id: "23.3", title: "Booking changes, cancellations and goals synced from Powerleague", shots: 4}
-      - {id: "23.4", title: "Tournaments and tournament access from a partner account", flags: [tourn_plan], shots: 4}
+    note: "RETIRED 2026-08-29, dropped rather than merged - the partner-booking articles are not being written. Do not publish into this collection. Its Intercom collection 19733992 is empty and unused."
+    articles: []
 
   - id: "24"
     name: Troubleshooting & policies

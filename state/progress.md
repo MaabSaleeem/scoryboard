@@ -20,25 +20,25 @@ target.
 | 05 | Friends | 5 | 26 | manager_free | drafts on Intercom | [briefs/05.md](../briefs/05.md) | 26 screenshots. **05.1-05.4 published by the reviewer 2026-08-31; 05.5 is a draft.** Collection 06 was retired into this one 2026-08-31 - 06.1 became 05.5. Found that a **refused Add To Team deletes the friend** (ONE_FRIEND_PER_TEAM), which also answers collection 04's open question 1. Accounts: `kb-manager-free-05@`, `kb-05-mate@`, `kb-05-player@`, `kb-05-invitee@`. `kb-05-claimer@` is burnt - see the session log |
 | ~~06~~ | ~~Following~~ | - | - | - | **retired** | - | **RETIRED 2026-08-31, merged into 05.** 06.1 became 05.5. Intercom collection 19733975 was empty before the merge and is empty after it; it must not be reused |
 | 07 | Teams | 11 | 63 | manager_pro | published | [briefs/07.md](../briefs/07.md) | 63 screenshots. **All eleven published by the reviewer 2026-08-29.** 07.7 and 07.9 retitled - the app has no ownership transfer and no Fan role. Accounts: `kb-manager-pro-07@`, `kb-fresh-07@`, six `kb-07-*@` |
-| 08 | Leaderboards & leagues | 8 | 40 | manager_pro | not started | - | - |
-| 09 | Creating & scheduling matches | 8 | 50 | manager_pro | not started | - | - |
-| 10 | Match day | 11 | 65 | manager_pro | not started | - | - |
+| 08 | Leaderboards & leagues | 5 | 30 | manager_pro | not started | - | - |
+| 09 | Creating & scheduling matches | 7 | 44 | manager_pro | not started | - | - |
+| 10 | Match day | 10 | 60 | manager_pro | not started | - | - |
 | 11 | Match insights & statistics | 3 | 9 | player | drafts on Intercom | [briefs/11.md](../briefs/11.md) | 9 screenshots. 11.1 retitled - the app has no form guide and no head-to-head record. Found that **a match outside a leaderboard writes no statistics at all** and that a player counts the matches they were in the LINEUP for. Accounts: `kb-player-11@`, `kb-11-owner@`. Four played matches; they cannot be undone. **All three published by the reviewer 2026-08-31, then all three rewritten for clarity and republished** |
 | 12 | Tournaments - setting one up | 10 (+2) | 80 | organiser | published | [briefs/12.md](../briefs/12.md) | 12 published, 80 screenshots. 12.11 and 12.12 added for Padel; not in the map |
 | 13 | Tournaments - groups, brackets & phases | 11 | 55 | organiser | drafts on Intercom | [briefs/13.md](../briefs/13.md) | flag: TOURNAMENT_FEATURE_ENABLED. 11 drafts, 55 screenshots. 13.8 retitled. Account: kb-organiser-13@yopmail.com |
 | 14 | Tournaments - the fixture schedule | 8 | 37 | organiser | drafts on Intercom | [briefs/14.md](../briefs/14.md) | flag: TOURNAMENT_FEATURE_ENABLED. 8 drafts, 37 screenshots. 14.5 retitled - fixtures cannot be deleted. Account: kb-organiser-14@yopmail.com |
 | 15 | Tournaments - publishing & running | 9 | 62 | organiser | not started | - | flag: TOURNAMENT_FEATURE_ENABLED. Structure unchanged; 15.8 needs a padel section. Account: kb-organiser-15@yopmail.com |
 | ~~16~~ | ~~Tournament plans & payment~~ | - | - | - | **retired** | - | **RETIRED 2026-08-29, merged into 04.** 16.1+16.2 -> 04.4, 16.3+16.4 -> 04.5, 16.6 -> 04.6. 16.5 dropped - managing a live Annual subscription needs a completed payment. Intercom collection 19733985 is empty and must not be reused |
-| 17 | Collecting & making payments | 11 | 72 | manager_pro | not started | - | REAL MONEY, Stripe Connect. Two audiences - the organiser collecting and the player paying. |
-| 18 | Chat & messaging | 8 | 50 | manager_free | not started | - | - |
+| 17 | Collecting & making payments | 9 | 63 | manager_pro | not started | - | REAL MONEY, Stripe Connect. Two audiences - the organiser collecting and the player paying. |
+| 18 | Chat & messaging | 4 | 27 | manager_free | not started | - | - |
 | 19 | Comments, likes & ratings | 4 | 19 | player | not started | - | - |
 | 20 | Notifications, emails & the activity feed | 4 | 16 | player | not started | - | No push notifications exist. Do not write one. |
-| 21 | Referees | 4 | 23 | referee | not started | - | - |
+| 21 | Referees | 3 | 18 | referee | not started | - | - |
 | 22 | Venues & club locations | 2 | 11 | manager_pro | not started | - | - |
-| 23 | Powerleague & CentreNet bookings | 4 | 16 | manager_free | not started | - | Partner-initiated records. High ticket volume because the user did not start the action. |
 | 24 | Troubleshooting & policies | 4 | 13 | manager_free | not started | - | - |
 
-Totals: 146 articles, 801 screenshots estimated across 22 collections. Collection
+Totals: 130 articles, 727 screenshots estimated across 20 live collections
+(03, 06, 16 and 23 are retired). Collection
 16 was retired into 04 on 2026-08-29; 04 grew from 3 articles to 6. These count
 what `config/articles.yaml` lists and still exclude collection 12's two padel
 articles, which are published but never went back into the map.
@@ -2129,3 +2129,29 @@ full three-spec suite passed in one go afterwards. The seed reported zero writes
 after it.
 
 Next: `/kb-brief 08`, which needs the leaderboard-route question answered first.
+
+### The remaining collections were filtered - 2026-08-29
+
+The repo owner cut articles from six collections that had not started, and
+renumbered what was left so each collection runs from .1 with no gaps.
+
+| # | Was | Now | Dropped |
+|---|---|---|---|
+| 08 | 8 | 5 | what a leaderboard is; leaderboard admins; reading the league table |
+| 09 | 8 | 7 | creating a match from the calendar. 09.1 retitled "Creating a match" |
+| 10 | 11 | 10 | after the match - the league table, rating and results |
+| 17 | 11 | 9 | payout account statuses; when your payout arrives |
+| 18 | 8 | 4 | group admins; sending messages, photos and files; read receipts; chat on the Free plan |
+| 21 | 4 | 3 | your referee statistics and availability |
+
+Renumbering moved two articles that other files referenced: **09.7 became 09.6**
+and **17.10 became 17.8**. Both fixed in `config/personas.yaml`.
+
+Nothing published was touched - all six were `not started`.
+
+**Collection 23 retired the same day.** Powerleague & CentreNet bookings was
+dropped rather than merged - those partner-booking articles are not being written.
+Its Intercom collection `19733992` is empty and marked `retired: true`, as 03 and
+16 were. Totals are now 130 articles, 727 screenshots, 20 live collections.
+
+Next: pick from the remaining collections.

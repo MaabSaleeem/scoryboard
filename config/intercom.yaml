@@ -116,9 +116,13 @@ collections:
   "22":
     name: "Venues & club locations"
     id: "19733991"
+  # RETIRED 2026-08-29. Collection 23 was dropped. This Intercom collection is
+  # empty and nothing should publish into it. Kept so the id is not silently
+  # reused.
   "23":
-    name: "Powerleague & CentreNet bookings"
+    name: "Powerleague & CentreNet bookings (retired - dropped)"
     id: "19733992"
+    retired: true
   "24":
     name: "Troubleshooting & policies"
     id: "19733993"

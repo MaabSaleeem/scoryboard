@@ -115,7 +115,7 @@ personas:
     email_pattern: "kb-player-<collection>@yopmail.com"
     name: Pia
     membership: Free
-    used_by: ["02", "06", "11", "17.10", "19", "20"]   # 03 merged into 02
+    used_by: ["02", "11", "17.8", "19", "20"]   # 03 merged into 02; 17.10 renumbered to 17.8; 06 retired
     state: >
       A member of two teams she does not own, with match history so her statistics,
       rankings and match list are populated. Has an avatar, a banner and a bio.
@@ -137,7 +137,7 @@ personas:
     email_pattern: "kb-manager-free-<collection>@yopmail.com"
     name: Marc
     membership: Free
-    used_by: ["04", "05", "18", "23", "24"]   # 02 is now a player collection
+    used_by: ["04", "05", "18", "24"]   # 02 is now a player collection; 23 retired
     state: >
       Owns one team on the Free plan, sitting at the Free limits so every gate
       modal is reachable. Has friends in the friends list, one of them with a
@@ -232,7 +232,7 @@ personas:
     email_pattern: "kb-referee-<collection>@yopmail.com"
     name: Rae
     membership: Free
-    used_by: ["21", "09.7"]
+    used_by: ["21", "09.6"]   # was 09.7 before collection 09 was filtered
     state: >
       A referee profile with at least one accepted assignment on a manager_pro
       match, one pending invitation, and enough finished matches to populate
