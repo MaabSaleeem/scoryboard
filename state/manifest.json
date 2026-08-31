@@ -1243,8 +1243,8 @@
         "screenshots/11/11.2/02-team-stat-tiles.ad838df6.png",
         "screenshots/11/11.2/03-player-stats-table.c07dfe73.png"
       ],
-      "published_at": "2026-08-31T06:23:17.000Z",
-      "status": "draft"
+      "published_at": "2026-08-31T08:24:56.000Z",
+      "status": "published"
     },
     "11.3": {
       "intercom_id": "16756939",
@@ -1257,8 +1257,8 @@
         "screenshots/11/11.3/01-match-details-leaderboard.da26ac7e.png",
         "screenshots/11/11.3/02-leaderboards-table.fb9f2913.png"
       ],
-      "published_at": "2026-08-31T06:23:40.000Z",
-      "status": "draft"
+      "published_at": "2026-08-31T08:25:00.000Z",
+      "status": "published"
     }
   }
 }
