@@ -2270,3 +2270,172 @@ export async function hideLottie(page: Page) {
     }
   });
 }
+
+// --- 05.5: following -------------------------------------------------------
+//
+// Collection 06 was merged into 05 on 2026-08-31, the way 03 went into 02 and
+// 16 into 04. Its one article is 05.5.
+//
+// The whole article rests on one observation: **the Follow control is the same
+// control in all three places.** A player profile, a team page and a tournament
+// page each carry it in their own header, beside their counters, and it reads
+// **Follow** or **Unfollow**. So one locator serves all three.
+//
+// What is NOT the same is where the result shows up. Followed players and teams
+// are listed in the Following window on your own profile, under a Players tab
+// and a Teams tab. **A followed tournament is listed nowhere** - not in that
+// window, not on the Tournament screen, and there is no endpoint that
+// enumerates them. 05.5 says so, and the seed can only check the one tournament
+// this collection owns.
+
+/**
+ * The Follow / Unfollow control on a player, team or tournament header.
+ *
+ * `exact` matters: without it "Follow" also matches "Followers", which is the
+ * counter immediately beside it on every one of these three headers.
+ */
+export function followButton(page: Page, label: string = KB05.FOLLOW_BUTTON) {
+  return onScreen(page.getByRole('button', { name: label, exact: true })).first();
+}
+
+/**
+ * The header block of a player, team or tournament page - the avatar, the name,
+ * the Follow control and the counters.
+ *
+ * Found from the Follow control rather than from the name: the three pages put
+ * different things in their headers (a player has Chat and Request Payment, a
+ * tournament has neither) and the Follow control is the one thing all three
+ * share.
+ *
+ * Two ancestors are accepted, because a tournament's header is not built like
+ * the other two. A player and a team sit in a white band with a bottom border;
+ * a tournament sits in its own dark banner, `min-h-[280px]`, with no border at
+ * all. Matched on the class ATTRIBUTE rather than as a CSS class, because
+ * Tailwind's arbitrary values carry brackets that a CSS selector would need
+ * escaping for - the same way collection 14 reaches its schedule cards.
+ *
+ * Clipping to the band is what keeps the TRENDING feed out of the captures. It
+ * is global activity - other collections' fixtures and other people's accounts -
+ * which docs/style-guide.md forbids in a capture and which drifts every run.
+ */
+// The white band a player's and a team's header sits in. It holds the banner
+// AND the counters row underneath it, which is the frame these captures need -
+// the banner alone cuts the counters in half.
+const HEADER_BAND = 'xpath=ancestor::div[contains(@class,"bg-white") and contains(@class,"border-b")][1]';
+// A tournament has no such band. Its header is its own dark banner, and the
+// counters are inside it. Matched on the class ATTRIBUTE rather than as a CSS
+// class: Tailwind's arbitrary values carry brackets that a CSS selector would
+// need escaping for, the same way collection 14 reaches its schedule cards.
+const HEADER_BANNER = 'xpath=ancestor::div[contains(@class,"min-h-[280px]")][1]';
+
+/** The band if the page has one, otherwise the banner. */
+async function headerAround(anchor: Locator) {
+  const band = anchor.locator(HEADER_BAND);
+  if (await band.count()) {
+    await expect(band.first()).toBeVisible();
+    return band.first();
+  }
+  const banner = anchor.locator(HEADER_BANNER);
+  await expect(banner.first()).toBeVisible();
+  return banner.first();
+}
+
+export async function followHeader(page: Page, label: string = KB05.FOLLOW_BUTTON) {
+  const control = followButton(page, label);
+  await expect(control).toBeVisible();
+  return headerAround(control);
+}
+
+/**
+ * The header of your OWN profile, which has no Follow control on it - you
+ * cannot follow yourself - so it is found from a counter instead.
+ */
+export async function ownProfileHeader(page: Page, counterLabel: string) {
+  const counter = followCounter(page, counterLabel);
+  await expect(counter).toBeVisible();
+  return headerAround(counter);
+}
+
+/**
+ * Wait for a follow state to have been read from the server.
+ *
+ * Every one of these three pages paints its header, including the Follow
+ * control, before `GET .../follow` answers - so the control can read **Follow**
+ * for a moment on something you already follow. Gating on the button's own text
+ * is not enough for that reason; this waits for the request to have landed by
+ * asserting the label the caller expects.
+ */
+export async function followStateReady(page: Page, label: string) {
+  await expect(followButton(page, label)).toBeVisible();
+  await expect(
+    onScreen(page.getByRole('button', { name: label === KB05.FOLLOW_BUTTON ? KB05.UNFOLLOW_BUTTON : KB05.FOLLOW_BUTTON, exact: true })),
+  ).toHaveCount(0);
+}
+
+/** A counter tile in a profile header - Followers, Following, Leaderboard, Views. */
+export function followCounter(page: Page, label: string) {
+  return onScreen(page.getByText(label, { exact: true })).first()
+    .locator('xpath=ancestor-or-self::*[contains(@class,"cursor-pointer")][1]');
+}
+
+/**
+ * Open the Following window from your own profile and wait for both tabs.
+ *
+ * The tab labels are upper case through CSS, so their text is "Players (1)" and
+ * "Teams (1)" rather than "PLAYERS (1)" - the same trap collection 14 hit on
+ * GROUP A. Matched on the word and its count separately, because the count is
+ * what the seed controls.
+ */
+export async function openFollowingWindow(page: Page) {
+  await followCounter(page, KB05.FOLLOWING_DIALOG.title).click();
+  const d = topDialog(page);
+  await expect(d.getByRole('heading', { name: new RegExp(`^${KB05.FOLLOWING_DIALOG.title}`) }))
+    .toBeVisible();
+  await expect(d.getByText(new RegExp(`^${KB05.FOLLOWING_DIALOG.playersTab} \\(\\d+\\)$`))).toBeVisible();
+  await expect(d.getByText(new RegExp(`^${KB05.FOLLOWING_DIALOG.teamsTab} \\(\\d+\\)$`))).toBeVisible();
+  return d;
+}
+
+/**
+ * The things 05.5 follows, looked up by name.
+ *
+ * Kept apart from fixtures05() so the other four specs do not pay for four
+ * extra requests they have no use for. Never hardcode an id: the seed can
+ * legitimately rebuild any of these.
+ */
+export async function fixtures05Follow() {
+  const mateSession = await mintSession(KB05.ACCOUNTS.mate);
+  const mate = (await asUser(mateSession.idToken, '/users/me')).body?.data;
+  if (!mate) throw new Error(`${KB05.ACCOUNTS.mate} has no Scoryboard user. Run: node scripts/seed-05.mjs`);
+
+  const owned = (await asUser(mateSession.idToken, '/teams')).body?.data ?? [];
+  const teamId = (name: string) => {
+    const t = owned.find((x: any) => x.name === name);
+    if (!t) throw new Error(`Team "${name}" is missing. Run: node scripts/seed-05.mjs`);
+    return String(t.teamId ?? t.id);
+  };
+
+  const tournaments = (await asUser(mateSession.idToken, '/tournaments')).body?.data ?? [];
+  const cup = tournaments.find((t: any) => t.title === KB05.FOLLOW_TOURNAMENT);
+  if (!cup) throw new Error(`${KB05.FOLLOW_TOURNAMENT} is missing. Run: node scripts/seed-05.mjs`);
+
+  return {
+    mate: { ...mate, email: KB05.ACCOUNTS.mate, token: mateSession.idToken as string },
+    followedTeam: { id: teamId(KB05.FOLLOW_TEAMS.followed), name: KB05.FOLLOW_TEAMS.followed },
+    unfollowedTeam: { id: teamId(KB05.FOLLOW_TEAMS.unfollowed), name: KB05.FOLLOW_TEAMS.unfollowed },
+    tournament: { id: String(cup._id ?? cup.id), name: KB05.FOLLOW_TOURNAMENT as string },
+  };
+}
+
+/** Follow or unfollow over the API. Used by 05.5 to put its own state back. */
+export async function setFollow(
+  token: string,
+  kind: 'players' | 'teams' | 'tournaments',
+  id: string,
+  following: boolean,
+) {
+  const r = await asUser(token, `/${kind}/${id}/follow`, { method: following ? 'POST' : 'DELETE' });
+  if (!r.ok) {
+    throw new Error(`${following ? 'follow' : 'unfollow'} ${kind}/${id}: ${JSON.stringify(r.body)}`);
+  }
+}

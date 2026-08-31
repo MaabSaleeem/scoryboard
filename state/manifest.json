@@ -1142,7 +1142,7 @@
         "screenshots/05/05.1/03-one-friend-per-team-free.9c4a2af3.png"
       ],
       "published_at": "2026-08-30T06:54:14.000Z",
-      "status": "draft"
+      "status": "published"
     },
     "05.2": {
       "intercom_id": "16749941",
@@ -1162,7 +1162,7 @@
         "screenshots/05/05.2/08-edit-disabled-linked.d2b517d1.png"
       ],
       "published_at": "2026-08-30T06:54:48.000Z",
-      "status": "draft"
+      "status": "published"
     },
     "05.3": {
       "intercom_id": "16749943",
@@ -1178,7 +1178,7 @@
         "screenshots/05/05.3/04-linked-row.299c5ee7.png"
       ],
       "published_at": "2026-08-30T06:55:07.000Z",
-      "status": "draft"
+      "status": "published"
     },
     "05.4": {
       "intercom_id": "16749944",
@@ -1195,6 +1195,24 @@
         "screenshots/05/05.4/05-claimed-row.91a68c92.png"
       ],
       "published_at": "2026-08-30T06:55:29.000Z",
+      "status": "published"
+    },
+    "05.5": {
+      "intercom_id": "16755990",
+      "collection": "05",
+      "intercom_collection_id": "19733974",
+      "brief": "briefs/05.md",
+      "spec": "specs/05/05.5.spec.ts",
+      "commit_sha": "f8214efcd3563943c3e6db83f2c9b7f8051cf00a",
+      "screenshots": [
+        "screenshots/05/05.5/01-player-follow.71b6f2f7.png",
+        "screenshots/05/05.5/02-player-unfollow.f058aebb.png",
+        "screenshots/05/05.5/03-team-follow.1913524b.png",
+        "screenshots/05/05.5/04-tournament-follow.6a6b1df1.png",
+        "screenshots/05/05.5/05-following-counter.74c59e5d.png",
+        "screenshots/05/05.5/06-following-window.fb9910fe.png"
+      ],
+      "published_at": "2026-08-31T05:00:07.000Z",
       "status": "draft"
     }
   }

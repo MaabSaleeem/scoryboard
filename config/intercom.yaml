@@ -55,9 +55,15 @@ collections:
   "05":
     name: "Friends"
     id: "19733974"
+  # RETIRED 2026-08-31. Collection 06 was merged into 05 - its one article,
+  # "Following players, teams and tournaments", is now 05.5 and lives in
+  # 19733974. This Intercom collection is empty (checked before the merge and
+  # after it) and nothing should publish into it. Kept so the id is not
+  # silently reused.
   "06":
-    name: "Following"
+    name: "Following (retired - merged into 05)"
     id: "19733975"
+    retired: true
   "07":
     name: "Teams"
     id: "19733976"

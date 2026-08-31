@@ -39,7 +39,10 @@
 
 import 'dotenv/config';
 import { admin, asUser, mintSession, j } from '../lib/api.mjs';
-import { ACCOUNTS, PROFILES, TEAMS, FRIENDS, NEW_FRIEND } from '../lib/fixtures-05.mjs';
+import {
+  ACCOUNTS, PROFILES, TEAMS, FRIENDS, NEW_FRIEND,
+  FOLLOW_TEAMS, FOLLOW_TOURNAMENT, FOLLOW_TOURNAMENT_DATES, FOLLOWS,
+} from '../lib/fixtures-05.mjs';
 
 const REBUILD = process.argv.includes('--rebuild');
 
@@ -316,6 +319,143 @@ async function assertNoLeftovers(me) {
   note('-', 'leftovers', '-', `no ${NEW_FRIEND.name} row`);
 }
 
+/**
+ * The two teams ACCOUNTS.mate owns, for 05.5 to follow.
+ *
+ * Her born teams go for the same reason Marc's do: their names carry the date
+ * the account was made - "Cara K FC 3008" - and one of them would show up in
+ * the Following window if anything ever followed it.
+ */
+async function ensureMateTeams(mate) {
+  const wanted = new Set(Object.values(FOLLOW_TEAMS));
+  let owned = (await asUser(mate.token, '/teams')).body?.data ?? [];
+
+  for (const team of owned) {
+    if (wanted.has(team.name)) continue;
+    const id = String(team.teamId ?? team.id);
+    const r = await asUser(mate.token, `/teams/${id}`, { method: 'DELETE' });
+    note('DELETE', `/teams/${id}`, r.status, `removed ${mate.email}'s stray team "${team.name}"`);
+  }
+
+  owned = (await asUser(mate.token, '/teams')).body?.data ?? [];
+  const byName = new Map(owned.map((t) => [t.name, String(t.teamId ?? t.id)]));
+  for (const name of Object.values(FOLLOW_TEAMS)) {
+    if (byName.has(name)) {
+      note('GET', '/teams', 200, `${name} exists - ${byName.get(name)}`);
+      continue;
+    }
+    const r = await asUser(mate.token, '/teams', {
+      method: 'POST',
+      body: { name, teamSize: '5 VS 5', defaultFormation: { formation: '2-1-1' } },
+    });
+    if (!r.ok) throw new Error(`POST /teams ${name}: ${j(r.body)}`);
+    byName.set(name, String(r.body.data.id));
+    note('POST', '/teams', r.status, `${name} created - ${r.body.data.id}`);
+  }
+  return { followed: byName.get(FOLLOW_TEAMS.followed), unfollowed: byName.get(FOLLOW_TEAMS.unfollowed) };
+}
+
+/**
+ * One tournament ACCOUNTS.mate owns, for 05.5's tournament capture.
+ *
+ * A Free account can create one - checked on staging - and it is born
+ * `status: "Published"`, so there is no wizard to drive and no Tournament Pro
+ * to grant. Nothing here configures it: 05.5 photographs its header, not its
+ * format.
+ */
+async function ensureMateTournament(mate) {
+  const list = (await asUser(mate.token, '/tournaments')).body?.data ?? [];
+  for (const t of list) {
+    if (t.title === FOLLOW_TOURNAMENT) continue;
+    const id = String(t._id ?? t.id);
+    const r = await asUser(mate.token, `/tournaments/${id}`, { method: 'DELETE' });
+    note('DELETE', `/tournaments/${id}`, r.status, `removed stray tournament "${t.title}"`);
+  }
+  const found = (await asUser(mate.token, '/tournaments')).body?.data
+    ?.find((t) => t.title === FOLLOW_TOURNAMENT);
+  if (found) {
+    const id = String(found._id ?? found.id);
+    note('GET', '/tournaments', 200, `${FOLLOW_TOURNAMENT} exists - ${id} status=${found.status}`);
+    return id;
+  }
+  const r = await asUser(mate.token, '/tournaments', {
+    method: 'POST',
+    body: { title: FOLLOW_TOURNAMENT, ...FOLLOW_TOURNAMENT_DATES, isOnline: false },
+  });
+  if (!r.ok) throw new Error(`POST /tournaments ${FOLLOW_TOURNAMENT}: ${j(r.body)}`);
+  note('POST', '/tournaments', r.status, `${FOLLOW_TOURNAMENT} created - ${r.body.data.id}`);
+  return String(r.body.data.id);
+}
+
+/**
+ * Exactly what Marc follows: one player, one team, and no tournament.
+ *
+ * Followed players and teams can be enumerated - `/following/players` and
+ * `/following/teams` - so strays are unfollowed. **A followed TOURNAMENT cannot
+ * be enumerated**: nothing in the app or the API lists them, so the only handle
+ * is `GET /tournaments/:id/follow` on an id you already know. This checks the
+ * one tournament this collection owns and can do no more. 05.5 says the same
+ * thing to the reader.
+ */
+async function ensureFollows(me, accounts, teamIds, tournamentId) {
+  const wantPlayer = String(accounts[FOLLOWS.player].playerId);
+  const wantTeam = String(teamIds.followed);
+
+  const players = (await asUser(me.token,
+    `/players/${me.playerId}/following/players?limit=100&skip=0&tab=players`))
+    .body?.data?.players ?? [];
+  for (const p of players) {
+    if (String(p.playerId) === wantPlayer) continue;
+    const r = await asUser(me.token, `/players/${p.playerId}/follow`, { method: 'DELETE' });
+    note('DELETE', `/players/${p.playerId}/follow`, r.status,
+      `unfollowed stray player "${p.firstName ?? p.playerId}"`);
+  }
+  if (!players.some((p) => String(p.playerId) === wantPlayer)) {
+    const r = await asUser(me.token, `/players/${wantPlayer}/follow`, { method: 'POST' });
+    if (!r.ok) throw new Error(`follow player ${wantPlayer}: ${j(r.body)}`);
+    note('POST', `/players/${wantPlayer}/follow`, r.status, `following ${accounts[FOLLOWS.player].email}`);
+  }
+
+  const teams = (await asUser(me.token,
+    `/players/${me.playerId}/following/teams?limit=100&skip=0&tab=teams`))
+    .body?.data?.teams ?? [];
+  for (const t of teams) {
+    if (String(t.teamId) === wantTeam) continue;
+    const r = await asUser(me.token, `/teams/${t.teamId}/follow`, { method: 'DELETE' });
+    note('DELETE', `/teams/${t.teamId}/follow`, r.status, `unfollowed stray team "${t.name}"`);
+  }
+  if (!teams.some((t) => String(t.teamId) === wantTeam)) {
+    const r = await asUser(me.token, `/teams/${wantTeam}/follow`, { method: 'POST' });
+    if (!r.ok) throw new Error(`follow team ${wantTeam}: ${j(r.body)}`);
+    note('POST', `/teams/${wantTeam}/follow`, r.status, `following ${FOLLOW_TEAMS.followed}`);
+  }
+
+  const state = (await asUser(me.token, `/tournaments/${tournamentId}/follow`)).body?.data ?? {};
+  if (state.isFollowing) {
+    const r = await asUser(me.token, `/tournaments/${tournamentId}/follow`, { method: 'DELETE' });
+    note('DELETE', `/tournaments/${tournamentId}/follow`, r.status,
+      `unfollowed ${FOLLOW_TOURNAMENT} - 05.5 photographs its Follow button`);
+  } else {
+    note('-', 'tournament follow', '-', `${FOLLOW_TOURNAMENT} is not followed`);
+  }
+
+  // The unfollowed team must stay unfollowed for the same reason.
+  const other = (await asUser(me.token, `/teams/${teamIds.unfollowed}/follow`)).body?.data ?? {};
+  if (other.isFollowing) {
+    const r = await asUser(me.token, `/teams/${teamIds.unfollowed}/follow`, { method: 'DELETE' });
+    note('DELETE', `/teams/${teamIds.unfollowed}/follow`, r.status,
+      `unfollowed ${FOLLOW_TEAMS.unfollowed} - 05.5 photographs its Follow button`);
+  }
+
+  // And the player 05.5 follows and unfollows inside its own run.
+  const target = (await asUser(me.token, `/players/${accounts.player.playerId}/follow`)).body?.data ?? {};
+  if (target.isFollowing) {
+    const r = await asUser(me.token, `/players/${accounts.player.playerId}/follow`, { method: 'DELETE' });
+    note('DELETE', `/players/${accounts.player.playerId}/follow`, r.status,
+      `unfollowed ${accounts.player.email} - 05.5 starts from Follow`);
+  }
+}
+
 // --- run --------------------------------------------------------------------
 
 const free = await ensureAccount('free');
@@ -339,6 +479,13 @@ console.log('\n--- team members ---');
 await ensureTeamMembers(freeNow, teams, friends);
 await assertNoLeftovers(freeNow);
 
+console.log('\n--- 05.5: things to follow ---');
+const mateTeams = await ensureMateTeams(mate);
+const tournamentId = await ensureMateTournament(mate);
+
+console.log('\n--- 05.5: what Marc follows ---');
+await ensureFollows(freeNow, { mate, player, claimer }, mateTeams, tournamentId);
+
 console.log('\n--- what a spec will find ---');
 console.log(j({
   free: { email: freeNow.email, id: freeNow.id, playerId: freeNow.playerId, membership: freeNow.membership },
@@ -346,6 +493,7 @@ console.log(j({
   player: { email: player.email, id: player.id, playerId: player.playerId },
   claimer: { email: claimer.email, id: claimer.id, playerId: claimer.playerId },
   teams,
+  follow: { teams: mateTeams, tournament: tournamentId },
   friends: [...friends.values()].map((f) => ({
     row: `${f.name ?? ''} ${f.lastName ?? ''}`.trim(),
     id: f.id,

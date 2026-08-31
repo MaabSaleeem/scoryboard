@@ -62,12 +62,15 @@ collections:
       - {id: "05.2", title: "Adding, editing and removing friends", shots: 8}
       - {id: "05.3", title: "Merging a friend with an existing player when emails clash", shots: 4}
       - {id: "05.4", title: "Invite codes and claiming your own record", shots: 5}
+      - {id: "05.5", title: "Following players, teams and tournaments", shots: 6, note: "was 06.1. Collection 06 was retired into 05 on 2026-08-31, the way 03 went into 02 and 16 into 04 - following is the other half of \"who is in your list\", and its one article does not carry a collection on its own"}
 
-  - id: "06"
-    name: Following
-    persona_default: player
-    articles:
-      - {id: "06.1", title: "Following players, teams and tournaments", shots: 6}
+  # RETIRED 2026-08-31, merged into 05. Its one article is now 05.5. Intercom
+  # collection 19733975 is empty and must not be reused.
+  # - id: "06"
+  #   name: Following
+  #   persona_default: player
+  #   articles:
+  #     - {id: "06.1", title: "Following players, teams and tournaments", shots: 6}
 
   - id: "07"
     name: Teams

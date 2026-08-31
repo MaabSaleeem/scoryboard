@@ -17,8 +17,8 @@ target.
 | 01 | Getting started & onboarding | 7 | 44 | fresh | drafts on Intercom | [briefs/01.md](../briefs/01.md) | 43 screenshots. **01.4-01.7 published by the reviewer 2026-08-28; 01.1-01.3 still drafts.** 01.3 retitled "Resetting your password" - the invited-account half was dropped. Seven accounts, all `kb-fresh-01@` or `kb-01-*@`; two now unused |
 | 02 | Finding your way around & your profile | 8 | 36 | player | published | [briefs/02.md](../briefs/02.md) | 36 screenshots. **All eight published by the reviewer 2026-08-29.** 02.1, 02.3 and 02.6 amended and republished afterwards. 03 merged in 2026-08-29; four articles dropped. Accounts: `kb-player-02@`, `kb-02-owner@`, `kb-02-pro@` |
 | 04 | Plans & membership | 6 | 30 | manager_free | published | [briefs/04.md](../briefs/04.md) | 30 screenshots. **All six published by the reviewer 2026-08-29.** 04.6 amended and republished afterwards - when a slot is spent. Collection 16 was retired into this one 2026-08-29 - its six articles became three, and 16.5 was dropped. 04.1 amended and republished - the Coming soon paragraph was dropped. Pro is a free self-serve toggle during beta - no payment step, and no confirmation in either direction. Flag for rewrite when beta ends. Three accounts, NOT one flipped: `kb-manager-free-04@`, `kb-04-pro@`, `kb-04-upgrade@` |
-| 05 | Friends | 4 | 20 | manager_free | drafts on Intercom | [briefs/05.md](../briefs/05.md) | 20 screenshots, exactly as mapped. Nothing added, dropped or retitled. Found that a **refused Add To Team deletes the friend** (ONE_FRIEND_PER_TEAM), which also answers collection 04's open question 1. Accounts: `kb-manager-free-05@`, `kb-05-mate@`, `kb-05-player@`, `kb-05-invitee@`. `kb-05-claimer@` is burnt - see the session log |
-| 06 | Following | 1 | 6 | player | not started | - | - |
+| 05 | Friends | 5 | 26 | manager_free | drafts on Intercom | [briefs/05.md](../briefs/05.md) | 26 screenshots. **05.1-05.4 published by the reviewer 2026-08-31; 05.5 is a draft.** Collection 06 was retired into this one 2026-08-31 - 06.1 became 05.5. Found that a **refused Add To Team deletes the friend** (ONE_FRIEND_PER_TEAM), which also answers collection 04's open question 1. Accounts: `kb-manager-free-05@`, `kb-05-mate@`, `kb-05-player@`, `kb-05-invitee@`. `kb-05-claimer@` is burnt - see the session log |
+| ~~06~~ | ~~Following~~ | - | - | - | **retired** | - | **RETIRED 2026-08-31, merged into 05.** 06.1 became 05.5. Intercom collection 19733975 was empty before the merge and is empty after it; it must not be reused |
 | 07 | Teams | 11 | 63 | manager_pro | published | [briefs/07.md](../briefs/07.md) | 63 screenshots. **All eleven published by the reviewer 2026-08-29.** 07.7 and 07.9 retitled - the app has no ownership transfer and no Fan role. Accounts: `kb-manager-pro-07@`, `kb-fresh-07@`, six `kb-07-*@` |
 | 08 | Leaderboards & leagues | 8 | 40 | manager_pro | not started | - | - |
 | 09 | Creating & scheduling matches | 8 | 50 | manager_pro | not started | - | - |
@@ -1790,3 +1790,134 @@ Nothing else failed. Every spec restores its own fixture, and
 `node scripts/seed-05.mjs` reported zero writes after the full suite.
 
 Next: `/kb-brief 06`.
+
+### 2026-08-31 - collection 06 retired into 05. 06.1 is now 05.5.
+
+At the repo owner's request, and for the same reason 03 went into 02 and 16 into
+04: following is the other half of "who is in your list" - you follow people you
+want to watch and befriend people you want to pick - and a single-article
+collection is a worse home for it than the collection it belongs with.
+
+**Intercom collection `19733975` held nothing**, checked before the merge and
+again after it, so no article moved and no URL changed. This was a fresh build,
+not a transfer. It is marked `retired: true` in `config/intercom.yaml` so the id
+is not silently reused, and `config/articles.yaml` carries collection 06
+commented out with the same note. 05.5 keeps 06.1's mapped title and its mapped
+six screenshots.
+
+| Article | Intercom ID | Shots | Pinned commit |
+|---|---|---|---|
+| 05.5 Following players, teams and tournaments | 16755990 | 6 | `f8214ef` |
+
+Collection 05 is now **five articles and 26 screenshots**, all in `19733974`.
+All 26 embedded image URLs were re-fetched at the end: 26/26 return 200 with an
+`image/*` content type, and no article carries `<ol start=`.
+
+**05.5 is a draft and has not been reviewed.**
+
+### The reviewer published 05.1 to 05.4 while this ran
+
+Checked at the end of the session: those four now read `state: published`,
+updated between this session's two halves. That is the intended workflow and
+nothing needed undoing.
+
+`state/manifest.json` still recorded all four as `draft` and has been reconciled.
+This is the third time - collection 01 on 2026-08-28, five collections on
+2026-08-29, and now this. `scripts/publish-article.mjs` reads the live state off
+Intercom before it decides, so nothing was ever at risk; the manifest is simply
+stale by default, because publishing happens in the Intercom UI between runs.
+
+### The finding that shaped 05.5
+
+**One control, three places - but the result is only listed in two.** A player
+profile, a team page and a tournament page each carry the same Follow control in
+their own header, beside their counters. Selecting it is the whole action: no
+confirmation, nothing sent to the person followed, no Pro gate.
+
+Followed players and teams are then listed in the **Following** window on your
+own profile, under a Players tab and a Teams tab. **A followed tournament is
+listed nowhere.** Not in that window - its heading count excludes them and there
+is no third tab - not on the Tournament screen, which lists only tournaments you
+own, and there is no `/following/tournaments`. The only handle on one is
+`GET /tournaments/:id/follow` for an id you already have.
+
+05.5 documents it and tells the reader to go back to the tournament's own page to
+unfollow. **Worth a ticket:** either a Tournaments tab is missing or following a
+tournament is meant to mean something else.
+
+### Four more behaviours now in config/api.md
+
+1. **The tournament follow endpoints exist**, and `config/api.md` said they did
+   not: `POST`, `DELETE` and `GET /tournaments/:id/follow`, the same shape as the
+   player and team pairs. All three POSTs answer
+   `{"message": "Successfully followed ...", "followId": ...}`.
+2. **Following is one-way and ungated.** It creates no friend record, adds nobody
+   to a team, and works on Free.
+3. **Your own profile has no Follow control** - you cannot follow yourself - but
+   **your own teams and tournaments do** carry one. Checked, because the article's
+   first draft claimed the opposite about teams.
+4. **The header search returns tournaments**, which the 2026-08-29 note about
+   `searchType=all` does not mention. Searching a tournament title returns it
+   labelled `Tournament`. So the search reaches players, teams, leaderboards and
+   tournaments.
+
+### Fixtures
+
+Three new ones, all owned by `kb-05-mate@` and all built by
+`node scripts/seed-05.mjs` (still idempotent - after the full six-spec suite it
+reports zero writes):
+
+| Fixture | Why |
+|---------|-----|
+| `KB 05 Rovers` (team) | **followed** at rest, so the Following window's Teams tab has a row |
+| `KB 05 Wanderers` (team) | **not** followed - 05.5's team capture shows **Follow** |
+| `KB 05 Cup` (tournament) | **not** followed - 05.5's tournament capture |
+
+**A Free account can create a tournament** and it is born `status: "Published"`,
+so no Tournament Pro grant and no wizard was needed. That is worth knowing for
+any later collection that wants a cheap tournament fixture.
+
+No new account. 05.5 follows `kb-05-player@` during its run and unfollows in a
+`finally` - following is reversible in both directions, so unlike the rest of this
+collection there was no one-way action to work around.
+
+**What Marc follows is reconciled, not appended.** Followed players and teams can
+be enumerated, so the seed unfollows strays. A followed tournament cannot be, so
+the seed can only check the one tournament this collection owns - which is the
+gap the article documents, showing up in the tooling.
+
+### Capture defects found and fixed in the specs
+
+- **The first player capture cut the counters row in half.** A player and a team
+  header sit in a white band with a bottom border that holds the banner *and* the
+  counters; a tournament sits in its own dark `min-h-[280px]` banner with the
+  counters inside it and no border at all. The first locator matched the nearest
+  ancestor of either kind, which on a player picked the inner banner.
+  `followHeader()` now prefers the band and falls back to the banner.
+- **The Follow control paints before the follow state arrives**, so it can read
+  Follow for a moment on something you already follow. `followStateReady()` gates
+  on the expected label AND on the opposite label being absent.
+- **Every capture is clipped to a header or a dialog.** All three of these pages
+  carry a TRENDING feed of global activity, which `docs/style-guide.md` forbids in
+  a capture and which drifts every run. Clipping keeps it out; no interception was
+  needed.
+
+### Where to look hard in 05.5
+
+- **Shot 06 shows the player followed in step 2.** The spec unfollows in a
+  `finally`, after the capture, so the window reads Following (3) with both
+  players in it. Deliberate and deterministic - every run follows before it
+  reaches that step - and it reads better, because the reader sees the person
+  they just followed. But it is not the fixture's rest state.
+- **What following actually gets you was not established.** The article says it
+  "keeps them in view", which is the plain reading of a Following list, but
+  nothing was found that changes because of a follow: no feed filter, no
+  notification setting. The home activity feed is global.
+- **05.5's step 1 says the header search finds all three.** Verified for a team
+  and a tournament by searching this collection's own fixtures. Not verified for
+  a player, where the article's own path is a profile you already have open.
+
+### Flake
+
+None in this half. 05.5 was run three times and passed each time; the seed
+reported zero writes afterwards.

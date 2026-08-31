@@ -691,7 +691,37 @@ photographs it yet.
 | GET | `/players/:playerId/following/players` | Players I follow |
 | GET | `/players/:playerId/following/teams` | Teams I follow (`limit`, `skip`, `tab`) |
 
-Following a tournament has no endpoint in the collection.
+~~Following a tournament has no endpoint in the collection.~~
+**(observed in app, 2026-08-31)** It does, and it is the same shape as the other
+two:
+
+| Method | Path | For |
+|---|---|---|
+| POST | `/tournaments/:id/follow` | Follow a tournament |
+| DELETE | `/tournaments/:id/follow` | Unfollow |
+| GET | `/tournaments/:id/follow` | `{followerCount, isFollowing}` |
+
+All three kinds answer `{"message": "Successfully followed ...", "followId": ...}`
+on the POST, and all three are driven by the **same control** in the app - one
+button on the entity's own header, beside its counters, reading **Follow** or
+**Unfollow**. A player profile, a team page and a tournament page each carry it.
+There is no confirmation step and nothing is sent to the person followed.
+
+**A followed tournament is enumerated nowhere.** The Following window on your own
+profile has a Players tab and a Teams tab and no third one; its heading count
+excludes tournaments; the Tournament screen lists only tournaments you own; and
+there is no `/following/tournaments`. The only handle on one is
+`GET /tournaments/:id/follow` for an id you already have. Article 05.5 tells the
+reader to go back to the tournament's own page to unfollow.
+
+**Following is one-way and ungated.** It does not create a friend record, does
+not add anybody to a team, and works on Free. Your own **profile** has no Follow
+control - you cannot follow yourself - but your own **teams and tournaments do**.
+
+**(observed in app, 2026-08-31)** `GET /team-players/search` with
+`searchType=all` also returns **tournaments**, which the 2026-08-29 note above
+does not mention: searching a tournament title returns it labelled `Tournament`.
+So the header search reaches players, teams, leaderboards and tournaments.
 
 ## Referees
 
