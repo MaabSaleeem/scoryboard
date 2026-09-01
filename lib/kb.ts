@@ -5124,3 +5124,343 @@ export async function publicSettled(page: Page, mustContain: RegExp) {
   });
   await imagesPainted(page);
 }
+
+// --- collection 17: collecting & making payments -----------------------------
+//
+// REAL MONEY in production, Stripe TEST MODE here. Two rules govern every helper
+// below, and both come from briefs/17.md:
+//
+//   1. **No capture crosses into Stripe.** The onboarding opens a window at
+//      connect.stripe.com and Pay Now swaps the dialog for Stripe Elements.
+//      Specs photograph the Scoryboard screen that leads in, and stop.
+//   2. **Nothing is submitted that cannot be undone.** A payment request cannot
+//      be deleted - DELETE sets it Cancelled and the row stays for ever - so no
+//      spec sends one, and no spec cancels one. The seed supplies both states.
+
+// @ts-ignore - plain JS module, no types
+import * as F17 from './fixtures-17.mjs';
+
+export const KB17 = F17.ACCOUNTS as Record<'pro' | 'player' | 'admin' | 'nopayout', string>;
+export const KB17_TEAMS = F17.TEAMS as Record<'united' | 'rovers', string>;
+export const KB17_LEADERBOARD: string = F17.LEADERBOARD;
+export const KB17_REQUESTS = F17.REQUESTS as Record<
+  'tracked' | 'scratch' | 'payable' | 'cancelled',
+  { title: string; description: string; basePrice: number; feeAllocation: string }
+>;
+export const feeBreakdown = F17.feeBreakdown as (base: number) => {
+  basePrice: number; total: number; fee: number;
+};
+
+/**
+ * The clock every collection 17 spec freezes to.
+ *
+ * Not only for the due-date picker's Today marker. The app decides whether a
+ * request is overdue in the browser - `dueDate <= now` - and an overdue request
+ * has **Add participants** and **Edit** disabled. The fixtures are due
+ * 30 September 2026, so without this freeze 17.6's captures would change
+ * behaviour on their own the day that date passes.
+ */
+export const FROZEN_NOW_17 = new Date(F17.FROZEN_NOW);
+
+export async function freezeClock17(page: Page) {
+  await page.clock.setFixedTime(FROZEN_NOW_17);
+}
+
+/**
+ * Sign in, and open /teams before anything else.
+ *
+ * This is not tidiness, it is a precondition. **Select Team and Select
+ * Leaderboard read a persisted Redux slice that only `/teams` fills**, so an
+ * owner of two teams who goes straight to /payment sees "Your Teams (0) / No
+ * teams found where you are the owner." Same cause as the External badge in
+ * config/api.md. Observed 2026-09-01; it is a real defect and 17.3 documents it,
+ * which is why 17.3 has its own signInBare-style path for that one capture.
+ */
+export async function signIn17(page: Page, email: string, to = '/payment') {
+  await signInAs(page, email, '/teams');
+  // Gate on the page itself, not on a named team: three of the four personas do
+  // not own KB 17 United, and what matters is only that the /teams fetch landed
+  // and filled the slice.
+  await expect(page.getByText('Manage Teams', { exact: true }).locator('visible=true').first())
+    .toBeVisible({ timeout: 30_000 });
+  await expect(page.locator('.animate-pulse')).toHaveCount(0, { timeout: 30_000 });
+  await page.goto(to);
+}
+
+/** Everything that must be off-screen before a payment capture. */
+export async function quiet17(page: Page) {
+  await quiet(page);
+  await page.addStyleTag({
+    content: `
+      /* Stripe's helper frames float over the page and change between runs. */
+      iframe[name^="__privateStripe"], iframe[src*="js.stripe.com"],
+      iframe[src*="connect-js.stripe.com"], iframe[src*="m.stripe.network"],
+      iframe[src*="hcaptcha"], #stripeDataLayerFrame {
+        display: none !important;
+      }
+      /* The unread badge on the bell. docs/style-guide.md says mask notification
+         counts, and this one moves on its own: seeding a request notifies both
+         participants, so it climbs every time the seed runs. A stylesheet rather
+         than a mask, because a painted block over the bell reads as a defect. */
+      div[class*="bg-red-500"][class*="rounded-full"][class*="absolute"] {
+        visibility: hidden !important;
+      }
+      /* The "Grow Your Team" nudge on a team page. docs/style-guide.md says
+         dismiss any in-app promo before capturing; this one sits directly above
+         the PAYMENT tab and its copy counts down as the squad fills, so it would
+         also change between runs. */
+      div[class*="min-h-[88px]"][class*="border-l-[#F97316]"] {
+        display: none !important;
+      }
+    `,
+  });
+}
+
+/** The Payment hub, loaded. Gate on a row, never on the tab's own label. */
+export async function paymentHubReady(page: Page, mustContain: string) {
+  await expect(page.locator('.animate-pulse')).toHaveCount(0, { timeout: 30_000 });
+  await expect(page.getByText(mustContain, { exact: true }).locator('visible=true').first())
+    .toBeVisible({ timeout: 30_000 });
+  await imagesPainted(page);
+}
+
+/** The REQUESTED / PAY tabs on the hub. */
+export async function paymentTab(page: Page, label: 'Requested' | 'Pay') {
+  const tab = page.getByRole('tab', { name: label, exact: true });
+  await tab.click();
+  await expect(tab).toHaveAttribute('aria-selected', 'true');
+  await expect(page.locator('.animate-pulse')).toHaveCount(0, { timeout: 30_000 });
+}
+
+/**
+ * One row in the requests or pays table.
+ *
+ * Every row is rendered twice - a `hidden xl:grid` wide layout and an `xl:hidden`
+ * narrow one - and both are in the DOM. A plain getByText therefore matches two
+ * nodes and `.first()` can pick the invisible one, which is a 30-second timeout
+ * rather than a failure. `visible=true` is the only safe way in.
+ */
+export function requestRow(page: Page, title: string) {
+  return page.getByText(title, { exact: true }).locator('visible=true').first();
+}
+
+/** Open one request's Payment Details window. */
+export async function openRequest(page: Page, title: string) {
+  await requestRow(page, title).click();
+  const dialog = page.getByRole('dialog').filter({ hasText: title }).first();
+  await expect(dialog).toBeVisible();
+  await expect(page.locator('.animate-pulse')).toHaveCount(0, { timeout: 30_000 });
+  return dialog;
+}
+
+/** The Request Payment window, and its three sources. */
+export async function openSourceChooser(page: Page) {
+  // The button is on screen before the page is ready for it, and a click that
+  // lands too early is swallowed - no dialog, no error. That cost 17.1 a flaky
+  // run and the 17.5 diagnostic a whole pass. Wait for the screen to settle, then
+  // click, and give the click one retry.
+  await expect(page.locator('.animate-pulse')).toHaveCount(0, { timeout: 30_000 });
+  const button = page.getByRole('button', { name: 'Request Payment', exact: true }).first();
+  await expect(button).toBeEnabled();
+  const dialog = page.getByRole('dialog').filter({ hasText: 'Choose players from your' }).first();
+  await button.click();
+  try {
+    await expect(dialog).toBeVisible({ timeout: 10_000 });
+  } catch {
+    await button.click();
+    await expect(dialog).toBeVisible({ timeout: 20_000 });
+  }
+  return dialog;
+}
+
+export const SOURCE = {
+  leaderboards: 'Leaderboards Pick players from your leaderboard list',
+  teams: 'Teams Choose players from your team rosters',
+  friends: 'Friends Select players from your friends list',
+} as const;
+
+export async function chooseSource(page: Page, which: keyof typeof SOURCE) {
+  await page.getByRole('button', { name: SOURCE[which], exact: true }).click();
+}
+
+/**
+ * Walk from the hub to the Payment Request form.
+ *
+ * Stops at the filled form. **It never presses Send** - a sent request cannot be
+ * deleted, so a spec that submitted would add a row on every run and change what
+ * 17.7 photographs (docs/style-guide.md, "Actions you can only do once").
+ */
+export async function openRequestForm(page: Page, team: string = KB17_TEAMS.united) {
+  await openSourceChooser(page);
+  await chooseSource(page, 'teams');
+  await expect(page.getByRole('heading', { name: 'Select Team' })).toBeVisible();
+  await page.getByText(team, { exact: true }).locator('visible=true').first().click();
+  await expect(page.getByRole('heading', { name: 'Select Players' })).toBeVisible();
+  await page.getByRole('button', { name: 'Select all', exact: true }).click();
+  await page.getByRole('button', { name: 'Continue', exact: true }).click();
+  const form = page.getByRole('dialog').filter({ hasText: 'Payment Request' }).first();
+  await expect(form).toBeVisible();
+  return form;
+}
+
+export function formField(page: Page, placeholder: string) {
+  return page.locator(`[placeholder="${placeholder}"]`).locator('visible=true').first();
+}
+
+/** The fee toggle. Pressed means the payer carries the fee. */
+export function feeToggle(page: Page) {
+  return page.getByRole('button', { name: 'Pass fee to users', exact: true });
+}
+
+/** The sidebar identity block, masked in most captures. */
+export function sidebarIdentity17(page: Page, name: string) {
+  return page.getByText(name, { exact: true }).locator('visible=true').first();
+}
+
+/**
+ * Look collection 17's fixtures up by name, and carry the ids the specs need.
+ *
+ * Never hardcode an id. The seed renames born teams rather than creating them,
+ * and a hardcoded id would point at whatever the account happened to hold the
+ * day the spec was written.
+ *
+ * It also asserts the payout account is live, because that is the precondition
+ * every article from 17.3 onwards depends on and the failure without it is a
+ * bare 500 from POST /payments that reads like an app bug.
+ */
+export async function fixtures17() {
+  const session = await mintSession(KB17.pro);
+  const token: string = session.idToken;
+
+  const teams = (await asUser(token, '/teams?all=true')).body.data ?? [];
+  const teamByName = (name: string) => {
+    const row = teams.find((t: any) => t.name === name);
+    if (!row) throw new Error(`Fixture team "${name}" is missing. Run: node scripts/seed-17.mjs`);
+    return String(row.teamId);
+  };
+
+  const boards = (await asUser(token, '/leaderboards')).body.data ?? [];
+  const board = boards.find((b: any) => b.name === KB17_LEADERBOARD);
+  if (!board) throw new Error(`"${KB17_LEADERBOARD}" is missing. Run: node scripts/seed-17.mjs`);
+
+  const requests = (await asUser(token, '/payments/my/requests?limit=50&skip=0'))
+    .body?.data?.result ?? [];
+  const requestByTitle = (title: string) => {
+    const row = requests.find((r: any) => r.title === title);
+    if (!row) throw new Error(`Fixture request "${title}" is missing. Run: node scripts/seed-17.mjs`);
+    return String(row.id ?? row._id);
+  };
+
+  const payout = (await asUser(token, '/payments/stripe/account/status')).body?.data ?? null;
+  if (!payout?.chargesEnabled) {
+    throw new Error(
+      `${KB17.pro} has no live payout account (${payout ? payout.onboardingStatus : 'none'}). `
+      + 'Every article from 17.3 on needs one, and it cannot be seeded: Stripe\'s '
+      + 'signup is CAPTCHA-gated and a human has to complete it. See briefs/17.md, '
+      + '"The payout account".',
+    );
+  }
+
+  // The calendar's own endpoint is the only listing that carries Incomplete rows
+  // and the only one that takes a date window (config/api.md). The seed builds
+  // exactly one Scheduled match, so take the first.
+  const me = (await asUser(token, '/users/me')).body.data;
+  const rows = (await asUser(
+    token,
+    `/players/${me.playerId}/matches?includeIncomplete=true&startDate=2026-01-01&endDate=2028-12-31`,
+  )).body?.data?.result ?? [];
+  const match = (Array.isArray(rows) ? rows : []).find((m: any) => m.status === 'Scheduled');
+  if (!match) throw new Error('No Scheduled fixture match. Run: node scripts/seed-17.mjs');
+
+  return {
+    match: String(match.id),
+    token,
+    email: KB17.pro,
+    united: teamByName(KB17_TEAMS.united),
+    rovers: teamByName(KB17_TEAMS.rovers),
+    leaderboard: String(board.id),
+    tracked: requestByTitle(KB17_REQUESTS.tracked.title),
+    scratch: requestByTitle(KB17_REQUESTS.scratch.title),
+    payable: requestByTitle(KB17_REQUESTS.payable.title),
+    cancelled: requestByTitle(KB17_REQUESTS.cancelled.title),
+    payout,
+  };
+}
+
+/**
+ * A fresh context signed in as one collection 17 persona.
+ *
+ * Every persona gets its own context, and that is not a nicety. Signing a second
+ * account in on the same page leaves the first one's **persisted Redux store**
+ * behind - the same store that decides whether Select Team can see your teams and
+ * whether a team reads as External. 17.1's first run signed Nils in, then Mo, and
+ * Mo's Teams page never rendered because the store still held Nils's.
+ *
+ * Caller closes it.
+ */
+export async function context17(browser: Browser, email: string, to = '/payment') {
+  const ctx = await browser.newContext({
+    baseURL: process.env.SCORYBOARD_APP_BASE,
+    viewport: { width: 1440, height: 900 },
+    deviceScaleFactor: 2,
+    timezoneId: 'Europe/London',
+    locale: 'en-GB',
+    reducedMotion: 'reduce',
+    serviceWorkers: 'block',
+  });
+  const page = await ctx.newPage();
+  await signIn17(page, email, to);
+  await freezeClock17(page);
+  await quiet17(page);
+  return { ctx, page };
+}
+
+/**
+ * Wait for whatever is in the open dialog to have finished loading.
+ *
+ * Select Friends fetches its list after the window is already on screen, so the
+ * heading is never a safe gate - 17.3 photographed six skeleton rows on its first
+ * run and shot()'s backstop threw. Gate on the skeletons being gone and on a row
+ * that only the loaded list can have.
+ */
+export async function dialogSettled(page: Page, mustContain?: string) {
+  await expect(page.locator('.animate-pulse')).toHaveCount(0, { timeout: 30_000 });
+  if (mustContain) {
+    await expect(page.getByText(mustContain, { exact: true }).locator('visible=true').first())
+      .toBeVisible({ timeout: 30_000 });
+  }
+  await imagesPainted(page);
+}
+
+/**
+ * The fee block in the Payment Request form - the toggle and, when the payer is
+ * carrying it, the breakdown underneath.
+ *
+ * It is BELOW THE FOLD of the dialog's own scroller (565px tall, block at y=673),
+ * so a capture clipped to the whole dialog loses it entirely. 17.5's first run
+ * published a form with no figures on it for exactly that reason. Clip to this
+ * instead, and let locator.screenshot() scroll it into view.
+ */
+export function feeBlock(page: Page) {
+  return feeToggle(page).locator('xpath=ancestor::div[2]');
+}
+
+/** The You will receive / Transaction fee / Total price rows. Only when passed on. */
+export function feeBreakdownBlock(page: Page) {
+  return page.getByText('Transaction fee', { exact: true }).locator('xpath=ancestor::div[2]');
+}
+
+/**
+ * The per-person rows inside a Payment Details window.
+ *
+ * The SMALLEST block holding both people, deliberately. The window scrolls
+ * internally and the rows sit below its fold, so clipping to the dialog - or to
+ * anything that also contains the heading above them - captures the top of the
+ * window and no rows at all. 17.6 published exactly that on its first pass.
+ */
+export function participantRows(details: Locator) {
+  return details.locator('div')
+    .filter({ hasText: 'Ada KB' })
+    .filter({ hasText: 'Pia KB' })
+    .last();
+}

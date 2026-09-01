@@ -1380,21 +1380,195 @@ There are no push-notification endpoints. Do not document push.
 
 ## Payments (Stripe Connect) - REAL MONEY
 
-Only collections 16 and 17 touch these. Stripe test mode only.
+Only collection 17 touches these. Stripe test mode only. (Collection 16 was
+retired into 04; its Tournament Pro billing calls are under
+[Buying it, and where Scoryboard stops](#buying-it-and-where-scoryboard-stops).)
+
+**(Rewritten 2026-09-01, by collection 17, off the wire and the app bundle.)** The
+Postman export had three of these wrong or missing: the status read is a GET not a
+POST and takes no body, and create, edit, cancel and the two listing endpoints
+were absent entirely.
 
 | Method | Path | For | Body / notes |
 |---|---|---|---|
-| POST | `/payments/stripe/account` | Create the payout (Connect) account | - |
-| POST | `/payments/stripe/account/status` | Payout account status | `name`; optional `email`, `playerId` |
-| POST | `/payments/stripe/account-session` | Session for the embedded onboarding UI | - |
+| POST | `/payments/stripe/account` | Create the payout (Connect) account, or return the existing one | - |
+| GET | `/payments/stripe/account/status` | Payout account status | **GET, no body.** The Postman collection lists `POST ... {name}`; that path answers 404. A 404 from the API is normalised by the app's RTK layer to `{"status":"OK","data":null}`, and `data: null` means no account at all |
+| POST | `/payments/stripe/account-session` | Session for the embedded onboarding UI. Returns `{clientSecret}` | - |
+| POST | `/payments` | **Create a payment request** | see below |
+| GET | `/payments/:id` | One request | - |
+| PUT | `/payments/:id` | Edit a request. Title and description only | `title`, `description` |
+| DELETE | `/payments/:id` | Cancel a request. Does not delete it | - |
 | GET | `/payments/my/requests` | Requests I have sent (`skip`, `limit`) | - |
 | GET | `/payments/my/pays` | Requests I have to pay (`skip`, `limit`) | - |
-| GET | `/payments/:id/transactions` | Transactions on one request (`skip`, `limit`) | - |
+| GET | `/payments/:id/transactions` | The per-player rows behind one request | - |
 | POST | `/payments/:id/reminders` | Send reminders | `playerIds[]` |
-| POST | `/payments/transaction/:id/pay` | Pay a transaction | - |
+| POST | `/payments/transaction/:id/pay` | Start a payment. Returns `{clientSecret, transactionId}` - a Stripe PaymentIntent | - |
 | POST | `/payments/transaction/:id/verify` | Verify a payment | - |
+| GET | `/teams/:teamId/payment-requests` | the team PAYMENT tab (`limit`, `skip`) | - |
+| GET | `/leaderboards/:id/payment-requests` | the leaderboard PAYMENT tab (`limit`, `skip`) | - |
+| GET | `/matches/:id/payment-requests` | the match PAYMENT panel | - |
 
-Creating, editing and cancelling a payment request are not in the collection.
+### POST /payments - the body
+
+```json
+{"data": {
+  "title": "KB 17 Pitch hire",
+  "description": "Sunday league pitch hire, March.",
+  "baseAmount": 1000,
+  "participantPlayerIds": ["<playerId>", "..."],
+  "feeAllocation": "PassThrough",
+  "dueDate": "2026-09-30T12:00:00.000Z",
+  "entity": "Team",
+  "teamId": "<teamId>"
+}}
+```
+
+- `baseAmount` is in **pence**, not pounds.
+- `feeAllocation` is `PassThrough` or `Absorb`. Anything else is refused with
+  `SCHEMA_VALIDATION_ERROR`, "Invalid enum value. Expected 'PassThrough' | 'Absorb'".
+- `entity` is `Match`, `Team`, `Leaderboard` or `Direct`, and carries the matching
+  id: `matchId`, `teamId`, `leaderboardId`. **`Direct` is what the Friends source
+  sends** and it carries no entity id.
+- `participantPlayerIds` must hold at least one id.
+- `dueDate` is optional to the schema, and required by the form.
+
+The form's own limits, from the zod schema in the bundle: title 1-40 characters,
+description 0-100, `basePrice` 0.01-200. The i18n string
+"Description must be 150 characters or fewer" is stale - the counter and the
+schema both say 100.
+
+### Nothing works without a connected payout account
+
+**(observed 2026-09-01.)** `POST /payments` answers
+`500 {"message":"internal error","reason":"","status":"FAILED"}` for every account
+whose payout account is not live. The body is validated first - a bad
+`feeAllocation` or an empty `participantPlayerIds` is refused with a 400 schema
+error - so a 500 here means Stripe, not the request.
+
+Confirmed against three accounts: one with `onboardingStatus: "Pending"`, one with
+`"Restricted"`, and two with no Stripe account at all. All 500. **There is no
+admin endpoint that enables a payout account**, so the only way to a working one
+is Stripe's own onboarding.
+
+### Where Scoryboard ends, both ways
+
+Two handoffs, and no spec crosses either.
+
+- **Setting up a payout account.** `Request Payment` on an account with no live
+  payout account does not open a form. It fires `POST /payments/stripe/account`,
+  then `POST /payments/stripe/account-session`, and renders Stripe's
+  `stripe-connect-account-onboarding` embedded component in a Scoryboard dialog.
+  Its one control, **Add information**, opens a **new browser window** at
+  `connect.stripe.com`. Everything from there is Stripe's.
+- **Paying.** `Pay Now` fires `POST /payments/transaction/:id/pay` and swaps the
+  dialog for **Stripe Elements** - card number, expiry, security code,
+  country - plus a Google Pay frame. Confirmed by reading the frame list:
+  `js.stripe.com/v3/elements-inner-*`.
+
+**Both are CAPTCHA-gated.** Stripe's signup raises an hCaptcha challenge on
+submit (`uax.hcaptcha.challenge.open`, and a visible
+`newassets.hcaptcha.com/...#frame=challenge`), and the payment form loads
+`hcaptcha-invisible`. Neither can be driven from a spec. The payout account on
+`kb-manager-pro-17@` was connected by a human, once, in test mode.
+
+### The transaction fee, and who pays it
+
+There is no endpoint that quotes the fee. The arithmetic is done in the browser:
+
+```
+b     = round(basePrice * 100)        // pence
+v     = round(b * 2 / 100)            // Scoryboard's 2%
+total = ceil((b + v + 20) / 0.985) / 100
+fee   = total - basePrice
+```
+
+The `+20` is 20p; the `/0.985` grosses up Stripe's 1.5%. At a £10 base that is a
+56p fee and a £10.56 total, which is what the form and the payer's list both show.
+
+`feeAllocation` decides who carries it:
+
+- `PassThrough` - the payer is charged `total`. The form shows a breakdown:
+  **You will receive** / **Transaction fee** / **Total price**.
+- `Absorb` - the payer is charged the base price and the fee comes out of the
+  payout. **The breakdown disappears entirely**, so the organiser is never shown
+  what they will actually receive.
+
+The connected account carries `applicationFeeType: "Percentage"` and
+`applicationFeeValue: null`.
+
+### Statuses
+
+Two levels, and they are not the same enum.
+
+| Level | Values |
+|---|---|
+| Request, **on the wire** | `Active`, `Completed`, `Cancelled` |
+| Request, **on screen** | `Pending`, `Completed`, `Cancelled` |
+| Transaction (one per participant) | `Pending`, `Processing`, `Paid`, `Failed`, `Cancelled` |
+
+**The request enum is not the same in both places.** `GET /payments/my/requests`
+answers `status: "Active"` for a live request and the table renders it as
+**Pending**. Do not assert `Pending` against the API or `Active` against the
+screen. Observed 2026-09-01.
+
+Transaction colours, from the bundle: Paid `#10B981` green, Pending `#F59E0B`
+amber, Processing blue, Failed red, Cancelled `#EF4444` red. A cancelled request
+overrides its transactions' status in the display.
+
+### What may be done to a request, and when
+
+The Payment Details window says only "Some actions may be disabled based on
+payment status and due date". The real rules, from the bundle:
+
+```
+someonePaid = totalParticipants > 0 && totalParticipants !== unpaidCount
+allPaid     = totalParticipants > 0 && unpaidCount === 0
+overdue     = dueDate <= now
+
+canCancelRequest          = !someonePaid && !cancelled && !completed
+canUpdateParticipants     = !overdue && !cancelled && !completed && !allPaid
+canUpdateTitleDescription = !someonePaid && !overdue && !cancelled && !completed
+```
+
+So a request can never be cancelled or retitled once one person has paid, and
+participants cannot be added after the due date.
+
+### Two defects worth a ticket
+
+**(observed 2026-09-01, by collection 17.)**
+
+1. **"You're all set to receive payments!" is shown when the account is not set
+   up.** The app's `payment.onboarding.success` dialog fires when the Stripe
+   window closes, not when the account becomes chargeable. An account left
+   `Restricted` with `chargesEnabled: false` gets the same congratulation as a
+   completed one. Reproduced twice.
+2. **Select Team and Select Leaderboard are empty until `/teams` has been
+   visited.** Opening `Request Payment` on a fresh page load and choosing
+   **Teams** shows "Your Teams (0) / No teams found where you are the owner."
+   even for an owner of two teams. Visiting `/teams` once fills the persisted
+   Redux `teams` slice and the list appears. Same root cause as the **External**
+   badge recorded under
+   [Leaderboard app routes](#leaderboard-app-routes).
+
+### Payment app routes
+
+| Route | Screen |
+|---|---|
+| `/payment` | the hub. **REQUESTED** and **PAY** tabs, and **Request Payment** |
+| `/payment?tab=pay` | the PAY tab directly |
+| `/teams/:teamId/payment` | the team's requests. Owner only gets **Requests** and **Request Payment**; Administrator and Player get **Pay** alone |
+| `/leaderboards/:id/payment` | the same, for a leaderboard |
+| `/matches/:id` `#payment` | the match PAYMENT panel, headed "You can only see your own payment details." |
+
+The hub's empty state is a three-step explainer: **Setup Your Account**,
+**Request & Make Payments**, **Track & Remind**. It renders whenever the account
+has sent no requests, whether or not a payout account exists.
+
+**Dead copy.** The bundle carries a Scoryboard-side onboarding panel -
+`payment.onboarding.heroTitle` "Get paid quickly and securely", `heroDescription`,
+`setUpAccount`, `continueSetup`, `statusMessagePrefix` "To request payments, you
+need a connected account. Onboarding is ..." - and **none of it renders**. Only
+`creating` and `success` are referenced in code. Do not document those screens.
 
 ## Tournaments
 
@@ -2141,8 +2315,13 @@ It changes how chat fixtures get seeded: through the UI, not the API.
 - ~~**Fixture PDF export**~~ - found 2026-08-28. There is no export endpoint: the
   app refetches each section with `?export=true` and builds the PDF or Excel file
   in the browser. See [The fixture schedule](#the-fixture-schedule).
-- **Payment request creation and editing** (17.4 to 17.7) - create, edit, cancel a
-  request; fee handling.
+- ~~**Payment request creation and editing** (17.4 to 17.7)~~ - found 2026-09-01.
+  `POST /payments`, `PUT /payments/:id` and `DELETE /payments/:id`, with the body
+  and the fee arithmetic, are all recorded under
+  [Payments](#payments-stripe-connect---real-money). **Still missing:** nothing
+  refunds a payment. There is no refund endpoint in the bundle and no refund
+  control on any screen, so 17.9 documents refunds as a support request rather
+  than a self-serve action.
 - **Comment edit and delete** (19.2).
 - ~~**Match penalties and final-score entry** (10.6).~~ Found 2026-09-01: there is
   nothing to find. An ordinary match has no penalty control and no typed score
