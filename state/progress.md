@@ -22,7 +22,7 @@ target.
 | 07 | Teams | 11 | 63 | manager_pro | published | [briefs/07.md](../briefs/07.md) | 63 screenshots. **All eleven published by the reviewer 2026-08-29.** 07.7 and 07.9 retitled - the app has no ownership transfer and no Fan role. Accounts: `kb-manager-pro-07@`, `kb-fresh-07@`, six `kb-07-*@` |
 | 08 | Leaderboards & leagues | 5 | 30 | manager_pro | drafts on Intercom | [briefs/08.md](../briefs/08.md) | 30 screenshots. Found that **removing a team from a leaderboard has no confirmation at all**, that the league table carries **no points, no draws and no goals conceded**, that the Share Leaderboard "public link" sends a signed-out visitor to `/signin`, and that a comment can never be deleted - `DELETE /comments/:id` answers 401 even to its author. The **External** badge on a team row means "not one of your own", and it wrongly marks the owner’s own teams until the account has opened `/teams` once. Four accounts: `kb-manager-pro-08@`, `kb-08-admin@`, `kb-08-free@`, `kb-08-outsider@`. Four played matches; they cannot be undone |
 | 09 | Creating & scheduling matches | 7 | 44 | manager_pro | drafts on Intercom | [briefs/09.md](../briefs/09.md) | 44 screenshots. Found that **Create Match creates the match** on the click, that **seven** fields decide Incomplete vs Scheduled - and a **leaderboard is one of them, even for a friendly** - and that **`DELETE /matches/:id` does not delete**, it sets `status: "Cancelled"`. 09.5 retitled "Editing or cancelling a match" - there is no delete anywhere in the app. 09.6's referee half narrowed: the Referee box only offers referees saved from a tournament, so it reads "No results found" for a manager who has never run one. The match **share link is not public** - a signed-out visitor gets Sign In and permanent skeletons. Four accounts: `kb-manager-pro-09@`, `kb-09-admin@`, `kb-09-player@`, `kb-referee-09@`. Two Scheduled fixtures on FIXED dates (24 and 30 Sept 2026); the seed refuses to run once they have passed. **All seven were published by the reviewer 2026-08-31, two minutes after the run posted them as drafts** |
-| 10 | Match day | 10 | 60 | manager_pro | not started | - | - |
+| 10 | Match day | 10 | 60 | manager_pro | drafts on Intercom | [briefs/10.md](../briefs/10.md) | 60 screenshots. Found that **a match runs itself**: it starts when its date arrives and **ends itself 24 hours after full time** - the card says "Match auto-ends in" - so a match created more than a day after it finished arrives `Finished` at 0-0 and can never be scored (10.9). **END MATCH does not exist until the timer hits 00:00**; the timer pill IS the pause control. **Penalties and typed score entry are tournament-only**, so 10.6 was retitled "Yellow and red cards, and how the final score is set". The match feed has **no REST read at all** - it is a Firestore subscription, which is what makes 10.10 work. Two Free gates with no error code: the fourth substitute slot and Add media. **Reloading a paused match resumes it** - a real defect, warned about in 10.3 and 10.4. Four accounts: `kb-manager-pro-10@`, `kb-10-admin@`, `kb-10-player@`, `kb-referee-10@`. Two leaderboards: KB 10 Sunday League holds the fixtures, KB 10 Midweek holds every throwaway. One Scheduled fixture on a FIXED date (15 Oct 2026); the seed refuses to run once it has passed |
 | 11 | Match insights & statistics | 3 | 9 | player | drafts on Intercom | [briefs/11.md](../briefs/11.md) | 9 screenshots. 11.1 retitled - the app has no form guide and no head-to-head record. Found that **a match outside a leaderboard writes no statistics at all** and that a player counts the matches they were in the LINEUP for. Accounts: `kb-player-11@`, `kb-11-owner@`. Four played matches; they cannot be undone. **All three published by the reviewer 2026-08-31, then all three rewritten for clarity and republished** |
 | 12 | Tournaments - setting one up | 10 (+2) | 80 | organiser | published | [briefs/12.md](../briefs/12.md) | 12 published, 80 screenshots. 12.11 and 12.12 added for Padel; not in the map |
 | 13 | Tournaments - groups, brackets & phases | 11 | 55 | organiser | drafts on Intercom | [briefs/13.md](../briefs/13.md) | flag: TOURNAMENT_FEATURE_ENABLED. 11 drafts, 55 screenshots. 13.8 retitled. Account: kb-organiser-13@yopmail.com |
@@ -2454,4 +2454,161 @@ before that publish is not something this session can see** - the reviewer may h
 read them, or may have published the collection wholesale. Everything under "Look
 hard at these" above still wants a human eye, published or not.
 
-Next: pick from the remaining collections - 10, 15, 17, 18, 19, 20, 21, 22, 24.
+Next: pick from the remaining collections - 15, 17, 18, 19, 20, 21, 22, 24.
+
+---
+
+# Session log - collection 10, Match day, 2026-09-01
+
+Ten articles, sixty screenshots, all ten now drafts in Intercom collection
+19733979. **Nothing is published.** The drafts are unreviewed.
+
+| Article | Intercom id | Shots | Title |
+|---|---|---|---|
+| 10.1 | 16769856 | 9 | The match screen, its tabs and the guided tour |
+| 10.2 | 16769863 | 9 | Picking your lineup and choosing a formation |
+| 10.3 | 16769866 | 6 | Starting, pausing and ending a match |
+| 10.4 | 16769870 | 3 | The match timer |
+| 10.5 | 16769873 | 6 | Awarding a goal, and revoking one entered by mistake |
+| 10.6 | 16769874 | 7 | **Yellow and red cards, and how the final score is set** (retitled) |
+| 10.7 | 16769875 | 3 | Choosing Player of the Match |
+| 10.8 | 16769877 | 8 | The match feed and commentary |
+| 10.9 | 16769879 | 5 | Recording a match that has already been played |
+| 10.10 | 16769883 | 4 | Live viewers, and following a match from another device |
+
+Each article's images are pinned to the commit that added them; the last is
+`9c4ca1982dabd8caccc7bebcb0ec5fa0a7180376` (10.10). Every URL was checked for
+`200` and `image/*` before its article was built. Sixty URLs, none broken.
+
+### What the collection is built on
+
+**A match runs itself.** It starts when its date arrives - `autoStarted: true`,
+about two seconds after `POST /matches`, with nothing open in a browser. And it
+**ends itself 24 hours after full time**: past the whistle the countdown in the
+card changes from "Match starts in" to **"Match auto-ends in"** and runs for a
+day. Both halves of one rule, and the second is what 10.9 is about - a match
+created more than a day after it finished arrives `Finished` at 0-0 and can never
+be scored. Measured across three durations before it was written down.
+
+**END MATCH does not exist until the timer reaches 00:00.** Two exploration runs
+looked for it in the gear menu and down the page body first. The timer pill is
+also the pause control; there is no separate one.
+
+**A Live match cannot be edited** - `PUT` answers 403 on any configuration field.
+The gear menu still offers Edit, and its save is refused.
+
+**There are no penalties and no final-score field on an ordinary match.** Both are
+tournament-knockout features. 10.6 was retitled for it.
+
+**The match feed has no REST read.** `GET /matches/:id/events` answers 404; the
+page subscribes to Firestore. That is what makes 10.10 true, and it means a spec
+cannot assert the feed over the API.
+
+All of this is now in `config/api.md`, along with the six-tab layout, the
+controls-by-role table, the Shepherd.js tour and the two Free gates.
+
+### What differed from the brief
+
+The brief carries a **"Changed during the run"** section listing all of it. The
+four that matter:
+
+1. **10.6 retitled** - decided in step 1, for the reason above.
+2. **`PUT {status:"Cancelled"}` works on a Finished match.** The brief and the seed
+   both said it did not. Corrected everywhere: nothing this collection creates
+   accumulates, and a full run leaves the two fixtures it started with.
+3. **The throwaway leaderboard was renamed** `KB 10 Scratch` to `KB 10 Midweek`
+   after the first full run showed it in the detail strip of eight screenshots. A
+   reader should see a plausible second league, not scaffolding. Re-captured.
+4. **A line-up position that repeats needs its index** - `CenterBack-1` /
+   `CenterBack-2`. The first fixture used the plain value twice, the API accepted
+   it, and the pitch drew three of five players. Rebuilt.
+
+### Look hard at these
+
+- **10.9's 24-hour deadline.** The figure is measured, not documented: 24h ago
+  works, 25.13h does not, and the same boundary holds at 90 and 120 minutes once
+  the duration is subtracted. What is *not* known is whose clock the server uses -
+  UTC, the venue timezone, or the account's - or whether the worker that does it
+  runs on a schedule that could delay the effect. A reader in another timezone
+  recording a match near the boundary might get a different answer. The article
+  says "more than a day ago" rather than quoting a figure.
+- **10.3's claim that the referee can end a match.** An assigned referee was
+  confirmed to get START MATCH and the timer pill on both a Scheduled and a Live
+  match. **END MATCH was not exercised as the referee** - it only appears at full
+  time, and putting a refereed throwaway there needs its own frozen clock. The
+  article says the referee can start, pause and end; the "end" is inference from it
+  being the same button in the same place. **The one line in this collection resting
+  on inference rather than observation.**
+- **10.6's "there are no penalties".** An article that documents an absence. The
+  evidence is the app bundle - `isPenalty` read behind `tournamentMatchId`, beside
+  "Enter a deciding score ... to proceed with the next round of the tournament" -
+  plus a 0-0 match ended on staging that produced a plain DRAW with nothing asked.
+  If a penalty control exists on an ordinary match somewhere, the article is wrong.
+- **10.2's Free/Pro split rests on the signed-in user's membership.** Ada is a Free
+  *Administrator* on a Pro owner's team and hits both gates, which is what lets this
+  collection avoid a membership flip. Verified both ways on SUB-1 and SUB-4, but it
+  is worth a second look: if the gate ever keys off the team owner instead, 10.2 and
+  10.8 both become wrong.
+- **10.1 shot 04, the FACTS panel.** Its *Statistics so far* half is
+  leaderboard-scoped and stable. Its *Insights* half is not - the five sentences per
+  team count that team's last five games across everything, throwaways included, so
+  a re-capture will read "0 consecutive goals" where this one reads "1". Harmless,
+  because no article quotes those numbers, and the panel is collection 11's subject.
+  Named so it is not mistaken for a regression.
+
+### One product defect found
+
+**Reloading a paused match resumes it.** The page decides on load that a match
+inside its own window should be running and posts `{status: "Live"}`. Proved three
+times: Paused before the reload, Live after it. A manager who pauses at half-time
+and refreshes has restarted the clock, and nothing on screen says so. 10.3 warns
+about it and asserts it; 10.4 repeats the warning. **Worth a ticket.**
+
+Also worth knowing, though not a defect: **finishing the guided tour clears the
+account's bio**, exactly as Skip Tour does, because both send a full-replace
+`PUT /users/:id`. Third instance of that shape in `config/api.md` after the profile
+photo and the banner. 10.1's spec restores the profile in a `finally`.
+
+### One fix that belongs to every collection
+
+`imagesPainted()` in `lib/kb.ts` was dropping its background-image probe `Image`
+objects. Nothing referenced them once the function returned, so the browser was
+free to collect them before they loaded, and neither `onload` nor `onerror` ever
+ran - the wait then timed out on two images that both answered 200 when fetched by
+hand. Intermittent by nature, which is how it survived nine collections. The probes
+are now retained and the wait polls on a timer rather than on
+`requestAnimationFrame`. **If an older collection has ever failed in
+`imagesPainted` for no visible reason, this was why.**
+
+### Flake
+
+One, and it was that bug rather than the app: 10.3's fourth test failed twice in
+`imagesPainted` before the cause was found. After the fix it ran three times in a
+row and then twice more as part of the full suite, clean. **The final
+twenty-two-test suite passed in one go**, and the seed reported zero writes
+afterwards.
+
+Three specs were rewritten during the run rather than patched - 10.3 was split from
+three tests into four, because pausing and ending cannot share a frozen clock.
+Every failed run's cause is written into the spec that hit it.
+
+### The fixture is perishable in one place
+
+`MATCHES.scheduled` sits on a **fixed** date, 15 October 2026, because a countdown
+has to say the same thing every run. Once that date passes the same POST would
+build a match that starts itself, and `scripts/seed-10.mjs` **refuses to run** and
+names the date to move. Move it forward in `lib/fixtures-10.mjs`, `--rebuild`,
+re-capture.
+
+The `played` fixture has **no** fixed date and cannot have one: events are only
+accepted while a match is Live, and a match is Live only between its date and its
+date plus its duration, so a fixed date months back is Live for about a second and
+then finishes itself with the events half written. The seed dates it five minutes
+before it runs, and `fixtures10()` derives every frozen clock from it. That is why
+there is no `FROZEN_NOW` constant in this collection.
+
+### Nothing is published
+
+All ten are `state: "draft"` with `parent_ids: [19733979]`, confirmed by reading
+them back from Intercom after the run. Sixty images render. **They have not been
+reviewed by anybody.**
