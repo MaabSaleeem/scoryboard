@@ -2644,3 +2644,33 @@ and 10.6 documents an absence. If either is wrong it is wrong in public. Both ar
 one `node scripts/publish-article.mjs <id>` away from being corrected - the script
 reads the live state and PUTs new content without knocking a published article
 back to draft.
+
+### Prose pass after publishing, 2026-09-01
+
+The owner read 10.9 and 10.1 and found sentences that take a beat to process.
+A full pass over all ten followed: **38 edits, no re-capture.** Every article was
+rebuilt against the commit its own screenshots are pinned to, so no image URL
+changed, and republished in place - all ten still published, sixty images intact,
+verified by reading the live bodies back and grepping them for the old phrasing.
+
+The pattern being fixed was one of two things every time: a pronoun whose referent
+is two clauses back, or three ideas welded into one sentence. The worst were
+10.1's "They scroll you down it", 10.2's "Check the shape has room for both" (the
+reader had added one player, so "both" pointed at nothing), 10.3's "do not reload
+and do not reopen the match on another device - either one puts the clock back
+on", and 10.6's "Select team is marked with an asterisk because you have to do it
+first". Six flourishes the style guide bans went with them - "A finished match is
+finished", "The laurel follows the player", "Scoryboard puts the whistle where it
+belongs" - and 10.6's "sending off", which is not the product noun where the app
+says **Red Card**.
+
+**One of the 38 was a content correction, not a rewording.** 10.9 told a reader
+catching up on a weekend of fixtures to "start with the most recent". That is
+backwards if several matches are still inside the 24-hour window, because the
+**oldest** expires first; it is only right if the older ones are already lost, and
+the sentence did not say so. Cut rather than reworded - ambiguous advice about a
+deadline is worse than none.
+
+Worth drawing from this: the articles were written and published in one run
+without a reader, and a reader found a dozen sentences in a few minutes. The
+step-2 checklist inspects every screenshot and nothing reads the prose aloud.
