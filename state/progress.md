@@ -27,7 +27,7 @@ target.
 | 12 | Tournaments - setting one up | 10 (+2) | 80 | organiser | published | [briefs/12.md](../briefs/12.md) | 12 published, 80 screenshots. 12.11 and 12.12 added for Padel; not in the map |
 | 13 | Tournaments - groups, brackets & phases | 11 | 55 | organiser | drafts on Intercom | [briefs/13.md](../briefs/13.md) | flag: TOURNAMENT_FEATURE_ENABLED. 11 drafts, 55 screenshots. 13.8 retitled. Account: kb-organiser-13@yopmail.com |
 | 14 | Tournaments - the fixture schedule | 8 | 37 | organiser | drafts on Intercom | [briefs/14.md](../briefs/14.md) | flag: TOURNAMENT_FEATURE_ENABLED. 8 drafts, 37 screenshots. 14.5 retitled - fixtures cannot be deleted. Account: kb-organiser-14@yopmail.com |
-| 15 | Tournaments - publishing & running | 9 | 62 | organiser | not started | - | flag: TOURNAMENT_FEATURE_ENABLED. Structure unchanged; 15.8 needs a padel section. Account: kb-organiser-15@yopmail.com |
+| 15 | Tournaments - publishing & running | 9 | 62 | organiser | drafts on Intercom | [briefs/15.md](../briefs/15.md) | flag: TOURNAMENT_FEATURE_ENABLED. 9 drafts, 65 screenshots. Four articles retitled: **15.1 there is nothing to publish** (`isPublic` is already true on every tournament, and the public page really IS public, unlike the leaderboard and match share links); 15.2 drops access tokens (`/tournaments/token/:token` exists and nothing mints one); 15.6 drops prizes because **the PRIZES tab is a Winner panel whose picker records nothing** - Save Winner can never be enabled, established with a trusted click sequence and a passing control test; 15.9's "completing" re-scoped to the aftermath, since there is no Complete control. **Score entry is now verified** - START, two typed boxes that save on their own, END - and ending the PHASE is what closes it. 15.7's free_pro flag does NOT bite: Free and Pro read a long tournament message identically. Announcement-only chat refuses a tournament ADMIN too. The info page and gallery DO exist, behind a 16-pixel unlabelled pencil. Four accounts: `kb-organiser-15@`, `kb-15-admin@`, `kb-15-free@`, `kb-15-outsider@`. Six tournaments; two on FIXED dates in Oct and Nov 2026 and the seed refuses to run once they have passed |
 | ~~16~~ | ~~Tournament plans & payment~~ | - | - | - | **retired** | - | **RETIRED 2026-08-29, merged into 04.** 16.1+16.2 -> 04.4, 16.3+16.4 -> 04.5, 16.6 -> 04.6. 16.5 dropped - managing a live Annual subscription needs a completed payment. Intercom collection 19733985 is empty and must not be reused |
 | 17 | Collecting & making payments | 9 | 63 | manager_pro | not started | - | REAL MONEY, Stripe Connect. Two audiences - the organiser collecting and the player paying. |
 | 18 | Chat & messaging | 4 | 27 | manager_free | not started | - | - |
@@ -2674,3 +2674,116 @@ deadline is worse than none.
 Worth drawing from this: the articles were written and published in one run
 without a reader, and a reader found a dozen sentences in a few minutes. The
 step-2 checklist inspects every screenshot and nothing reads the prose aloud.
+
+**2026-09-01 - collection 15, both steps.** Nine articles published as **drafts**
+in Intercom collection 19733984: 15.1 `16771619`, 15.2 `16771622`, 15.3
+`16771627`, 15.4 `16771638`, 15.5 `16771641`, 15.6 `16771643`, 15.7 `16771646`,
+15.8 `16771652`, 15.9 `16771659`. 65 screenshots. Nothing published; nothing
+reviewed. Image URLs are pinned per article to the commit that holds them, the
+last being `76c1899`; the run finished at `3f1dc4a`.
+
+Seeded with `node scripts/make-assets-15.mjs` then `node scripts/seed-15.mjs`,
+which is idempotent - a second run makes zero writes. Four accounts
+(`kb-organiser-15@`, `kb-15-admin@`, `kb-15-free@`, `kb-15-outsider@`) and six
+tournaments: KB 15 Cup (Group A scored, Group B and the knockout not, so the
+public page has both past and upcoming fixtures), KB 15 League (all scored,
+announcement-only chat), KB 15 Padel Cup (all scored), KB 15 Sunday League
+(nothing played - the one fixture a spec may change), KB 15 New Cup (never
+configured) and KB 15 Done Cup (phase ENDED). Dates are fixed in Oct and Nov
+2026 and the seed refuses to run once they have passed.
+
+**Four articles retitled or rescoped.**
+
+- **15.1 "Your public tournament page".** There is no publishing step:
+  `GET /tournaments` answers `isPublic: true` on every row and no screen carries
+  a control for it. The page is also *genuinely* public - a signed-out visitor
+  gets the whole thing - which is the opposite of the leaderboard and match
+  "public links" that collections 08 and 09 found bounce to `/signin`.
+- **15.2 "Sharing your tournament link and QR code".** Access tokens dropped:
+  `/tournaments/token/:token` is a real route that renders "This tournament
+  access link is invalid or expired.", and nothing in the organiser board mints
+  one. The article shows that screen as the only form of it a reader will meet.
+- **15.6 "Sponsors on your tournament", prizes DROPPED.** The PRIZES tab holds
+  no prizes; it is a **Winner** panel, and its picker records nothing - the
+  trigger stays on "Select a team", the hidden native select stays empty, and
+  **Save Winner can never be enabled**. Established rather than assumed: the
+  option receives `pointerdown, mousedown, pointerup, mouseup, click`, every one
+  `isTrusted: true`, and the listbox does not even close; and the **control test
+  passes** - the Group component's Radix Select in the slideshow editor takes the
+  identical click and moves from "Select group" to "Group A". No request is ever
+  made, so the call that saves a winner has never been observed and is not
+  written down. **This is the one thing needing a human decision.**
+- **15.9's "completing a tournament" re-scoped to the aftermath.** There is no
+  Complete control anywhere, and the phase controls are 13.11's article. What
+  15.9 adds is what a finished tournament looks like.
+
+**15.3 was retitled and then put back.** An earlier pass concluded the info page
+and gallery did not exist, because the Website sub-tab holds six switches and
+nothing else. It was wrong: the **Info** row carries a 16-pixel pencil whose only
+accessible name is `aria-label="Edit info page"`, with no text and no tooltip,
+and it opens Description, Pictures and Attachments. `config/api.md` was corrected
+in the same pass.
+
+**Score entry is verified**, which the map had marked UNVERIFIED. A fixture card
+on Results is Scheduled (START, `VS`, no boxes), Live (END, two empty boxes) or
+Ended (a trophy, boxes still editable). Typing in a box fires
+`PUT /matches/:id/score` on its own - no Save, no confirmation, and none on START
+or END either. **Ending the PHASE is what closes score entry.** A played fixture
+cannot be put back: `POST /matches/:id/status {"status":"Scheduled"}` answers
+`400 "Cannot update status of a Finished match"` and there is no reset endpoint -
+what works is nudging `PUT /tournament-groups/:id {teamCount}` and back, which
+makes the generator rebuild the group with the same teams, pairings, order and
+kick-off times.
+
+**15.7's `free_pro` flag does not bite.** `config/api.md`'s limits table blocks
+"Reading incoming chat in full" on Free; the tournament group chat is not where
+that happens. Free and Pro both get a "Read more" control on a long message and
+both expand it in place, with no `CHAT_PRO_REQUIRED` modal. Both captures are in
+the article and it says the two are the same. The real role finding is different:
+**anybody signed in who opens the public Chat tab joins the room and gets a
+composer** - an outsider on no team included - and **announcement-only refuses a
+tournament ADMIN as well**, leaving the Owner as the one person who can post,
+even though the setting's own help text says "owner and admins".
+
+**Two fixes in `lib/kb.ts` that affect every collection.** `shot()` drew its
+annotation before centring the clip; this app scrolls an inner container, so
+`window.scrollY` stays 0 and the outline stayed put while the target moved out
+from under it - found on 15.9's public header, where the outline landed a
+button's height below the button. And `shot()` now **refuses to capture while an
+`.animate-pulse` is on screen**: the style guide forbids photographing a
+skeleton, and this collection produced three from three different missing gates
+(a public tab captured on the click, a slide whose heading paints before its
+fixtures, a followers dialog whose title comes from a count the page already
+had). A `.gitattributes` was added as well - the hand-written PDF attachment is
+almost all ASCII and git was going to convert its line endings on checkout,
+which would have left every offset in its xref table wrong.
+
+**Fixed during step 2, all in the specs:** five capture faults, every one a
+missing gate rather than a bad screenshot - 15.1's Matches and Standings tabs,
+15.5's group slide, 15.6's sponsor banner (the name paints two seconds before
+the picture) and 15.9's followers dialog. Three clips framed the wrong element
+(15.8's standings took the header row alone at 2264x114; 15.8's padel rules is a
+`<section>`, so two attempts with `locator('div')` walked up to a 2000-pixel
+ancestor; 15.4's settings block). 15.2's fourth capture was repointed - it had
+duplicated 15.1/03, and the public page turned out to carry the same Share
+dialog for a visitor with no account, which is worth its own shot.
+
+**Flake:** 15.4 failed once when the signin URL exchange sat on `/signin` past 30
+seconds. Passed on the retry, no change needed.
+
+**Also worth knowing.** The public Matches tab labels a link **Match Settings**
+for everybody, signed out included; followed with no session it opens
+`/match/:id/preview`, the read-only preview - a mislabelled link, not a
+permission leak, and 15.1 says what it opens. Padel's Results tab carries a
+**RULES AND REGULATIONS** panel football has no equivalent of. The **View Stats**
+control is narrow-layout only: at the 1440-wide viewport the style guide mandates
+its box is zero pixels, so 15.8 describes it in prose and asserts it stays
+off-screen. `presentation.website.infoBody` is written and rendered but never
+returned by `GET /tournaments/:id`.
+
+`config/api.md` gains three sections marked `(observed in app, 2026-09-01)` -
+publishing and the presentation object, the Results tab's score entry, and the
+Prizes tab - plus seven endpoints the Postman export lacks, including the
+multipart field names (`picture`, `attachment`) for the two info-page uploads and
+the component `type` enum quoted by the server's own validator, whose
+**`sponsor` is singular** where the button says Sponsors.
