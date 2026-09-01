@@ -2801,3 +2801,38 @@ moved out of the step (the screenshot's alt text still names it). Step 2 changed
 with it, because it had referred back to that `VS`. No screenshot changed and the
 commit SHA the images are pinned to is unchanged. **The article was already live,
 so this edit went straight to the public help centre, not to a draft.**
+
+**2026-09-01 - collection 15, cross-references linked.** On the repo owner's
+instruction, the quoted article titles in collection 15's prose are now real
+hyperlinks. All nine articles were rebuilt and republished (they were already
+live, so this went straight to the public help centre).
+
+`scripts/build-article.mjs` gained a **`{{link:<article-id>|link text}}`**
+placeholder, and `scripts/publish-article.mjs` now records each article's public
+address as `intercom_url` in `state/manifest.json` from Intercom's own answer. The
+prose therefore never carries a URL. An article with no public address renders as
+the quoted title in plain text and warns, rather than throwing: a collection's
+articles reference each other, so the first build of a fresh collection would
+otherwise be impossible to get past. Publish, build again, and the placeholders
+become anchors. Intercom recognises them as internal links
+(`class="intercom-content-link"`).
+
+31 cross-references. Inline ones read *"Read &lt;title&gt; to &lt;do the
+thing&gt;"*; the Related lists keep the linked title plus their one-line gloss,
+because "Read ... to ..." three times in a row reads worse than what it replaced.
+The title is the link text throughout, not the words "this article".
+
+Three articles outside this collection were **re-PUT with identical content** to
+capture their `intercom_url`, because collection 15 links to them: 12.9, 13.5 and
+13.11. No content and no state changed on any of them.
+
+**Worth a look:** 13.5 and 13.11 answer `state: published`, but this file still
+records collection 13 as `drafts on Intercom`. That row was not touched - it is
+outside this session's collection - but the record is stale and somebody should
+reconcile 13.
+
+`build-article.mjs` also validates the commit sha now. A trailing carriage return
+from `python -c print(sha) | while read` on Windows built image URLs Intercom
+refused with *"Failed to ingest image at url ...@<sha>{CR}/screenshots/..."*. The
+bad build was rejected by Intercom, so nothing broken was ever published, but the
+guard moves the failure to the build where it is readable.
