@@ -1496,8 +1496,8 @@
         "screenshots/10/10.1/08-tour-feed.2d3f3363.png",
         "screenshots/10/10.1/09-tour-lineup.5a90475e.png"
       ],
-      "published_at": "2026-09-01T08:22:21.000Z",
-      "status": "draft"
+      "published_at": "2026-09-01T08:34:22.000Z",
+      "status": "published"
     },
     "10.2": {
       "intercom_id": "16769863",
@@ -1517,8 +1517,8 @@
         "screenshots/10/10.2/08-player-view.86d5d58f.png",
         "screenshots/10/10.2/09-formation-changed.f0c09a55.png"
       ],
-      "published_at": "2026-09-01T08:22:55.000Z",
-      "status": "draft"
+      "published_at": "2026-09-01T08:34:28.000Z",
+      "status": "published"
     },
     "10.3": {
       "intercom_id": "16769866",
@@ -1535,8 +1535,8 @@
         "screenshots/10/10.3/05-match-ended.7f8554ef.png",
         "screenshots/10/10.3/06-player-no-controls.7db738b0.png"
       ],
-      "published_at": "2026-09-01T08:23:25.000Z",
-      "status": "draft"
+      "published_at": "2026-09-01T08:34:36.000Z",
+      "status": "published"
     },
     "10.4": {
       "intercom_id": "16769870",
@@ -1550,8 +1550,8 @@
         "screenshots/10/10.4/02-timer-in-card.6f56333f.png",
         "screenshots/10/10.4/03-timer-paused.f01b2ca2.png"
       ],
-      "published_at": "2026-09-01T08:23:44.000Z",
-      "status": "draft"
+      "published_at": "2026-09-01T08:34:39.000Z",
+      "status": "published"
     },
     "10.5": {
       "intercom_id": "16769873",
@@ -1568,8 +1568,8 @@
         "screenshots/10/10.5/05-goal-with-scorer.d4ad7dea.png",
         "screenshots/10/10.5/06-goal-revoked.7bca294c.png"
       ],
-      "published_at": "2026-09-01T08:24:06.000Z",
-      "status": "draft"
+      "published_at": "2026-09-01T08:34:48.000Z",
+      "status": "published"
     },
     "10.6": {
       "intercom_id": "16769874",
@@ -1587,8 +1587,8 @@
         "screenshots/10/10.6/06-red-on-feed.97c92b6d.png",
         "screenshots/10/10.6/07-final-score.44c75a2a.png"
       ],
-      "published_at": "2026-09-01T08:24:30.000Z",
-      "status": "draft"
+      "published_at": "2026-09-01T08:34:54.000Z",
+      "status": "published"
     },
     "10.7": {
       "intercom_id": "16769875",
@@ -1602,8 +1602,8 @@
         "screenshots/10/10.7/02-potm-window.a0246555.png",
         "screenshots/10/10.7/03-potm-on-feed.3b2e2502.png"
       ],
-      "published_at": "2026-09-01T08:24:43.000Z",
-      "status": "draft"
+      "published_at": "2026-09-01T08:34:58.000Z",
+      "status": "published"
     },
     "10.8": {
       "intercom_id": "16769877",
@@ -1622,8 +1622,8 @@
         "screenshots/10/10.8/07-add-media-free.2cef72c4.png",
         "screenshots/10/10.8/08-add-media-pro.ab5268ef.png"
       ],
-      "published_at": "2026-09-01T08:25:16.000Z",
-      "status": "draft"
+      "published_at": "2026-09-01T08:35:04.000Z",
+      "status": "published"
     },
     "10.9": {
       "intercom_id": "16769879",
@@ -1639,8 +1639,8 @@
         "screenshots/10/10.9/04-system-event.65070c95.png",
         "screenshots/10/10.9/05-too-old.d0203e42.png"
       ],
-      "published_at": "2026-09-01T08:25:40.000Z",
-      "status": "draft"
+      "published_at": "2026-09-01T08:35:10.000Z",
+      "status": "published"
     },
     "10.10": {
       "intercom_id": "16769883",
@@ -1655,8 +1655,8 @@
         "screenshots/10/10.10/03-follower-view.d109bb03.png",
         "screenshots/10/10.10/04-score-arrived.bccdbdb6.png"
       ],
-      "published_at": "2026-09-01T08:25:57.000Z",
-      "status": "draft"
+      "published_at": "2026-09-01T08:35:15.000Z",
+      "status": "published"
     }
   }
 }

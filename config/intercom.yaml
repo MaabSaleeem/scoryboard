@@ -10,7 +10,14 @@
 # Keys are the collection numbers from config/articles.yaml. Do not renumber them.
 #
 # Workspace confirmed 2026-08-28: Scoryboard (pzf0spnb), region US, one help centre,
-# default locale en, website_turned_on: false (the help centre is not live yet).
+# default locale en.
+#
+# **website_turned_on is now `true`.** It was `false` when this file was written on
+# 2026-08-28; read back off the API on 2026-09-01 it is `true`, so the help centre
+# is LIVE at https://help.scoryboard.com and a published article is publicly
+# visible the moment it is published. Nothing in this project turned it on. Check
+# it rather than trusting this line:
+#   GET https://api.intercom.io/help_center/help_centers
 # The workspace has NO collections. All 24 below must be created once, before the
 # first publish:
 #   POST https://api.intercom.io/help_center/collections

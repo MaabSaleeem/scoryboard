@@ -22,7 +22,7 @@ target.
 | 07 | Teams | 11 | 63 | manager_pro | published | [briefs/07.md](../briefs/07.md) | 63 screenshots. **All eleven published by the reviewer 2026-08-29.** 07.7 and 07.9 retitled - the app has no ownership transfer and no Fan role. Accounts: `kb-manager-pro-07@`, `kb-fresh-07@`, six `kb-07-*@` |
 | 08 | Leaderboards & leagues | 5 | 30 | manager_pro | drafts on Intercom | [briefs/08.md](../briefs/08.md) | 30 screenshots. Found that **removing a team from a leaderboard has no confirmation at all**, that the league table carries **no points, no draws and no goals conceded**, that the Share Leaderboard "public link" sends a signed-out visitor to `/signin`, and that a comment can never be deleted - `DELETE /comments/:id` answers 401 even to its author. The **External** badge on a team row means "not one of your own", and it wrongly marks the owner’s own teams until the account has opened `/teams` once. Four accounts: `kb-manager-pro-08@`, `kb-08-admin@`, `kb-08-free@`, `kb-08-outsider@`. Four played matches; they cannot be undone |
 | 09 | Creating & scheduling matches | 7 | 44 | manager_pro | drafts on Intercom | [briefs/09.md](../briefs/09.md) | 44 screenshots. Found that **Create Match creates the match** on the click, that **seven** fields decide Incomplete vs Scheduled - and a **leaderboard is one of them, even for a friendly** - and that **`DELETE /matches/:id` does not delete**, it sets `status: "Cancelled"`. 09.5 retitled "Editing or cancelling a match" - there is no delete anywhere in the app. 09.6's referee half narrowed: the Referee box only offers referees saved from a tournament, so it reads "No results found" for a manager who has never run one. The match **share link is not public** - a signed-out visitor gets Sign In and permanent skeletons. Four accounts: `kb-manager-pro-09@`, `kb-09-admin@`, `kb-09-player@`, `kb-referee-09@`. Two Scheduled fixtures on FIXED dates (24 and 30 Sept 2026); the seed refuses to run once they have passed. **All seven were published by the reviewer 2026-08-31, two minutes after the run posted them as drafts** |
-| 10 | Match day | 10 | 60 | manager_pro | drafts on Intercom | [briefs/10.md](../briefs/10.md) | 60 screenshots. Found that **a match runs itself**: it starts when its date arrives and **ends itself 24 hours after full time** - the card says "Match auto-ends in" - so a match created more than a day after it finished arrives `Finished` at 0-0 and can never be scored (10.9). **END MATCH does not exist until the timer hits 00:00**; the timer pill IS the pause control. **Penalties and typed score entry are tournament-only**, so 10.6 was retitled "Yellow and red cards, and how the final score is set". The match feed has **no REST read at all** - it is a Firestore subscription, which is what makes 10.10 work. Two Free gates with no error code: the fourth substitute slot and Add media. **Reloading a paused match resumes it** - a real defect, warned about in 10.3 and 10.4. Four accounts: `kb-manager-pro-10@`, `kb-10-admin@`, `kb-10-player@`, `kb-referee-10@`. Two leaderboards: KB 10 Sunday League holds the fixtures, KB 10 Midweek holds every throwaway. One Scheduled fixture on a FIXED date (15 Oct 2026); the seed refuses to run once it has passed |
+| 10 | Match day | 10 | 60 | manager_pro | published | [briefs/10.md](../briefs/10.md) | 60 screenshots. **All ten published 2026-09-01 on the owner's instruction, straight after the run - not reviewed in Intercom first. The help centre is LIVE, so they are public.** See the session log. Found that **a match runs itself**: it starts when its date arrives and **ends itself 24 hours after full time** - the card says "Match auto-ends in" - so a match created more than a day after it finished arrives `Finished` at 0-0 and can never be scored (10.9). **END MATCH does not exist until the timer hits 00:00**; the timer pill IS the pause control. **Penalties and typed score entry are tournament-only**, so 10.6 was retitled "Yellow and red cards, and how the final score is set". The match feed has **no REST read at all** - it is a Firestore subscription, which is what makes 10.10 work. Two Free gates with no error code: the fourth substitute slot and Add media. **Reloading a paused match resumes it** - a real defect, warned about in 10.3 and 10.4. Four accounts: `kb-manager-pro-10@`, `kb-10-admin@`, `kb-10-player@`, `kb-referee-10@`. Two leaderboards: KB 10 Sunday League holds the fixtures, KB 10 Midweek holds every throwaway. One Scheduled fixture on a FIXED date (15 Oct 2026); the seed refuses to run once it has passed |
 | 11 | Match insights & statistics | 3 | 9 | player | drafts on Intercom | [briefs/11.md](../briefs/11.md) | 9 screenshots. 11.1 retitled - the app has no form guide and no head-to-head record. Found that **a match outside a leaderboard writes no statistics at all** and that a player counts the matches they were in the LINEUP for. Accounts: `kb-player-11@`, `kb-11-owner@`. Four played matches; they cannot be undone. **All three published by the reviewer 2026-08-31, then all three rewritten for clarity and republished** |
 | 12 | Tournaments - setting one up | 10 (+2) | 80 | organiser | published | [briefs/12.md](../briefs/12.md) | 12 published, 80 screenshots. 12.11 and 12.12 added for Padel; not in the map |
 | 13 | Tournaments - groups, brackets & phases | 11 | 55 | organiser | drafts on Intercom | [briefs/13.md](../briefs/13.md) | flag: TOURNAMENT_FEATURE_ENABLED. 11 drafts, 55 screenshots. 13.8 retitled. Account: kb-organiser-13@yopmail.com |
@@ -2607,8 +2607,40 @@ then finishes itself with the events half written. The seed dates it five minute
 before it runs, and `fixtures10()` derives every frozen clock from it. That is why
 there is no `FROZEN_NOW` constant in this collection.
 
-### Nothing is published
+### Published, on the owner's instruction, without the Intercom review
 
-All ten are `state: "draft"` with `parent_ids: [19733979]`, confirmed by reading
-them back from Intercom after the run. Sixty images render. **They have not been
-reviewed by anybody.**
+The run posted all ten as `state: "draft"`, which is the only thing it is allowed
+to do, and verified them: `parent_ids: [19733979]`, sixty images rendering.
+
+**The owner then asked for all ten to be published, and they were** - ten
+`PUT`s with `--state published`, all 200, all confirmed `published` afterwards
+with their images intact. So `docs/workflow.md`'s review gate did not happen for
+this collection: nobody read these articles in Intercom before they went out.
+
+**And the help centre is live.** `website_turned_on` was `false` when
+`config/intercom.yaml` was written on 2026-08-28 and is **`true`** as of
+2026-09-01, so these ten are publicly readable now. That file has been corrected;
+it was the reason the stakes of publishing were checked before doing it rather
+than after.
+
+Live URLs:
+
+```
+10.1   https://help.scoryboard.com/en/articles/16769856-the-match-screen-its-tabs-and-the-guided-tour
+10.2   https://help.scoryboard.com/en/articles/16769863-picking-your-lineup-and-choosing-a-formation
+10.3   https://help.scoryboard.com/en/articles/16769866-starting-pausing-and-ending-a-match
+10.4   https://help.scoryboard.com/en/articles/16769870-the-match-timer
+10.5   https://help.scoryboard.com/en/articles/16769873-awarding-a-goal-and-revoking-one-entered-by-mistake
+10.6   https://help.scoryboard.com/en/articles/16769874-yellow-and-red-cards-and-how-the-final-score-is-set
+10.7   https://help.scoryboard.com/en/articles/16769875-choosing-player-of-the-match
+10.8   https://help.scoryboard.com/en/articles/16769877-the-match-feed-and-commentary
+10.9   https://help.scoryboard.com/en/articles/16769879-recording-a-match-that-has-already-been-played
+10.10  https://help.scoryboard.com/en/articles/16769883-live-viewers-and-following-a-match-from-another-device
+```
+
+**"Look hard at these" above still stands, and now it applies to live pages.** In
+particular 10.3's line about the referee being able to end a match is inference,
+and 10.6 documents an absence. If either is wrong it is wrong in public. Both are
+one `node scripts/publish-article.mjs <id>` away from being corrected - the script
+reads the live state and PUTs new content without knocking a published article
+back to draft.
