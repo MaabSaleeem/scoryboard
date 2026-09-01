@@ -816,9 +816,11 @@ Player statistics are written **asynchronously** after a match finishes. Reading
 `GET /players/:id/stats` a second after posting `Finished` returned all zeroes;
 the same call a minute later returned the right numbers.
 
-TODO: the collection names the commentary request "comment" but does not show its
-`type` value, and there is no request for a penalty. Confirm both in the app before
-writing 10.6 and 10.8.
+~~TODO: the collection names the commentary request "comment" but does not show its
+`type` value, and there is no request for a penalty.~~ **Answered 2026-09-01 by
+collection 10.** Commentary is `type: "Comment"`. There is no penalty request
+because an ordinary match has no penalties - they belong to a tournament knockout.
+See [Match events - what the app actually sends](#match-events---what-the-app-actually-sends).
 
 | Method | Path | For | Body / notes |
 |---|---|---|---|
@@ -923,6 +925,200 @@ a seed can put somebody on a match that a reader could never choose.
 The line-up positions accept a **suffixed** variant the enum in
 [Match events](#match-events) does not list: saving the inline form sent
 `CenterBack-1` alongside `CenterBack`, and it was accepted.
+
+### The match lifecycle - what starts a match and what ends it
+
+**(observed in app, 2026-09-01, by collection 10.)** Isolated on staging one match
+at a time. This is the whole of match day, and none of it is in the collection.
+
+**A match starts itself when its date arrives.** `POST /matches` with a date a few
+minutes in the past answers `status: "Scheduled"`, and the row is `Live` about two
+seconds later with `autoStarted: true` and a server-set `startedAt`. Nothing has to
+be open in a browser for that to happen.
+
+**A match that would already have ended is created finished.** The rule, isolated
+across three durations: a match is auto-finished at creation when
+**`date + duration` is more than 24 hours in the past**. It arrives `Finished`,
+`autoFinished: true`, `0-0`, and nothing can ever be written to it.
+
+**The app says this out loud once a match reaches full time.** The countdown in
+the MATCH DETAILS card changes from "Match starts in" to **"Match auto-ends in"**
+and runs for 24 hours. So the 24-hour figure is not an inferred threshold - it is
+the same grace period the screen advertises, seen from the other side. A manager
+who forgets to press END MATCH has a day to enter the score before the match ends
+itself at 0-0; a manager recording a match that finished more than a day ago has
+already missed it.
+
+| `date` | `duration` | ended | result |
+|---|---|---|---|
+| now - 24h | 60 min | 23h ago | Live |
+| now - 24.75h | 60 min | 23.75h ago | Live |
+| now - 25.13h | 60 min | 24.13h ago | **Finished** |
+| now - 25.5h | 120 min | 23.5h ago | Live |
+| now - 26.5h | 120 min | 24.5h ago | **Finished** |
+| now - 24.5h | 90 min | 23h ago | Live |
+| now - 26h | 90 min | 24.5h ago | **Finished** |
+
+That is what article 10.9 is about, and it cost this collection's first seed six of
+seven events: a fixture dated twelve days back was Live for one `POST /events` and
+`Finished` by the second.
+
+**A future match can be forced Live.** `POST /matches/:id/status {"status":"Live"}`
+on a Scheduled match answers 200 and it stays Live. That is what **START MATCH**
+does, and it is how a spec gets a Live match at a kick-off time it chose.
+
+**A Live match cannot be edited.** `PUT /matches/:id` with any configuration field
+answers `403`, `"permission": "Cannot update match configuration fields when match
+is Live"`. Date, venue, duration, team size and line-up all lock at kick-off.
+
+**But `status` is not a configuration field, and a Finished match CAN be
+cancelled.** `PUT /matches/:id {"status":"Cancelled"}` answers 200 on a match that
+is Live, Paused **or Finished**, and the row then stops appearing in every listing.
+`DELETE` still refuses anything whose date has passed - "Date must be at least one
+hour ahead of the current time" - so PUT is the only disposal that works on a match
+that has kicked off. Collection 10 believed the opposite for half a run, on the
+strength of the "Cannot update match of a Finished match" message this file records
+for `PUT`: that message is about the other fields. **What a Finished match refuses
+is being reopened or rewritten** - `POST /status` with any other value, and any
+configuration change - not being cancelled.
+
+**Pause and resume are the same endpoint**, and the app sends a **Firestore
+timestamp** through the REST API:
+
+```
+POST /matches/:id/status {"status":"Paused","pausedAt":{"type":"firestore/timestamp/1.0","seconds":...,"nanoseconds":...},"pauseDurationSeconds":0}
+POST /matches/:id/status {"status":"Live","pauseDurationSeconds":1}
+```
+
+`pauseDurationSeconds` accumulates on the match and the timer subtracts it.
+**END MATCH** sends `{"status":"Finished","finishedAt":{firestore timestamp}}` and
+asks nothing first.
+
+**Fields on the match object the collection does not list.** Read off
+`GET /matches/:id` on 2026-09-01:
+
+| Field | Notes |
+|---|---|
+| `homeTeamTotalGoals` / `awayTeamTotalGoals` | the score. **Not** on the team objects, which carry only `formation` and `players` |
+| `startedAt`, `finishedAt`, `statsCalculatedAt` | see [statsCalculatedAt](#statscalculatedat-and-how-long-the-numbers-take) |
+| `autoStarted` / `autoFinished` | whether the two rules above did it, rather than a person |
+| `pausedAt`, `pauseDurationSeconds` | the timer's own state |
+| `hasScoreEntry`, `hasSourceUpdatedGoals` | **tournament only** - see below |
+| `isPenalty`, `winnerTeamId` | **tournament only** - see below |
+| `captainPlayerId`, `isEdited`, `isDateOnly`, `queueName`, `isMatchManager` | - |
+
+**Penalties and typed score entry are tournament-only.** `isPenalty` and
+`hasScoreEntry` are read in the bundle behind `y.tournamentMatchId`, and the copy
+around them is "Enter a deciding score for ... to proceed with the next round of the
+tournament". An ordinary match has neither control: its score is the two `+` / `-`
+steppers, and a 0-0 ends as a **DRAW** with no prompt of any kind. Confirmed by
+ending one on staging.
+
+### Match events - what the app actually sends
+
+**(observed in app, 2026-09-01, by collection 10.)** Three corrections to
+[Match events](#match-events) above.
+
+- **`teamPlayerId` is not required on a goal.** The `+` stepper sends
+  `{"teamId","teamType","type":"GoalAwarded"}` and nothing else, and the feed then
+  reads "Mo awarded a goal" with an **+ Add Player** link beside it. The scorer is
+  attached afterwards through an **Edit Goal** window that also takes the assist.
+  `GoalRevoked` is the `-` stepper and carries no player either.
+- **Commentary is `type: "Comment"`.** The collection names the request "comment"
+  and does not show its type; posting `{minute, description}` without one answers
+  `400 SCHEMA_VALIDATION_ERROR`, `field: "type", message: "Required"`. That answers
+  the TODO under [Match events](#match-events).
+- **The full feed-item enum**, from the bundle and seen on screen: `GoalAwarded`,
+  `GoalRevoked`, `YellowCard`, `RedCard`, `PlayerOfMatch`, `Comment`,
+  `SystemEvent`, `PastMatch`. A match created from a past date is given a
+  `SystemEvent` reading **"Match was created from the past date"**.
+
+**`GET /matches/:id/events` answers 404.** There is no REST read for the feed. The
+match page subscribes to **Firestore** instead - `onSnapshot` on the `matches/{id}`
+document and on its `events` subcollection ordered by `timestamp`. That is why a
+second device sees a goal appear with no reload, which is what article 10.10 is
+about, and it is why a spec cannot assert the feed over the API.
+
+**A line-up position that repeats has to carry its index.** `Goalkeeper`,
+`CenterBack-1`, `CenterBack-2`, `CentralMidfielder`, `Striker`. Two players both
+posted on plain `CenterBack` are accepted and stored intact, and the pitch then
+draws **an empty `+` slot for each centre-back and neither player** - the board keys
+its slots by position and the two collide. Cost collection 10 a rebuild.
+
+### The match page on match day - controls by role and status
+
+**(observed in app, 2026-09-01, by collection 10.)** Extends the table under
+[Match app routes](#match-app-routes-and-what-the-match-page-shows-whom).
+
+There are **six** tabs, not five: MATCH DETAILS, FEED, FACTS, LINEUP, PAYMENT and
+**KEYS**. KEYS is a legend - Player, Player Online, Player Offline, Spectator,
+Referee, Yellow Card, Red Card, Player Of The Match, Captain, Registered,
+Registered & Accepted - and the other panels each carry a **VIEW KEYS** button that
+jumps to it. All six panels are in the DOM at once; the tabs scroll to anchors
+(`#match-details`, `#feed`, `#facts`, `#lineup`, `#payment`, `#keys`).
+
+| Status | What sits beside the tab strip |
+|---|---|
+| Incomplete / Scheduled | **START MATCH** |
+| Live | the timer pill, counting **down** from the duration, with a pause icon |
+| Paused | the same pill with a play icon |
+| Live, timer at 00:00 | **END MATCH** |
+| Finished | nothing. The heading changes to **Match Result**, a **Rate** control appears, the winner gets a trophy, and the card reads **MATCH ENDED / The match has ended and cannot be edited.** |
+
+| Who | Heading | Timer / END | Score steppers | Yellow, Red, PotM | Comment | Show Tour | PAYMENT tab |
+|---|---|---|---|---|---|---|---|
+| Owner | Match Settings | yes | yes | yes | yes | yes | yes, with Request Payment |
+| team Administrator | Match Settings | yes | yes | yes | yes | yes | yes, no Request Payment |
+| **assigned referee** | *(none)* | yes | **no** | **no** | yes | yes | **no tab at all** |
+| a team player | Match Preview (View Only), `display:none` at desktop width | no | no | no | yes | no | yes |
+| anybody else | Match Preview (View Only), visible | no | no | no | yes | no | no |
+
+So the referee may start, pause and end a match and may not score it.
+
+The gear menu offers **Configure appearance / Edit / Cancel Match** on a Live match
+exactly as on a Scheduled one - but Edit's save is refused by the 403 above.
+
+**The FEED panel carries a live viewer count** - a green pill reading
+`ONLINE <n>` - which went from 1 to 2 the moment a second account opened the same
+match, with no reload on either side. Article 10.10.
+
+### The guided tour on the match page
+
+**(observed in app, 2026-09-01, by collection 10.)** It is **Shepherd.js**. Three
+steps, each a `<dialog class="shepherd-element">` with a `data-shepherd-step-id`:
+
+| `data-shepherd-step-id` | Target | Text | Buttons |
+|---|---|---|---|
+| `match-details-section` | `#match-details` | Check your Home and Away teams, match details and the scores. | Skip Tour, Next |
+| `feed-section` | `#feed` | Add comments with other players and see match updates like who scored. | Back, Next |
+| `lineup-section` | `#lineup` | Manage your team and formations. Do not forget to invite your mates by adding their email address! | Back, Finish |
+
+It covers neither FACTS, nor PAYMENT, nor KEYS. `#show-tour-button` reopens it and
+carries the accessible name **Show Tour**. Note that `innerText` on a
+`shepherd-text` reads empty - the dialog is outside the layout the way `innerText`
+measures it - so a spec has to read `textContent`.
+
+**Finishing the tour clears the account's bio**, exactly as Skip Tour does. Both
+fire `PUT /users/:id {"isTourCompleted": true}`, which is a full replace. Verified
+by reading the bio, selecting **Finish**, and reading it again: `""`. Third
+instance of this defect in this file, after the profile photo and the banner.
+
+### The two Free gates on the match page
+
+**(observed in app, 2026-09-01, by collection 10.)** Both are client-side, both are
+keyed off the **signed-in user's** membership rather than the team owner's, and
+neither has an error code - so neither is in the `MembershipLimits` table under
+[MembershipLimits](#membershiplimits---the-eight-error-codes).
+
+| Where | Modal title | Message |
+|---|---|---|
+| the fourth substitute slot, **SUB-4**, on the LINEUP panel | **Add More Subs** | Upgrade to Pro Membership to add more substitutes to your lineup. |
+| **Add media** in the match feed's comment window | **Add Media** | You need a Pro membership to add videos and images to your match feed. |
+
+Both carry the usual second line, "Pro (Beta) is **FREE**. Tap FREE Upgrade to get
+started.", and the usual **FREE Upgrade (Beta)** button. SUB-1 to SUB-3 open the
+**Select Player** window normally on Free; only SUB-4 is gated, and it is drawn in
+violet where the first three are blue.
 
 ### The Facts tab - what the two panels actually are
 
@@ -1774,7 +1970,11 @@ It changes how chat fixtures get seeded: through the UI, not the API.
 - **Payment request creation and editing** (17.4 to 17.7) - create, edit, cancel a
   request; fee handling.
 - **Comment edit and delete** (19.2).
-- **Match penalties and final-score entry** (10.6).
+- ~~**Match penalties and final-score entry** (10.6).~~ Found 2026-09-01: there is
+  nothing to find. An ordinary match has no penalty control and no typed score
+  field - the score is the `+` / `-` steppers, and both `isPenalty` and
+  `hasScoreEntry` are tournament-match fields. See
+  [The match lifecycle](#the-match-lifecycle---what-starts-a-match-and-what-ends-it).
 - **Referee registration and availability** (21.1, 21.4).
 - **Global search** across players and teams (02.2). Only `/team-players/search`
   and the per-resource searches exist.

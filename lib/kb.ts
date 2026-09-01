@@ -258,8 +258,18 @@ export async function imagesPainted(page: Page) {
       if (!bg || bg === 'none') continue;
       for (const m of bg.matchAll(/url\("?(.*?)"?\)/g)) urls.add(m[1]);
     }
-    const w = window as unknown as { __kbBg?: Map<string, boolean> };
+    const w = window as unknown as { __kbBg?: Map<string, boolean>; __kbBgProbes?: HTMLImageElement[] };
     w.__kbBg ??= new Map();
+    // The probes are KEPT, and that is the point of this array.
+    //
+    // A bare `const probe = new Image()` is referenced by nothing once the
+    // function returns - only its own handlers point at it - so the browser is
+    // free to collect it before the image finishes loading, and then neither
+    // `onload` nor `onerror` ever runs and the map entry stays `false` for ever.
+    // Collection 10 hit it twice on one screenshot: two background images that both
+    // answered 200 when fetched by hand, and a 20-second timeout in here.
+    // Intermittent by nature, which is why it survived nine collections.
+    w.__kbBgProbes ??= [];
     let ready = true;
     for (const url of urls) {
       if (url.startsWith('data:')) continue;
@@ -269,11 +279,15 @@ export async function imagesPainted(page: Page) {
         probe.onload = () => w.__kbBg!.set(url, true);
         probe.onerror = () => w.__kbBg!.set(url, true);
         probe.src = url;
+        w.__kbBgProbes.push(probe);
       }
       if (!w.__kbBg.get(url)) ready = false;
     }
     return ready;
-  }, undefined, { timeout: 20_000 });
+    // `polling: 250` rather than the default `raf`. A page under a frozen clock
+    // is not a page that is animating, and a requestAnimationFrame that stops
+    // being scheduled takes the whole wait down with it.
+  }, undefined, { timeout: 20_000, polling: 250 });
 }
 
 /**
@@ -3925,4 +3939,743 @@ export function moving09(page: Page) {
     page.locator('div[class*="bg-red-500"][class*="rounded-full"][class*="absolute"][class*="w-5"]'),
     page.getByText(/^Joined Since /),
   ];
+}
+
+// --- collection 10: Match day -----------------------------------------------
+//
+// Everything from the whistle onwards. Collection 09 stops at kick-off.
+//
+// Five facts shape every helper below, and all five are in config/api.md under
+// "The match lifecycle":
+//
+//   1. A Finished match is permanent. Nothing reopens it, nothing edits it.
+//   2. A match starts itself when its date arrives, and is born Finished if it
+//      would have ended more than 24 hours ago.
+//   3. POST /matches/:id/status {"status":"Live"} forces a future match Live -
+//      which is what START MATCH does.
+//   4. PUT /matches/:id is refused with 403 while a match is Live.
+//   5. Events land only while a match is Live or Paused.
+//
+// So no spec here changes either shared fixture. Every article that starts,
+// scores, cards or ends a match builds its own throwaway in the KB 10 Scratch
+// leaderboard and cancels it in a `finally`.
+
+// @ts-ignore - plain JS module, no types
+import * as F10 from './fixtures-10.mjs';
+
+export const KB10 = F10.ACCOUNTS as Record<'pro' | 'admin' | 'player' | 'referee', string>;
+export const KB10_PROFILES = F10.PROFILES;
+export const KB10_LEADERBOARD: string = F10.LEADERBOARD;
+export const KB10_SCRATCH: string = F10.SCRATCH_LEADERBOARD;
+export const KB10_TEAMS = F10.TEAMS as Record<'united' | 'rovers', string>;
+export const KB10_VENUE = F10.VENUE as { name: string; location: string };
+export const KB10_DEFAULTS = F10.MATCH_DEFAULTS as { duration: string; teamSize: string; formation: string };
+export const KB10_POSITIONS: string[] = F10.POSITIONS;
+export const KB10_SQUADS = F10.SQUADS;
+export const KB10_MATCHES = F10.MATCHES;
+export const KB10_PLAYED_SCORE = F10.PLAYED_SCORE as { home: number; away: number };
+export const KB10_PLAYED_EVENTS = F10.PLAYED_EVENTS;
+export const KB10_PLAYED_COMMENTARY = F10.PLAYED_COMMENTARY as { minute: number; description: string }[];
+export const KB10_TIMER_MINUTES: number = F10.LIVE_TIMER_MINUTES;
+
+/**
+ * Look the collection-10 fixtures up, and work out what clock to freeze to.
+ *
+ * There is deliberately no `FROZEN_NOW` constant in this collection. The played
+ * fixture's date is whatever moment the seed ran - it has to be, because events
+ * are only accepted while a match is Live and a match is only Live inside its own
+ * duration - so a hardcoded clock would drift against it on every rebuild and the
+ * feed would start reading "in four hours". `frozenNow` is derived from the
+ * fixture instead: three hours after the played match kicked off. That is stable
+ * for as long as the fixture is.
+ *
+ * Never a hardcoded id either: the seed can legitimately rebuild a match.
+ * `scheduled` is found by its fixed future date; `played` is found by being the
+ * one Finished match in KB 10 Sunday League.
+ */
+export async function fixtures10() {
+  const session = await mintSession(KB10.pro);
+  const token: string = session.idToken;
+  const me = (await asUser(token, '/users/me')).body?.data;
+
+  const teams = (await asUser(token, '/teams?all=true')).body?.data ?? [];
+  const teamId = (name: string) => {
+    const row = teams.find((t: any) => t.name === name);
+    if (!row) throw new Error(`Team "${name}" is missing. Run: node scripts/seed-10.mjs`);
+    return String(row.teamId);
+  };
+
+  const boards = (await asUser(token, '/leaderboards')).body?.data ?? [];
+  const board = (name: string) => {
+    const row = boards.find((b: any) => b.isOwner && b.name === name);
+    if (!row) throw new Error(`Leaderboard "${name}" is missing. Run: node scripts/seed-10.mjs`);
+    return String(row.id);
+  };
+
+  const venueRows = (await asUser(
+    token, `/club-locations?query=${encodeURIComponent(KB10_VENUE.name)}`,
+  )).body?.data ?? [];
+  const venue = venueRows.find((v: any) => v.name === KB10_VENUE.name && !v.isDeleted);
+  if (!venue) throw new Error(`Venue "${KB10_VENUE.name}" is missing. Run: node scripts/seed-10.mjs`);
+
+  const detail = async (id: string) => (await asUser(token, `/matches/${id}`)).body?.data;
+
+  // The calendar's own endpoint - the only listing that carries Incomplete rows,
+  // and one that never shows Cancelled ones.
+  const listed = (await asUser(
+    token,
+    `/players/${me.playerId}/matches?includeIncomplete=true&startDate=2026-01-01&endDate=2027-12-31`,
+  )).body?.data;
+  const rows: any[] = listed?.result ?? listed ?? [];
+  const league = board(KB10_LEADERBOARD);
+
+  const schedDay = KB10_MATCHES.scheduled.date.slice(0, 10);
+  const schedRow = rows.find(
+    (m) => String(m.date ?? '').slice(0, 10) === schedDay && m.status === 'Scheduled',
+  );
+  if (!schedRow) {
+    throw new Error(`The Scheduled fixture (${schedDay}) is missing. Run: node scripts/seed-10.mjs`);
+  }
+
+  let playedId: string | null = null;
+  for (const m of rows) {
+    if (m.status !== 'Finished') continue;
+    if (String((await detail(String(m.id)))?.leaderboardId) === league) { playedId = String(m.id); break; }
+  }
+  if (!playedId) {
+    throw new Error(`The Finished fixture in "${KB10_LEADERBOARD}" is missing. Run: node scripts/seed-10.mjs`);
+  }
+  const played = await detail(playedId);
+
+  const squad = async (id: string) => {
+    const all = (await asUser(token, `/teams/${id}/players?includeFans=true`)).body?.data ?? [];
+    return all.filter((m: any) => !m.isDeleted).map((m: any) => ({
+      id: String(m.id),
+      role: m.role as string,
+      name: [m.player?.name, m.player?.lastName].filter(Boolean).join(' '),
+    }));
+  };
+
+  const united = teamId(KB10_TEAMS.united);
+  const rovers = teamId(KB10_TEAMS.rovers);
+  const scratch = board(KB10_SCRATCH);
+
+  return {
+    token,
+    userId: String(me.id),
+    playerId: String(me.playerId),
+    teams: { united, rovers },
+    leaderboard: league,
+    scratch,
+    venue: String(venue.id),
+    scheduled: String(schedRow.id),
+    played: playedId,
+    playedDetail: played,
+    /** Three hours after the played fixture kicked off. See the note above. */
+    frozenNow: new Date(new Date(played.date).getTime() + F10.FROZEN_AFTER_PLAYED_HOURS * 3600_000),
+    detail,
+    squad,
+
+    /**
+     * A throwaway match in KB 10 Scratch, in whichever state the caller wants.
+     *
+     * `scheduled` dates it three days ahead, so it carries a START MATCH button a
+     * spec may photograph without pressing.
+     *
+     * `live` dates it `minutesAgo` in the past and waits for the server to start
+     * it. Deliberately not `POST /status`: going through the real auto-start is
+     * what puts "Match was created from the past date" on the feed, which is
+     * article 10.9's subject.
+     *
+     * `stale` dates it far enough back that it would have ended more than 24
+     * hours ago, so it arrives **Finished at 0-0 and can never be scored**. That
+     * is 10.9's warning. Such a match cannot be cancelled either - it stays in
+     * KB 10 Scratch, which no article photographs.
+     */
+    async throwaway(
+      when: 'scheduled' | 'live' | 'stale',
+      { minutesAgo = 3, lineups = true } = {},
+    ) {
+      const home = await squad(united);
+      const away = await squad(rovers);
+      const pick = (members: { id: string; name: string }[], order: string[]) => order.map((n, i) => {
+        const row = members.find((m) => m.name === n);
+        if (!row) throw new Error(`${n} is not on the squad. Run: node scripts/seed-10.mjs`);
+        return { teamPlayerId: row.id, position: KB10_POSITIONS[i] };
+      });
+      // A clock read, inside a spec. Allowed here and nowhere else: what the
+      // fixture needs is a RELATIVE offset - far enough in the past that the
+      // server starts it - and no absolute instant stays true between runs.
+      // Nothing photographed depends on this value; freezeClock10() pins what the
+      // reader sees.
+      const now = Date.now();
+      const date = when === 'scheduled'
+        ? new Date(now + 3 * 86_400_000).toISOString()
+        : when === 'live'
+          ? new Date(now - minutesAgo * 60_000).toISOString()
+          : new Date(now - 30 * 3600_000).toISOString();
+      const r = await asUser(token, '/matches', {
+        method: 'POST',
+        body: {
+          homeTeam: {
+            teamId: united,
+            formation: KB10_DEFAULTS.formation,
+            players: lineups ? pick(home, KB10_SQUADS.united.lineup) : [],
+          },
+          awayTeam: {
+            teamId: rovers,
+            formation: KB10_DEFAULTS.formation,
+            players: lineups ? pick(away, KB10_SQUADS.rovers.lineup) : [],
+          },
+          date,
+          duration: KB10_DEFAULTS.duration,
+          teamSize: KB10_DEFAULTS.teamSize,
+          clubLocationId: String(venue.id),
+          leaderboardId: scratch,
+          tag: 'league',
+        },
+      });
+      if (!r.ok) throw new Error(`POST /matches: ${JSON.stringify(r.body)}`);
+      const id = String(r.body.data.id);
+      const want = when === 'scheduled' ? 'Scheduled' : when === 'live' ? 'Live' : 'Finished';
+      // Polled on the status, never on a duration: the server does the work and
+      // there is no event to await. Bounded, so a spec fails rather than hangs.
+      for (let i = 0; i < 40; i += 1) {
+        const m = await detail(id);
+        if (m?.status === want) return { id, match: m, home, away };
+        if (when === 'scheduled') break;
+        await new Promise((res) => setTimeout(res, 1500));
+      }
+      throw new Error(`Throwaway ${id} never reached ${want} (it is ${(await detail(id))?.status})`);
+    },
+
+    /**
+     * A blank Incomplete match, exactly as the app's **Create Match** button makes
+     * one.
+     *
+     * `POST /matches {"status":"Incomplete"}` is what the button sends, and it
+     * lands the reader on `/matches/:id` with an editable MATCH DETAILS form in
+     * place of the read-only detail strip. That form is where article 10.9 starts,
+     * and it exists only while the match is Incomplete - a Scheduled match has no
+     * form to photograph.
+     */
+    async blank() {
+      const r = await asUser(token, '/matches', { method: 'POST', body: { status: 'Incomplete' } });
+      if (!r.ok) throw new Error(`POST /matches {Incomplete}: ${JSON.stringify(r.body)}`);
+      return String(r.body.data.id);
+    },
+
+    /**
+     * Dispose of a throwaway.
+     *
+     * DELETE refuses a match whose date has passed - "Date must be at least one
+     * hour ahead of the current time" - so it cannot clear one that was born
+     * Live. `PUT {status: "Cancelled"}` can. Neither works on a Finished match:
+     * that is permanent, which is why the throwaways live in KB 10 Scratch and
+     * nothing photographs it.
+     */
+    async cancel(id: string) {
+      let r = await asUser(token, `/matches/${id}`, { method: 'DELETE' });
+      if (!r.ok) {
+        r = await asUser(token, `/matches/${id}`, { method: 'PUT', body: { status: 'Cancelled' } });
+      }
+      return r.status;
+    },
+
+    /** Put a persona's whole profile back. See the note on closeTour(). */
+    async restoreProfile(role: 'pro' | 'admin' | 'player' | 'referee') {
+      const s = await mintSession(KB10[role]);
+      const who = (await asUser(s.idToken, '/users/me')).body?.data;
+      const r = await asUser(s.idToken, `/users/${who.id}`, {
+        method: 'PUT', body: (KB10_PROFILES as any)[role],
+      });
+      return r.status;
+    },
+  };
+}
+
+export type Fx10 = Awaited<ReturnType<typeof fixtures10>>;
+
+/**
+ * Freeze the browser clock.
+ *
+ * Three different instants are used across this collection, each derived from the
+ * fixture it belongs to rather than written down:
+ *
+ *   fx.frozenNow                       the two shared fixtures
+ *   afterKickOff(m, KB10_TIMER_MINUTES) a Live match, so the timer reads 48:00
+ *   afterKickOff(m, 61)                 full time, so END MATCH is on screen
+ *
+ * Call it AFTER signing in - the Firebase token exchange needs a real clock.
+ */
+export async function freezeClock10(page: Page, when: Date) {
+  await page.clock.setFixedTime(when);
+}
+
+/**
+ * `startedAt` plus `minutes`, for a capture of a running timer.
+ *
+ * The timer runs from **`startedAt`** - the instant the server actually started
+ * the match - and not from the kick-off time in the match details. Those two are
+ * minutes apart for a throwaway dated in the past, and getting it wrong is
+ * visible: the first run of 10.3 froze the clock at `date + 12 min` and the pill
+ * read **51:03**, because the server had started the match three minutes after
+ * its nominal kick-off and the timer had only nine minutes to count.
+ *
+ * `startedAt + 12 min` on a 60-minute match puts exactly **48:00** on screen.
+ * Pass the match object the throwaway helper returned - it was read after the
+ * status went Live, so it carries `startedAt`.
+ */
+export function afterKickOff(match: any, minutes: number) {
+  const started = match?.startedAt;
+  if (!started) {
+    throw new Error('afterKickOff(): the match has no startedAt - was it read before it went Live?');
+  }
+  return new Date(new Date(started).getTime() + minutes * 60_000);
+}
+
+/** Everything that must be off-screen before a collection-10 capture. */
+export async function quiet10(page: Page) {
+  await page.addStyleTag({
+    content: `
+      #intercom-container, .intercom-lightweight-app, #intercom-frame,
+      iframe[name^="__privateStripe"], #stripeDataLayerFrame,
+      [data-testid="promo-campaign"], [role="status"], [aria-live="polite"] {
+        display: none !important;
+      }
+      *, *::before, *::after {
+        animation: none !important;
+        transition: none !important;
+        caret-color: transparent !important;
+      }
+    `,
+  });
+  await expect(page.locator('#intercom-container')).toBeHidden();
+}
+
+/**
+ * Load Manage Teams once before opening a match.
+ *
+ * The same store slice collection 09 found: open `/matches/:id` cold and the
+ * venue reads "Location not set" and the away team "Add Away Team" over data the
+ * API returns perfectly. Loading `/teams` first fills it. It bites the owner too,
+ * not only a reader who does not own both teams - proved on this collection's own
+ * Scheduled fixture, where KB 10 Astro rendered as "Location not set" on a cold
+ * load and correctly after a visit to /teams.
+ */
+export async function warm10(page: Page) {
+  await page.goto('/teams');
+  await expect(page.getByText(/Manage Teams|Add Team|Create Team/i).first())
+    .toBeVisible({ timeout: 30_000 });
+}
+
+/** No skeleton and no spinner anywhere on the page. */
+export async function settled10(page: Page) {
+  await expect(page.locator('.animate-pulse')).toHaveCount(0, { timeout: 30_000 });
+  await expect(page.locator('.animate-spin')).toHaveCount(0, { timeout: 30_000 });
+}
+
+/** Warm the store, freeze the clock, open a match page and settle it. */
+export async function openMatch10(page: Page, id: string, when?: Date) {
+  await warm10(page);
+  if (when) await freezeClock10(page, when);
+  await page.goto(`/matches/${id}`);
+  await quiet10(page);
+  await settled10(page);
+}
+
+/**
+ * One of the match page's six panels, by its anchor id.
+ *
+ * All six are in the DOM at once - the tab strip scrolls to anchors rather than
+ * swapping content - so a panel can be clipped without clicking its tab.
+ */
+export function matchPanel(
+  page: Page,
+  id: 'match-details' | 'feed' | 'facts' | 'lineup' | 'payment' | 'keys',
+) {
+  return page.locator(`#${id}`);
+}
+
+/**
+ * A tab in the strip.
+ *
+ * Two copies exist, one per layout, and the off-screen one has a zero-sized box,
+ * so `.first()` alone can return the invisible one.
+ */
+export function matchTab10(page: Page, label: string) {
+  return onScreen(page.getByRole('tab', { name: label, exact: true })).first();
+}
+
+/** The whole tab strip, for a capture of the navigation itself. */
+export async function tabStrip10(page: Page) {
+  const tab = matchTab10(page, 'MATCH DETAILS');
+  await expect(tab).toBeVisible({ timeout: 30_000 });
+  const strip = tab.locator('xpath=..');
+  await expect(strip).toBeVisible();
+  return strip;
+}
+
+/**
+ * The control beside the tab strip changes with the match's status:
+ *
+ *   Incomplete / Scheduled   START MATCH
+ *   Live                     the timer pill, counting down, pause icon
+ *   Paused                   the same pill, play icon
+ *   Live at 00:00            END MATCH
+ *   Finished                 nothing at all
+ */
+// Named with a case-insensitive regex rather than a string, because half the
+// upper-case text on this page is CSS and half is real - see onlinePill() - and
+// which half a given control belongs to is not worth finding out one failed run
+// at a time.
+export function startMatchButton(page: Page) {
+  return onScreen(page.getByRole('button', { name: /^start match$/i })).first();
+}
+
+export function endMatchButton(page: Page) {
+  return onScreen(page.getByRole('button', { name: /^end match$/i })).first();
+}
+
+/**
+ * The timer pill - which is also the pause control; they are one button.
+ *
+ * Matched on its text, `mm:ss`, counting DOWN from the match duration, because
+ * that is the only thing it carries. `onScreen` matters twice over: the mobile
+ * copy is in the DOM with a zero-sized box, and clicking that copy waits out the
+ * whole action timeout instead of failing.
+ */
+export function timerPill(page: Page) {
+  return onScreen(page.locator('button').filter({ hasText: /^\d?\d:\d\d$/ })).first();
+}
+
+/**
+ * The digits inside the timer pill, separately from its icon.
+ *
+ * `<div class="font-bold text-center ...">48:00</div>`, a sibling of the `svg`.
+ * Needed because the paused capture masks the number and keeps the icon.
+ *
+ * **Why the paused number is masked.** While the match is Live the pill is drawn
+ * from the browser clock, so a frozen clock pins it exactly. The moment it is
+ * paused the pill is drawn from the `pausedAt` the SERVER stamps - real
+ * wall-clock time, and the server ignores a `pausedAt` sent in the body - so the
+ * figure jumps to however long the spec took to get there, about forty seconds,
+ * and no test clock can pin it. A run of 10.4 read 48:00 live and 59:40 paused,
+ * one second apart.
+ *
+ * A real user never sees that jump: their browser clock and the server's agree.
+ * It is an artefact of freezing the clock, not a fault in the product - which is
+ * why the fix is to mask the digits rather than to write a warning into the
+ * article. The icon is what the reader needs, and the icon is what the shot keeps.
+ */
+export function timerDigits(page: Page) {
+  return timerPill(page).locator('div').filter({ hasText: /^\d?\d:\d\d$/ }).first();
+}
+
+/**
+ * Every place the running clock is drawn: the pill and the figure under the score.
+ *
+ * Both have to be masked together in a paused capture, and 10.3 shipped one run
+ * that masked only the pill - leaving 59:46 sitting under the score, three inches
+ * from a previous screenshot that read 48:00.
+ */
+export function timerFigures(page: Page) {
+  return [
+    timerDigits(page),
+    onScreen(matchPanel(page, 'match-details').getByText(/^\d?\d:\d\d$/)).first(),
+  ];
+}
+
+/**
+ * The two score steppers under the MATCH DETAILS card.
+ *
+ * One rounded blue-bordered row holds four 32px buttons in DOM order: home minus,
+ * home plus, away minus, away plus. They carry no text, no id and no aria-label,
+ * so the order is the only handle - and the count is asserted before it is
+ * indexed, so a change in the app fails the spec rather than clicking the wrong
+ * control.
+ *
+ * A minus button is `disabled` at zero, which is also how a spec can tell a goal
+ * landed without reading the score.
+ */
+export async function scoreStepperRow(page: Page) {
+  const row = page.locator('div[class*="rounded-full"][class*="border-blue-600"]')
+    .filter({ has: page.locator('button.w-8.h-8') }).first();
+  await expect(row).toBeVisible({ timeout: 30_000 });
+  return row;
+}
+
+export async function scoreStepper(page: Page, side: 'home' | 'away', which: 'plus' | 'minus') {
+  const row = await scoreStepperRow(page);
+  const buttons = row.locator('button.w-8.h-8');
+  await expect(buttons).toHaveCount(4);
+  const index = (side === 'home' ? 0 : 2) + (which === 'minus' ? 0 : 1);
+  return buttons.nth(index);
+}
+
+/** The score between the two crests, e.g. "3 - 1". */
+export function scoreText(page: Page) {
+  return onScreen(page.getByText(/^\d+ - \d+$/)).first();
+}
+
+/** The feed's action bar - Yellow Card, Red Card, Player of Match, Comment. */
+export function feedAction(
+  page: Page,
+  label: 'Yellow Card' | 'Red Card' | 'Player of Match' | 'Comment',
+) {
+  // Whitespace-tolerant and case-insensitive. These four labels are real text
+  // rather than CSS upper case - unlike the ONLINE pill - but the markup wraps
+  // each one around an icon, so the accessible name can carry extra whitespace.
+  const name = new RegExp(`^${label.split(' ').join('\\s+')}$`, 'i');
+  return onScreen(page.getByRole('button', { name })).first();
+}
+
+/**
+ * A window on the match page, identified by its own heading.
+ *
+ * A CSS attribute selector rather than `getByRole('dialog')`, and `hasText`
+ * rather than a nested heading query - the trap collection 09 documented. Radix
+ * marks a dialog `aria-hidden` while a Select inside it is open, which takes it
+ * out of the accessibility tree, and every ARIA-based locator on it goes dead at
+ * exactly the moment the shot is taken.
+ */
+export function matchDialog10(page: Page, heading: string) {
+  return page.locator('[role="dialog"]').filter({ hasText: heading });
+}
+
+/** Open one of the feed's event windows and prove which one it is. */
+export async function openFeedDialog(
+  page: Page,
+  label: 'Yellow Card' | 'Red Card' | 'Player of Match' | 'Comment',
+  heading: string,
+) {
+  await feedAction(page, label).scrollIntoViewIfNeeded();
+  await feedAction(page, label).click();
+  const dlg = matchDialog10(page, heading);
+  await expect(dlg.first()).toBeVisible({ timeout: 30_000 });
+  return dlg.first();
+}
+
+/** Close every window, innermost first. Counted, never timed. */
+export async function closeDialog10(page: Page) {
+  const dialogs = page.locator('[role="dialog"]');
+  for (let i = 0; i < 4; i += 1) {
+    if ((await dialogs.count()) === 0) return;
+    await page.keyboard.press('Escape');
+  }
+  const win = dialogs.first();
+  const close = win.getByRole('button', { name: 'Close' });
+  if (await close.count()) await close.last().click({ force: true });
+  await expect(dialogs).toHaveCount(0);
+}
+
+/**
+ * A substitute slot's clickable `+`, by slot number.
+ *
+ * The label and the `+` are siblings inside one `div.flex.flex-col`, and only the
+ * `+` carries the click handler - clicking the label does nothing at all, which
+ * cost two exploration runs. SUB-4 is drawn in violet where the first three are
+ * blue, and it is the one the Free gate sits on.
+ */
+export function subSlot(page: Page, n: 1 | 2 | 3 | 4 | 5) {
+  // Anchored on the label and stepped up exactly one level, because the label
+  // and the clickable `+` are SIBLINGS inside a small wrapper. The first version
+  // of this filtered every `div.flex.flex-col` that contained the label, which
+  // matches the whole pitch column as well - and `.first()` then returned one of
+  // the eleven other `cursor-pointer` divs inside it. The click landed on a
+  // player's place, nothing opened, and 10.2 failed twice on a window that was
+  // never asked for.
+  return onScreen(page.getByText(`SUB-${n}`, { exact: true })).first()
+    .locator('xpath=..')
+    .locator('div.cursor-pointer')
+    .first();
+}
+
+/**
+ * The Substitutes block inside one team's pitch column: the heading and the grid
+ * of slots.
+ *
+ * Scoped to the column rather than searched for on the page, because both teams
+ * have one and the two are identical. `mt-6` is what tells the block apart from
+ * the grid inside it - the block's own class list begins with the string
+ * "undefined", which is a template bug in the app and not something to match on.
+ */
+export function substitutesBlock(column: Locator) {
+  return column.locator('div.flex.flex-col.gap-4.mt-6').first();
+}
+
+/** The Formation combobox for one side of the LINEUP panel. */
+export function formationSelect(page: Page, side: 'home' | 'away') {
+  const boxes = onScreen(page.getByRole('combobox').filter({ hasText: /Formation/ }));
+  return side === 'home' ? boxes.first() : boxes.last();
+}
+
+/**
+ * The membership gate this collection raises - "Add More Subs", "Add Media".
+ *
+ * Found by its **FREE Upgrade (Beta)** button rather than by its heading, and the
+ * reason is a trap worth knowing: Playwright's `hasText` string filter matches a
+ * **case-insensitive substring**. `matchDialog10(page, 'Add Media')` therefore
+ * also matches the **Add comment** window sitting underneath it, because that
+ * window contains the words "Add media" - so `.first()` returned the wrong dialog
+ * and 10.8 failed looking for an upgrade button in a comment box.
+ *
+ * The upgrade button is on the gate and on nothing else, so it is the safe anchor.
+ * The heading is then asserted against the dialog that was found, which is the
+ * right way round.
+ */
+export async function gate10(page: Page, title: string) {
+  const dlg = page.locator('[role="dialog"]')
+    .filter({ has: page.getByText('FREE Upgrade (Beta)', { exact: true }) })
+    .first();
+  await expect(dlg).toBeVisible({ timeout: 30_000 });
+  await expect(dlg.getByText(title, { exact: true }).first()).toBeVisible();
+  return dlg;
+}
+
+/**
+ * The live viewer count on the FEED panel.
+ *
+ * Two traps in one small pill, and 10.1's first run walked into both. Its text is
+ * **`🟢 Online 1`** - a leading emoji, and **title case uppercased by CSS**
+ * (`text-xs uppercase`). So `getByText('ONLINE 1', {exact: true})` finds nothing,
+ * and so does `getByText(/ONLINE \d+/)`: it matched zero elements, the mask
+ * silently painted nothing, and the pill went into the capture. Same
+ * `text-transform` trap this repo has now hit on GROUP A, DELETE ACCOUNT and the
+ * MATCH DETAILS caption.
+ *
+ * Masked in every capture except 10.10's, whose subject it is: the number depends
+ * on how many sessions happen to be open.
+ */
+export function onlinePill(page: Page) {
+  return onScreen(page.getByText(/online \s*\d+/i)).first();
+}
+
+/** The guided tour's current step. Shepherd.js - see config/api.md. */
+export type TourStep = 'match-details-section' | 'feed-section' | 'lineup-section';
+
+export function tourStep(page: Page, stepId: TourStep) {
+  return page.locator(`dialog.shepherd-element[data-shepherd-step-id="${stepId}"]`);
+}
+
+export function showTourButton(page: Page) {
+  return page.locator('#show-tour-button');
+}
+
+/**
+ * Wait for a tour step to have drawn its text.
+ *
+ * `innerText` on `.shepherd-text` reads empty - the dialog sits outside the
+ * layout the way innerText measures it - so the wait is on `textContent`.
+ */
+export async function tourStepReady(page: Page, stepId: TourStep) {
+  const step = tourStep(page, stepId);
+  await expect(step).toBeVisible({ timeout: 30_000 });
+  await page.waitForFunction(
+    (id) => {
+      const el = document.querySelector(
+        `dialog.shepherd-element[data-shepherd-step-id="${id}"] .shepherd-text`,
+      );
+      return !!el && (el.textContent ?? '').trim().length > 0;
+    },
+    stepId,
+    { timeout: 30_000 },
+  );
+  return step;
+}
+
+/** Advance the tour by its own Next button. */
+export async function tourNext(page: Page) {
+  await page.locator('dialog.shepherd-element .shepherd-button-primary').click();
+}
+
+/**
+ * Close the tour with its x rather than with Finish.
+ *
+ * Both **Skip Tour** and **Finish** fire `PUT /users/:id {isTourCompleted:true}`,
+ * which is a full replace and therefore clears the account's bio - verified on
+ * staging 2026-09-01 (config/api.md). The x is the one exit that is not a footer
+ * button. 10.1's spec restores the profile in a `finally` regardless, because
+ * none of the three exits can be trusted not to write.
+ */
+export async function closeTour(page: Page) {
+  const cancel = page.locator('dialog.shepherd-element .shepherd-cancel-icon');
+  if (await cancel.count()) await cancel.first().click();
+  await expect(page.locator('dialog.shepherd-element')).toHaveCount(0);
+}
+
+/** The finished-match card's own words. */
+export function matchEndedNotice(page: Page) {
+  return onScreen(page.getByText('The match has ended and cannot be edited.')).first();
+}
+
+/** The signed-in user's name in the sidebar. Masked in every capture. */
+export function sidebarIdentity10(page: Page, name: string) {
+  return page.getByText(name, { exact: true }).first();
+}
+
+/**
+ * The things on these screens that move between runs, for masking.
+ *
+ * The unread-notification badge changes with whatever the other three accounts
+ * have done since, and the ONLINE pill changes with how many sessions are open.
+ * Neither is the subject of any article except 10.10, whose spec passes
+ * `keepOnline` so the pill survives.
+ */
+export function moving10(page: Page, { keepOnline = false } = {}) {
+  const out = [
+    page.locator('div[class*="bg-red-500"][class*="rounded-full"][class*="absolute"][class*="w-5"]'),
+    page.getByText(/^Joined Since /),
+  ];
+  if (!keepOnline) out.push(onlinePill(page));
+  return out;
+}
+
+/**
+ * Wait for the KEYS panel to have drawn its legend.
+ *
+ * The panel is a collapsible whose body is
+ * `overflow-hidden transition-all max-h-[2000px]`, and it opens a render after
+ * the page settles. Measured cold it is 82 CSS pixels tall - just the header -
+ * and 314 once the legend is in. `quiet10()` kills the transition, so there is
+ * nothing to wait out; what has to be waited for is React swapping `max-h-0`
+ * for `max-h-[2000px]`.
+ *
+ * 10.1's first run clipped to `#keys` before that happened and produced an
+ * 83-pixel strip with the header and the top edge of four pills. This is the
+ * condition that run was missing - a height, not a duration.
+ */
+export async function keysPanelReady(page: Page) {
+  const panel = matchPanel(page, 'keys');
+  await panel.scrollIntoViewIfNeeded();
+  await expect(panel.getByText('Player Of The Match', { exact: true }).first()).toBeVisible({
+    timeout: 30_000,
+  });
+  await page.waitForFunction(
+    () => (document.getElementById('keys')?.getBoundingClientRect().height ?? 0) > 200,
+    undefined,
+    { timeout: 30_000 },
+  );
+  return panel;
+}
+
+/**
+ * One team's half of the LINEUP panel: the Formation control, the pitch and the
+ * Substitutes bench.
+ *
+ * The whole panel is 1645 CSS pixels tall because each team's half is a row of
+ * [Team Members list][Formation + pitch + bench], so a clip of `#lineup` is a
+ * portrait of four columns. 10.1 wants that overview; 10.2 wants this, which is
+ * the part a reader actually works in.
+ *
+ * Found by walking up from the Formation combobox to the nearest ancestor that
+ * also holds the Substitutes heading. Walking up a fixed number of levels would
+ * break the moment a wrapper is added; this names the relationship instead.
+ */
+export async function pitchColumn(page: Page, side: 'home' | 'away') {
+  const trigger = formationSelect(page, side);
+  await expect(trigger).toBeVisible({ timeout: 30_000 });
+  const column = trigger.locator('xpath=ancestor::div[.//*[text()="Substitutes"]][1]');
+  await expect(column).toBeVisible();
+  return column;
 }
