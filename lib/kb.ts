@@ -7,7 +7,7 @@
 // tempted to add something that does, it belongs in the spec as a seeded fixture
 // instead.
 
-import { expect, type Page, type Locator } from '@playwright/test';
+import { expect, type Page, type Locator, type Browser } from '@playwright/test';
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -310,6 +310,27 @@ export async function shot(
 
   await imagesPainted(page);
 
+  // Refuse to photograph a loading skeleton.
+  //
+  // docs/style-guide.md forbids "a spinner, skeleton or half-rendered chart", and
+  // in collection 15 that fault came back three times from three different
+  // causes: a public tab captured on the click rather than on the fetch, a slide
+  // show whose heading paints before its fixtures, and a followers dialog whose
+  // title comes from a count the page already had. Each one was a missing gate in
+  // one spec. This is the mechanical backstop for all of them - every skeleton in
+  // this app is an `.animate-pulse`, and a visible one means the capture is early.
+  //
+  // It throws rather than waiting, on purpose: a wait here would paper over the
+  // missing gate and leave the next spec to hit it. The fix belongs in the spec,
+  // as a condition that says what the loaded screen looks like.
+  const pulsing = await page.locator('.animate-pulse:visible').count();
+  if (pulsing) {
+    throw new Error(
+      `shot(): ${article}/${name} - ${pulsing} loading skeleton(s) on screen. `
+      + 'Gate the capture on something only the loaded screen has, rather than on '
+      + 'the control that was just clicked.');
+  }
+
   // Clipped captures only: put the page back to the top first.
   //
   // Playwright scrolls a clipped element into view itself, but where it lands
@@ -323,7 +344,6 @@ export async function shot(
     await page.waitForFunction(() => window.scrollY === 0);
   }
 
-  if (opts.annotate) await annotate(page, opts.annotate, opts.annotatePad);
   const common = {
     path: file,
     animations: 'disabled' as const,
@@ -339,6 +359,16 @@ export async function shot(
     // around it on the first run with a pad.
     await centre(opts.clip);
     await page.waitForFunction(() => true);
+    // The annotation is drawn AFTER that scroll, and the order matters.
+    //
+    // annotate() converts the target's viewport box to document coordinates with
+    // window.scrollY. On a page whose scrolling happens in an inner container
+    // rather than on the document - which is most of this app - window.scrollY
+    // stays 0, so "document coordinates" are really viewport coordinates, and
+    // scrolling afterwards moves the target out from under the outline. Found on
+    // 15.9's public-page header, where the outline landed a button's height
+    // below the button.
+    if (opts.annotate) await annotate(page, opts.annotate, opts.annotatePad);
     const box = await opts.clip.boundingBox();
     if (!box) throw new Error('shot(): clipped target has no bounding box');
     const view = page.viewportSize();
@@ -354,8 +384,18 @@ export async function shot(
         height: Math.min(view.height - y, box.height + p * 2 - (box.y - p < 0 ? box.y - p : 0)),
       },
     });
-  } else if (opts.clip) await opts.clip.screenshot(common);
-  else await page.screenshot({ ...common, fullPage: opts.fullPage ?? false });
+  } else if (opts.clip) {
+    // locator.screenshot() scrolls the element into view itself, so the
+    // annotation has to be drawn after that too. scrollIntoViewIfNeeded is what
+    // Playwright would do anyway; doing it explicitly means the outline is placed
+    // against the position the capture will use.
+    await opts.clip.scrollIntoViewIfNeeded();
+    if (opts.annotate) await annotate(page, opts.annotate, opts.annotatePad);
+    await opts.clip.screenshot(common);
+  } else {
+    if (opts.annotate) await annotate(page, opts.annotate, opts.annotatePad);
+    await page.screenshot({ ...common, fullPage: opts.fullPage ?? false });
+  }
   if (opts.annotate) await clearAnnotation(page);
   return file;
 }
@@ -4678,4 +4718,409 @@ export async function pitchColumn(page: Page, side: 'home' | 'away') {
   const column = trigger.locator('xpath=ancestor::div[.//*[text()="Substitutes"]][1]');
   await expect(column).toBeVisible();
   return column;
+}
+
+// --- collection 15: publishing & running a tournament -----------------------
+//
+// The board tabs collection 15 owns are Presentation, Sponsor, Prizes, Chat,
+// Results and Participants, plus the public page at `/tournament/:id/<tab>` and
+// the fullscreen slide show at `/tournament/:id/slideshow`.
+//
+// Two things every spec here needs and no earlier collection provided: a public
+// page reached with no session at all, and a fixture lookup that also hands back
+// the group and bracket ids the slide show references.
+
+export const KB15 = {
+  organiser: 'kb-organiser-15@yopmail.com',
+  admin: 'kb-15-admin@yopmail.com',
+  free: 'kb-15-free@yopmail.com',
+  outsider: 'kb-15-outsider@yopmail.com',
+} as const;
+
+/** The fixture names the seed uses. A spec must never invent one. */
+export const KB15_TOURNAMENTS = {
+  cup: 'KB 15 Cup',
+  league: 'KB 15 League',
+  padelCup: 'KB 15 Padel Cup',
+  sunday: 'KB 15 Sunday League',
+  newCup: 'KB 15 New Cup',
+  doneCup: 'KB 15 Done Cup',
+} as const;
+
+export const KB15_SPONSORS = ['KB Astro Sports', 'KB Riverside Cafe'] as const;
+
+/**
+ * The clock every collection 15 spec freezes to.
+ *
+ * The slide show renders a live wall clock when `showCurrentTime` is set, and the
+ * chat stamps every message. Both change every run. A fixed time is the style
+ * guide's answer; this one is a Saturday morning in BST, which is when a
+ * tournament screen would actually be on.
+ */
+export const FROZEN_NOW_15 = new Date('2026-09-05T09:15:00.000Z');
+
+export async function freezeClock15(page: Page) {
+  await page.clock.setFixedTime(FROZEN_NOW_15);
+}
+
+/**
+ * Look collection 15's fixtures up by title, and carry the ids the slide show
+ * and the results articles need.
+ *
+ * Never hardcode an id: `scripts/seed-15.mjs` can legitimately recreate a
+ * tournament, and a hardcoded id would then point at a deleted row.
+ */
+export async function fixtures15() {
+  const email = personaEmail('organiser', '15');
+  const session = await mintSession(email);
+  const token: string = session.idToken;
+  const list = (await asUser(token, '/tournaments')).body.data ?? [];
+  const byTitle = (t: string) => {
+    const row = list.find((x: any) => x.title === t);
+    if (!row) throw new Error(`Fixture tournament "${t}" is missing. Run: node scripts/seed-15.mjs`);
+    return String(row._id ?? row.id);
+  };
+  const detail = async (id: string) => (await asUser(token, `/tournaments/${id}`)).body.data;
+  return {
+    email,
+    token,
+    cup: byTitle(KB15_TOURNAMENTS.cup),
+    league: byTitle(KB15_TOURNAMENTS.league),
+    padelCup: byTitle(KB15_TOURNAMENTS.padelCup),
+    sunday: byTitle(KB15_TOURNAMENTS.sunday),
+    newCup: byTitle(KB15_TOURNAMENTS.newCup),
+    doneCup: byTitle(KB15_TOURNAMENTS.doneCup),
+    detail,
+    /** The group ids of one tournament, keyed by the name on the board. */
+    groups: async (id: string) => Object.fromEntries(
+      ((await detail(id)).groups ?? []).map((g: any) => [g.name, String(g.id)])),
+    /** One group's fixture cards, in board order. */
+    groupMatches: async (id: string, groupId: string) =>
+      (await asUser(token, `/tournaments/${id}/schedule/groups/${groupId}/matches`)).body.data ?? [],
+  };
+}
+
+/**
+ * One tab in the public page's strip: Info, Participants, Standings, Matches,
+ * Leaderboard, Chat.
+ *
+ * Pass the TITLE-CASE name even though the screenshot will read INFO. The tabs
+ * are upper-cased by CSS and their DOM text is title case, so that is the
+ * accessible name - checked rather than assumed, because collections 01 and 14
+ * both hit strips where the upper case was in the markup instead (GROUP A,
+ * DELETE ACCOUNT). `getByRole('button', {name: 'INFO'})` matches nothing here.
+ */
+export function publicTab(page: Page, label: string) {
+  return onScreen(page.getByRole('button', { name: label, exact: true })).first();
+}
+
+/**
+ * A browser context that has never been signed in, for the public captures.
+ *
+ * Clearing cookies is not enough to sign out of this app: the Firebase session
+ * lives in IndexedDB, not in a cookie, so a page that has signed in stays signed
+ * in however much cookie clearing it is given. A second context is the only
+ * honest way to photograph what a stranger sees.
+ *
+ * The settings repeat playwright.config.ts on purpose - a context made here does
+ * not inherit the `use` block - and they must stay in step with it, or the public
+ * captures come out at a different scale from every other screenshot.
+ */
+export async function publicContext(browser: Browser) {
+  return browser.newContext({
+    baseURL: process.env.SCORYBOARD_APP_BASE,
+    viewport: { width: 1440, height: 900 },
+    deviceScaleFactor: 2,
+    timezoneId: 'Europe/London',
+    locale: 'en-GB',
+    reducedMotion: 'reduce',
+    serviceWorkers: 'block',
+  });
+}
+
+/**
+ * Open the public tournament page on a page that has never signed in.
+ *
+ * This is the one share link in the project a signed-out visitor really does get
+ * in full - unlike the leaderboard and match ones, which bounce to /signin. Pass
+ * a page from `publicContext()`. The clock is frozen before the first paint
+ * because the Info tab stamps a date.
+ */
+export async function openPublicPage(page: Page, tournamentId: string, tab = 'info') {
+  await freezeClock15(page);
+  await page.goto(`/tournament/${tournamentId}/${tab}`);
+  await expect(publicTab(page, 'Info')).toBeVisible({ timeout: 30_000 });
+  await quiet(page);
+}
+
+/** The public page's whole tab strip, for a capture of which tabs are showing. */
+export async function publicTabStrip(page: Page) {
+  const info = publicTab(page, 'Info');
+  await expect(info).toBeVisible();
+  const strip = info.locator('xpath=ancestor::div[.//button][1]');
+  await expect(strip).toBeVisible();
+  return strip;
+}
+
+/**
+ * Wait for a board tab to have finished loading.
+ *
+ * Every tab paints its chrome - header, tab strip - before its fetch lands, so
+ * the tab strip is never a safe gate. `marker` is something only the loaded tab
+ * has.
+ */
+export async function board15Ready(page: Page, marker: Locator) {
+  await expect(marker).toBeVisible({ timeout: 30_000 });
+  await expect(page.locator('.animate-pulse')).toHaveCount(0);
+}
+
+/** A named card or section on the board, found by its heading. */
+export async function section15(page: Page, heading: string) {
+  const h = onScreen(page.getByText(heading, { exact: true })).first();
+  await expect(h).toBeVisible({ timeout: 30_000 });
+  const card = h.locator('xpath=ancestor::div[contains(@class,"rounded")][1]');
+  await expect(card).toBeVisible();
+  return card;
+}
+
+/** One sub-tab of the Presentation tab: Website or Slideshow. */
+export async function presentationSubTab(page: Page, name: 'Website' | 'Slideshow') {
+  const b = onScreen(page.getByRole('button', { name, exact: true })).first();
+  await b.click();
+  return b;
+}
+
+/** One sub-tab of the Participants tab: Teams, Players or Referees. */
+export async function participantsSubTab(page: Page, name: 'Teams' | 'Players' | 'Referees') {
+  const b = onScreen(page.getByRole('button', { name, exact: true })).first();
+  await b.click();
+  return b;
+}
+
+/**
+ * One fixture card on the Results tab, found by a team on it.
+ *
+ * A card's controls depend entirely on its status: Scheduled has START and no
+ * score boxes, Live has END and two empty boxes, Ended has neither button. So
+ * this only finds the card - the caller asserts the state it expects.
+ */
+export async function resultsCard(page: Page, home: string, away: string) {
+  // Named by BOTH teams. One team plays three fixtures in a four-team group, and
+  // its name also appears in the standings table above them, so neither a bare
+  // getByText nor one team name finds a single card.
+  const card = page.locator('div[class*="rounded-[10px]"]')
+    .filter({ hasText: home })
+    .filter({ hasText: away })
+    .first();
+  await expect(card).toBeVisible({ timeout: 30_000 });
+  return card;
+}
+
+/** The two score boxes on a Live or Ended fixture card, home first. */
+export function scoreBoxes(card: Locator) {
+  return card.locator('input[type="text"]');
+}
+
+/**
+ * Put a group's fixtures back to Scheduled with no score.
+ *
+ * 15.8 starts a fixture, scores it and ends it, which is the only way to
+ * photograph the three states a card has. Nothing undoes that directly -
+ * `POST /matches/:id/status {"status":"Scheduled"}` answers
+ * `400 "Cannot update status of a Finished match"` - so the group is regenerated
+ * instead, by nudging its team count and putting it straight back. Verified to
+ * come back with the same teams, pairings, order and kick-off times, and every
+ * card Scheduled.
+ *
+ * The same reset lives in `scripts/seed-15.mjs`. It is here as well because a
+ * spec that mutates its fixture must put it back itself, rather than leaving the
+ * next seed run to notice.
+ */
+export async function resetGroupFixtures(token: string, tournamentId: string) {
+  const detail = (await asUser(token, `/tournaments/${tournamentId}`)).body.data;
+  for (const g of detail.groups ?? []) {
+    const want = g.teamCount;
+    await asUser(token, `/tournament-groups/${g.id}`, { method: 'PUT', body: { teamCount: want + 1 } });
+    await asUser(token, `/tournament-groups/${g.id}`, { method: 'PUT', body: { teamCount: want } });
+  }
+}
+
+/**
+ * Post one message into a tournament chat, but only if it is not already there.
+ *
+ * Chat has no REST surface at all - it is Firestore, the same as the match feed
+ * (collection 10, 10.10) - so a chat fixture cannot be seeded over the API and
+ * has to be typed. Being idempotent is what stops the transcript growing by one
+ * copy of the same line on every run.
+ */
+export async function ensureChatMessage(page: Page, text: string) {
+  // Matched on a PREFIX, not the whole string. A message past about 200
+  // characters is truncated in the transcript with a "Read more" control - for
+  // everybody, Pro included - so an exact match on a long message never finds the
+  // copy that is already there, and the spec posts a second one on every run.
+  const marker = text.slice(0, 60);
+  const existing = page.getByText(marker);
+  if (await existing.count()) {
+    await expect(existing.first()).toBeVisible();
+    return;
+  }
+  await page.getByPlaceholder('Write a message...').fill(text);
+  await page.keyboard.press('Enter');
+  await expect(page.getByText(marker).first()).toBeVisible({ timeout: 30_000 });
+}
+
+/**
+ * Every timestamp in a chat transcript. Masked: they move on every run.
+ *
+ * NOT scoped to `main`. The public tournament page has no `<main>` element at
+ * all, so the first version of this masked nothing there and 15.7's
+ * announcement-only capture came back with three live clock times in it. Only
+ * ever used on a chat capture, where the sole `h:mm` strings on the page are the
+ * transcript's own.
+ */
+export function chatTimes(page: Page) {
+  return page.getByText(/^\d{1,2}:\d{2}$/);
+}
+
+/**
+ * Wait for a tournament chat to have loaded its transcript.
+ *
+ * The conversation header paints before Firestore has answered, so the header is
+ * not a gate. "Group conversation" plus the system line that opens every
+ * transcript is.
+ */
+export async function chatReady(page: Page) {
+  await expect(onScreen(page.getByText('Group conversation', { exact: true })).first())
+    .toBeVisible({ timeout: 30_000 });
+  await expect(page.getByText(/created the group/).first()).toBeVisible({ timeout: 30_000 });
+}
+
+/**
+ * Open the fullscreen public slide show with no session, the way a venue screen
+ * would.
+ *
+ * `setFixedTime`, not `install`. The show renders a live wall clock and advances
+ * itself every `durationSeconds`, and those two want opposite things:
+ *
+ * - `clock.install()` plus `runFor()` moves the displayed clock but does NOT
+ *   advance the slides - measured over 41 seconds of fake time, the show stayed
+ *   on slide 1. Whatever drives the advance is not a timer the clock API
+ *   intercepts.
+ * - `setFixedTime` pins the displayed clock at one value and leaves the advance
+ *   running on the real one.
+ *
+ * So the clock in the capture is deterministic, the slides still turn, and a
+ * spec that wants slide 2 waits for slide 2 to be on screen - a condition, not a
+ * duration.
+ */
+export async function openSlideshow(page: Page, tournamentId: string) {
+  await page.clock.setFixedTime(FROZEN_NOW_15);
+  await page.goto(`/tournament/${tournamentId}/slideshow`);
+  await expect(page.getByText('Powered by Scoryboard', { exact: true })).toBeVisible({
+    timeout: 30_000,
+  });
+  await quiet(page);
+}
+
+/**
+ * Wait for the slide carrying `marker` to come round.
+ *
+ * The show turns its own slides, so this is the only way to reach the second
+ * one. A generous timeout, because the wait is for however long the slides
+ * before it are set to - one whole cycle of the seeded show is 60 seconds.
+ */
+export async function slideOnScreen(page: Page, marker: Locator) {
+  // Both conditions at once, and polled together.
+  //
+  // A slide's own heading paints before its content: 15.5's group-table capture
+  // came back as a standings table beside three grey skeletons, because the
+  // marker was on screen a good second before the fixtures were. Waiting for the
+  // skeletons separately is not enough either - the show turns itself, so by the
+  // time they are gone the slide may have moved on. This waits for a frame in
+  // which the slide is up AND nothing on the page is still loading.
+  await expect
+    .poll(async () => (await marker.isVisible())
+      && (await page.locator('.animate-pulse').count()) === 0,
+    { timeout: 90_000, intervals: [400] })
+    .toBe(true);
+  await imagesPainted(page);
+}
+
+/**
+ * The live wall clock on the slide show. Masked in every capture.
+ *
+ * `setFixedTime` pins it, so it is stable within one run - but it is pinned to a
+ * value the reader has no reason to see, and a future run with a different
+ * FROZEN_NOW_15 would change it. Mask it.
+ */
+export function slideshowClock(page: Page) {
+  return page.getByText(/^\d{1,2}:\d{2}:\d{2}$/).first();
+}
+
+/**
+ * Put a tournament's info page back to empty and all six public tabs back on.
+ *
+ * 15.3 types a description and uploads two files, and there is no undo control
+ * for either. `PUT /tournaments/:id {presentation}` carries the whole object, so
+ * writing empty lists is the reset - the uploaded files stay on the server,
+ * orphaned and unreferenced, which is the same thing that happens when a reader
+ * removes one through the app.
+ *
+ * The slide shows are read first and written back untouched, because the same PUT
+ * carries them and omitting them would wipe them.
+ */
+export async function resetInfoPage(token: string, tournamentId: string) {
+  const cur = (await asUser(token, `/tournaments/${tournamentId}`)).body.data;
+  return asUser(token, `/tournaments/${tournamentId}`, {
+    method: 'PUT',
+    body: {
+      presentation: {
+        website: {
+          visiblePublicTabs: ['info', 'participants', 'standings', 'leaderboard', 'matches', 'chat'],
+          infoBody: '',
+          attachments: [],
+          gallery: [],
+        },
+        slideshows: cur.presentation?.slideshows ?? [],
+      },
+    },
+  });
+}
+
+/**
+ * Sign a persona in and land on a PUBLIC tournament page.
+ *
+ * `signInAs` proves the session by finding the sidebar's Tournament link, and the
+ * public page at `/tournament/:id/<tab>` has no sidebar even when the visitor is
+ * signed in - so that assertion fails there. This lands on the tournament list
+ * first, where the sidebar does exist, and only then goes where it was asked.
+ */
+export async function signInThenPublic(page: Page, email: string, to: string) {
+  await signInAs(page, email, '/tournaments');
+  await page.goto(to);
+}
+
+/**
+ * Wait for a public tournament tab to have finished loading.
+ *
+ * A tab click swaps the panel immediately and the fetch lands afterwards, so the
+ * tab's own label is never a safe gate: 15.1's first pass photographed the
+ * Matches tab as a column of grey skeletons and the Standings table as eight
+ * columns of zeros, both of which docs/style-guide.md forbids outright.
+ *
+ * Two gates, and both are needed:
+ *   - the skeletons are gone (`.animate-pulse`), which covers the fixture cards;
+ *   - `mustContain` is on the page, which covers a table that renders its own
+ *     shape with zeros in it before the numbers arrive. Pass something only the
+ *     loaded panel can say - a real scoreline, not a heading.
+ */
+export async function publicSettled(page: Page, mustContain: RegExp) {
+  await expect(page.locator('.animate-pulse')).toHaveCount(0, { timeout: 30_000 });
+  // useInnerText, because toContainText reads textContent by default and that
+  // runs every cell of a table together - "KB 15 Reds33102323-1" - so a pattern
+  // with any whitespace in it can never match.
+  await expect(page.locator('body')).toContainText(mustContain, {
+    timeout: 30_000, useInnerText: true,
+  });
+  await imagesPainted(page);
 }

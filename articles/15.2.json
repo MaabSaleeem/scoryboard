@@ -1,0 +1,19 @@
+{
+  "id": "15.2",
+  "title": "Sharing your tournament link and QR code",
+  "description": "Copying the public link, printing the QR code, and what a dead tournament access link looks like.",
+  "collection": "15",
+  "intercom_collection_id": "19733984",
+  "author_id": "11443412",
+  "state": "published",
+  "spec": "specs/15/15.2.spec.ts",
+  "commit_sha": "43ca8f0b8fa53c259cab9846372824ec0d7bf116",
+  "screenshots": [
+    "screenshots/15/15.2/01-share-dialog.be3360f0.png",
+    "screenshots/15/15.2/02-copy-link.ddad4b3f.png",
+    "screenshots/15/15.2/03-qr-code.7dc94615.png",
+    "screenshots/15/15.2/04-share-from-the-public-page.7697c702.png",
+    "screenshots/15/15.2/05-access-link-expired.77aa446c.png"
+  ],
+  "body": "<p>One dialog holds the link to your public page and a QR code for it. Both are read-only, and both can be passed on to anybody.</p>\n\n<h2>Before you start</h2>\n\n<p><strong>Share tournament</strong> is in the tournament header. You do not have to be the Owner to use it: the same dialog is on the public page, for anybody who opens it.</p>\n\n<h2>Getting the link</h2>\n\n<ol>\n  <li>Open your tournament and choose <strong>Share tournament</strong> in the header.\n    <p><img src=\"https://cdn.jsdelivr.net/gh/MaabSaleeem/scoryboard@43ca8f0b8fa53c259cab9846372824ec0d7bf116/screenshots/15/15.2/01-share-dialog.be3360f0.png\" alt=\"The Share Tournament dialog: the explanation, the link field, the QR code and Print QR code.\"></p>\n  </li>\n  <li>Copy the link with the button beside it. The field itself is read-only, so you cannot select the text by hand.\n    <p><img src=\"https://cdn.jsdelivr.net/gh/MaabSaleeem/scoryboard@43ca8f0b8fa53c259cab9846372824ec0d7bf116/screenshots/15/15.2/02-copy-link.ddad4b3f.png\" alt=\"The link field with the copy button beside it outlined.\"></p>\n  </li>\n  <li>For a code to put on a wall or a table, choose <strong>Print QR code</strong>. It scans to the same address.\n    <p><img src=\"https://cdn.jsdelivr.net/gh/MaabSaleeem/scoryboard@43ca8f0b8fa53c259cab9846372824ec0d7bf116/screenshots/15/15.2/03-qr-code.7dc94615.png\" alt=\"The QR code, with the Print QR code button below it outlined.\"></p>\n  </li>\n  <li>Anybody looking at your public page can share it on. The same control is there for them, signed in or not.\n    <p><img src=\"https://cdn.jsdelivr.net/gh/MaabSaleeem/scoryboard@43ca8f0b8fa53c259cab9846372824ec0d7bf116/screenshots/15/15.2/04-share-from-the-public-page.7697c702.png\" alt=\"The same Share Tournament dialog, opened by a visitor with no account.\"></p>\n  </li>\n</ol>\n\n<h2>What you will see</h2>\n\n<p>The link is your public page: <strong>People with this link can view your board but can't change it.</strong> Nothing in the dialog gives anybody the right to edit your tournament.</p>\n\n<p>There is no confirmation when you copy. The link is on your clipboard.</p>\n\n<h2>If it does not work</h2>\n\n<ul>\n  <li><strong>Nothing happened when you pressed copy.</strong> There is no message either way. Paste it somewhere to check.</li>\n  <li><strong>The link is greyed out and you cannot select it.</strong> That is the field being read-only. Use the copy button.</li>\n  <li><strong>Somebody sent you a tournament access link and it will not open.</strong> An expired or mistyped one gives you this.\n    <p><img src=\"https://cdn.jsdelivr.net/gh/MaabSaleeem/scoryboard@43ca8f0b8fa53c259cab9846372824ec0d7bf116/screenshots/15/15.2/05-access-link-expired.77aa446c.png\" alt=\"A page reading This tournament access link is invalid or expired.\"></p>\n    Ask them for the public link from this dialog instead.\n  </li>\n</ul>\n\n<h2>Related</h2>\n\n<ul>\n  <li>\"Your public tournament page\" - what a visitor sees when they open the link.</li>\n  <li>\"Building a match-day slideshow\" - a QR code slide puts the same code on a screen at the venue.</li>\n</ul>"
+}

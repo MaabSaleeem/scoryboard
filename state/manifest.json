@@ -1657,6 +1657,179 @@
       ],
       "published_at": "2026-09-01T08:47:42.000Z",
       "status": "published"
+    },
+    "15.1": {
+      "intercom_id": "16771619",
+      "collection": "15",
+      "intercom_collection_id": "19733984",
+      "brief": "briefs/15.md",
+      "spec": "specs/15/15.1.spec.ts",
+      "commit_sha": "c05d29d3614bf25d6ac21c6907ade044414e5ff0",
+      "screenshots": [
+        "screenshots/15/15.1/01-organiser-board.7327e648.png",
+        "screenshots/15/15.1/02-share-tournament-button.446c7b62.png",
+        "screenshots/15/15.1/03-public-info-signed-out.830d6246.png",
+        "screenshots/15/15.1/04-public-tab-strip.8a7859b1.png",
+        "screenshots/15/15.1/05-public-standings.2243467f.png",
+        "screenshots/15/15.1/06-public-matches.b558936c.png",
+        "screenshots/15/15.1/07-public-participants.813e9ec5.png",
+        "screenshots/15/15.1/08-public-leaderboard.dc4ca016.png",
+        "screenshots/15/15.1/09-public-info-not-set-up.c64dca17.png"
+      ],
+      "published_at": "2026-09-01T12:31:03.000Z",
+      "status": "draft"
+    },
+    "15.2": {
+      "intercom_id": "16771622",
+      "collection": "15",
+      "intercom_collection_id": "19733984",
+      "brief": "briefs/15.md",
+      "spec": "specs/15/15.2.spec.ts",
+      "commit_sha": "43ca8f0b8fa53c259cab9846372824ec0d7bf116",
+      "screenshots": [
+        "screenshots/15/15.2/01-share-dialog.be3360f0.png",
+        "screenshots/15/15.2/02-copy-link.ddad4b3f.png",
+        "screenshots/15/15.2/03-qr-code.7dc94615.png",
+        "screenshots/15/15.2/04-share-from-the-public-page.7697c702.png",
+        "screenshots/15/15.2/05-access-link-expired.77aa446c.png"
+      ],
+      "published_at": "2026-09-01T12:31:37.000Z",
+      "status": "draft"
+    },
+    "15.3": {
+      "intercom_id": "16771627",
+      "collection": "15",
+      "intercom_collection_id": "19733984",
+      "brief": "briefs/15.md",
+      "spec": "specs/15/15.3.spec.ts",
+      "commit_sha": "78fa678bb56d67d75341ed4bed093caf7bbd5854",
+      "screenshots": [
+        "screenshots/15/15.3/01-presentation-website.d139718f.png",
+        "screenshots/15/15.3/02-chat-switch-off.3bff2872.png",
+        "screenshots/15/15.3/03-save.9d5c3b1b.png",
+        "screenshots/15/15.3/04-public-strip-five-tabs.46b6e28a.png",
+        "screenshots/15/15.3/05-edit-info-page-button.2616586d.png",
+        "screenshots/15/15.3/06-info-page-editor.0353bdbc.png",
+        "screenshots/15/15.3/07-description-picture-attachment.35902fea.png",
+        "screenshots/15/15.3/08-public-info-page.8abae07e.png"
+      ],
+      "published_at": "2026-09-01T12:32:12.000Z",
+      "status": "draft"
+    },
+    "15.4": {
+      "intercom_id": "16771638",
+      "collection": "15",
+      "intercom_collection_id": "19733984",
+      "brief": "briefs/15.md",
+      "spec": "specs/15/15.4.spec.ts",
+      "commit_sha": "72932681e999a3f68e1e8ed0e4d5dcf370e233bf",
+      "screenshots": [
+        "screenshots/15/15.4/01-slideshow-sub-tab.cc08e603.png",
+        "screenshots/15/15.4/02-slide-shows-card.6ee0de9a.png",
+        "screenshots/15/15.4/03-which-slide-show.b0785cbb.png",
+        "screenshots/15/15.4/04-slide-show-settings.ed2989d7.png",
+        "screenshots/15/15.4/05-background-colours.123c249b.png",
+        "screenshots/15/15.4/06-background-image.063a0ec4.png",
+        "screenshots/15/15.4/07-slides-card.05047e24.png",
+        "screenshots/15/15.4/08-one-slide.27c3d62b.png",
+        "screenshots/15/15.4/09-component-buttons.9196e5f9.png",
+        "screenshots/15/15.4/10-group-component.9161f773.png",
+        "screenshots/15/15.4/11-sponsors-component.fb05a752.png",
+        "screenshots/15/15.4/12-save-refused.f2d730e4.png"
+      ],
+      "published_at": "2026-09-01T12:32:54.000Z",
+      "status": "draft"
+    },
+    "15.5": {
+      "intercom_id": "16771641",
+      "collection": "15",
+      "intercom_collection_id": "19733984",
+      "brief": "briefs/15.md",
+      "spec": "specs/15/15.5.spec.ts",
+      "commit_sha": "b99396357134134dbd67890a4ccc5716a8b3913c",
+      "screenshots": [
+        "screenshots/15/15.5/01-open-fullscreen.21e265bd.png",
+        "screenshots/15/15.5/02-slide-welcome.6962a7ce.png",
+        "screenshots/15/15.5/03-slide-group-table.5c698dbd.png",
+        "screenshots/15/15.5/04-no-active-slides.38377081.png"
+      ],
+      "published_at": "2026-09-01T12:33:21.000Z",
+      "status": "draft"
+    },
+    "15.6": {
+      "intercom_id": "16771643",
+      "collection": "15",
+      "intercom_collection_id": "19733984",
+      "brief": "briefs/15.md",
+      "spec": "specs/15/15.6.spec.ts",
+      "commit_sha": "373eae299312c81ece59f95aba5c08aef3770c98",
+      "screenshots": [
+        "screenshots/15/15.6/01-sponsor-tab-empty.4a795ef4.png",
+        "screenshots/15/15.6/02-add-sponsor-dialog.c120ab9e.png",
+        "screenshots/15/15.6/03-sponsor-list.4c95380a.png",
+        "screenshots/15/15.6/04-sponsors-on-public-page.3f4f45ac.png",
+        "screenshots/15/15.6/05-sponsors-slide.240148ba.png"
+      ],
+      "published_at": "2026-09-01T12:33:52.000Z",
+      "status": "draft"
+    },
+    "15.7": {
+      "intercom_id": "16771646",
+      "collection": "15",
+      "intercom_collection_id": "19733984",
+      "brief": "briefs/15.md",
+      "spec": "specs/15/15.7.spec.ts",
+      "commit_sha": "f67525068afbb4664c1d5b2e97de4d5c0740d217",
+      "screenshots": [
+        "screenshots/15/15.7/01-chat-tab.f2d88f44.png",
+        "screenshots/15/15.7/02-composer.26a9f882.png",
+        "screenshots/15/15.7/03-read-more-pro.c8330d97.png",
+        "screenshots/15/15.7/04-read-more-free-expanded.cbd1895d.png",
+        "screenshots/15/15.7/05-announcement-only-setting.3e0f7a7b.png",
+        "screenshots/15/15.7/06-announcement-only-locked.db1205cf.png",
+        "screenshots/15/15.7/07-signed-out-chat.ddc0ac5e.png"
+      ],
+      "published_at": "2026-09-01T12:34:20.000Z",
+      "status": "draft"
+    },
+    "15.8": {
+      "intercom_id": "16771652",
+      "collection": "15",
+      "intercom_collection_id": "19733984",
+      "brief": "briefs/15.md",
+      "spec": "specs/15/15.8.spec.ts",
+      "commit_sha": "72f816746c30c0d19b43d53c64b8314cb628ba00",
+      "screenshots": [
+        "screenshots/15/15.8/01-fixture-scheduled.ca3a0c02.png",
+        "screenshots/15/15.8/02-fixture-live-empty-boxes.71ab4f90.png",
+        "screenshots/15/15.8/03-score-typed.9b1e2e1c.png",
+        "screenshots/15/15.8/04-fixture-ended.2bfb2fed.png",
+        "screenshots/15/15.8/05-football-standings.5bdb9e15.png",
+        "screenshots/15/15.8/06-football-team-statistics.cddd4cb1.png",
+        "screenshots/15/15.8/07-padel-standings-and-rounds.74a1acc8.png",
+        "screenshots/15/15.8/08-padel-rules.c66483a0.png",
+        "screenshots/15/15.8/09-padel-team-statistics.c2fea3e1.png"
+      ],
+      "published_at": "2026-09-01T12:34:59.000Z",
+      "status": "draft"
+    },
+    "15.9": {
+      "intercom_id": "16771659",
+      "collection": "15",
+      "intercom_collection_id": "19733984",
+      "brief": "briefs/15.md",
+      "spec": "specs/15/15.9.spec.ts",
+      "commit_sha": "76c189949f22657b5f34c974ce15f6690735c87b",
+      "screenshots": [
+        "screenshots/15/15.9/01-participants-teams.be30a35d.png",
+        "screenshots/15/15.9/02-participants-players.6af05c03.png",
+        "screenshots/15/15.9/03-participants-referees-empty.3b5756af.png",
+        "screenshots/15/15.9/04-followers-dialog.e3734d99.png",
+        "screenshots/15/15.9/05-unfollow-in-the-header.6f11ecdb.png",
+        "screenshots/15/15.9/06-tournament-over.640145bc.png"
+      ],
+      "published_at": "2026-09-01T12:35:34.000Z",
+      "status": "draft"
     }
   }
 }
