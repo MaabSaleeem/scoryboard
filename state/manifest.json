@@ -1842,6 +1842,175 @@
       ],
       "published_at": "2026-09-01T13:20:28.000Z",
       "status": "published"
+    },
+    "17.1": {
+      "intercom_id": "16775809",
+      "intercom_url": null,
+      "collection": "17",
+      "intercom_collection_id": "19733986",
+      "brief": "briefs/17.md",
+      "spec": "specs/17/17.1.spec.ts",
+      "commit_sha": "6fde7f174a61b4d44e71d2fa26e77db8689028ff",
+      "screenshots": [
+        "screenshots/17/17.1/01-payment-empty-steps.c54edb00.png",
+        "screenshots/17/17.1/02-request-payment-sources.70f73b7f.png",
+        "screenshots/17/17.1/03-requested-table.0f77a9ab.png",
+        "screenshots/17/17.1/04-pay-tab.fb895d9f.png",
+        "screenshots/17/17.1/05-team-payment-tab.c86c3208.png"
+      ],
+      "published_at": "2026-09-01T19:54:16.000Z",
+      "status": "draft"
+    },
+    "17.2": {
+      "intercom_id": "16775810",
+      "intercom_url": null,
+      "collection": "17",
+      "intercom_collection_id": "19733986",
+      "brief": "briefs/17.md",
+      "spec": "specs/17/17.2.spec.ts",
+      "commit_sha": "6fde7f174a61b4d44e71d2fa26e77db8689028ff",
+      "screenshots": [
+        "screenshots/17/17.2/01-payment-step-one.246370e2.png",
+        "screenshots/17/17.2/02-request-payment-button.ba9bcef2.png",
+        "screenshots/17/17.2/03-setting-up-account.285f5568.png",
+        "screenshots/17/17.2/04-payout-live-source-chooser.c13f9cc0.png"
+      ],
+      "published_at": "2026-09-01T19:54:21.000Z",
+      "status": "draft"
+    },
+    "17.3": {
+      "intercom_id": "16775811",
+      "intercom_url": null,
+      "collection": "17",
+      "intercom_collection_id": "19733986",
+      "brief": "briefs/17.md",
+      "spec": "specs/17/17.3.spec.ts",
+      "commit_sha": "6fde7f174a61b4d44e71d2fa26e77db8689028ff",
+      "screenshots": [
+        "screenshots/17/17.3/01-request-payment-button.c75d185f.png",
+        "screenshots/17/17.3/02-source-chooser.c13f9cc0.png",
+        "screenshots/17/17.3/03-select-team.2982a315.png",
+        "screenshots/17/17.3/04-select-leaderboard.cafd38fe.png",
+        "screenshots/17/17.3/05-select-friends.898ff582.png",
+        "screenshots/17/17.3/06-team-payment-owner.a4e6101d.png",
+        "screenshots/17/17.3/07-team-payment-admin.d398390d.png",
+        "screenshots/17/17.3/08-match-payment-panel.d4983a9e.png",
+        "screenshots/17/17.3/09-select-team-empty.5a6268f4.png"
+      ],
+      "published_at": "2026-09-01T19:54:30.000Z",
+      "status": "draft"
+    },
+    "17.4": {
+      "intercom_id": "16775812",
+      "intercom_url": null,
+      "collection": "17",
+      "intercom_collection_id": "19733986",
+      "brief": "briefs/17.md",
+      "spec": "specs/17/17.4.spec.ts",
+      "commit_sha": "6fde7f174a61b4d44e71d2fa26e77db8689028ff",
+      "screenshots": [
+        "screenshots/17/17.4/01-select-players.2d7795c0.png",
+        "screenshots/17/17.4/02-select-players-all.4ea2b9b6.png",
+        "screenshots/17/17.4/03-add-email.c48247e0.png",
+        "screenshots/17/17.4/04-request-form.35a06a1f.png",
+        "screenshots/17/17.4/05-due-date-picker.7cec0f7c.png",
+        "screenshots/17/17.4/06-form-filled.514d0610.png",
+        "screenshots/17/17.4/07-requested-table.0f77a9ab.png"
+      ],
+      "published_at": "2026-09-01T19:54:39.000Z",
+      "status": "draft"
+    },
+    "17.5": {
+      "intercom_id": "16775813",
+      "intercom_url": null,
+      "collection": "17",
+      "intercom_collection_id": "19733986",
+      "brief": "briefs/17.md",
+      "spec": "specs/17/17.5.spec.ts",
+      "commit_sha": "6fde7f174a61b4d44e71d2fa26e77db8689028ff",
+      "screenshots": [
+        "screenshots/17/17.5/01-fee-passed-on.9f3816ff.png",
+        "screenshots/17/17.5/02-fee-absorbed.00ee21a9.png",
+        "screenshots/17/17.5/03-fee-helper.098f3001.png",
+        "screenshots/17/17.5/04-payer-total-passed-on.8b941ae7.png",
+        "screenshots/17/17.5/05-payer-total-absorbed.fb28ab4a.png"
+      ],
+      "published_at": "2026-09-01T19:54:47.000Z",
+      "status": "draft"
+    },
+    "17.6": {
+      "intercom_id": "16775816",
+      "intercom_url": null,
+      "collection": "17",
+      "intercom_collection_id": "19733986",
+      "brief": "briefs/17.md",
+      "spec": "specs/17/17.6.spec.ts",
+      "commit_sha": "6fde7f174a61b4d44e71d2fa26e77db8689028ff",
+      "screenshots": [
+        "screenshots/17/17.6/01-payment-details.096aa690.png",
+        "screenshots/17/17.6/02-edit-fields.fb746cf2.png",
+        "screenshots/17/17.6/03-rules-and-actions.88a5ac17.png",
+        "screenshots/17/17.6/04-cancel-dialog.fd609cf4.png",
+        "screenshots/17/17.6/05-send-reminder-all.ec5704fc.png",
+        "screenshots/17/17.6/06-reminder-per-player.b3312034.png"
+      ],
+      "published_at": "2026-09-01T19:54:52.000Z",
+      "status": "draft"
+    },
+    "17.7": {
+      "intercom_id": "16775817",
+      "intercom_url": null,
+      "collection": "17",
+      "intercom_collection_id": "19733986",
+      "brief": "briefs/17.md",
+      "spec": "specs/17/17.7.spec.ts",
+      "commit_sha": "6fde7f174a61b4d44e71d2fa26e77db8689028ff",
+      "screenshots": [
+        "screenshots/17/17.7/01-requested-table.0f77a9ab.png",
+        "screenshots/17/17.7/02-table-columns.a0fee143.png",
+        "screenshots/17/17.7/03-payment-details-amounts.257a0a9d.png",
+        "screenshots/17/17.7/04-participant-statuses.8a959daa.png",
+        "screenshots/17/17.7/05-team-payment-tab.c86c3208.png"
+      ],
+      "published_at": "2026-09-01T19:54:58.000Z",
+      "status": "draft"
+    },
+    "17.8": {
+      "intercom_id": "16775818",
+      "intercom_url": null,
+      "collection": "17",
+      "intercom_collection_id": "19733986",
+      "brief": "briefs/17.md",
+      "spec": "specs/17/17.8.spec.ts",
+      "commit_sha": "6fde7f174a61b4d44e71d2fa26e77db8689028ff",
+      "screenshots": [
+        "screenshots/17/17.8/01-pay-tab.fb895d9f.png",
+        "screenshots/17/17.8/02-pay-row.6b441f37.png",
+        "screenshots/17/17.8/03-payment-details-payer.b04dfa28.png",
+        "screenshots/17/17.8/04-pay-to.604723d0.png",
+        "screenshots/17/17.8/05-pay-now.70349cf9.png",
+        "screenshots/17/17.8/06-team-payment-pay.683d16eb.png"
+      ],
+      "published_at": "2026-09-01T19:55:04.000Z",
+      "status": "draft"
+    },
+    "17.9": {
+      "intercom_id": "16775819",
+      "intercom_url": null,
+      "collection": "17",
+      "intercom_collection_id": "19733986",
+      "brief": "briefs/17.md",
+      "spec": "specs/17/17.9.spec.ts",
+      "commit_sha": "6fde7f174a61b4d44e71d2fa26e77db8689028ff",
+      "screenshots": [
+        "screenshots/17/17.9/01-status-column.9e223479.png",
+        "screenshots/17/17.9/02-participant-pending.8a959daa.png",
+        "screenshots/17/17.9/03-payer-status.2aeba5c8.png",
+        "screenshots/17/17.9/04-cancelled-row.b756b9aa.png",
+        "screenshots/17/17.9/05-cancelled-actions-disabled.a3fa166a.png"
+      ],
+      "published_at": "2026-09-01T19:55:12.000Z",
+      "status": "draft"
     }
   }
 }

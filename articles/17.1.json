@@ -1,0 +1,19 @@
+{
+  "id": "17.1",
+  "title": "Collecting money through Scoryboard - an overview",
+  "description": "Ask your players for money, track who has paid, and pay what you owe. Here is how the whole thing fits together.",
+  "collection": "17",
+  "intercom_collection_id": "19733986",
+  "author_id": "11443412",
+  "state": "published",
+  "spec": "specs/17/17.1.spec.ts",
+  "commit_sha": "6fde7f174a61b4d44e71d2fa26e77db8689028ff",
+  "screenshots": [
+    "screenshots/17/17.1/01-payment-empty-steps.c54edb00.png",
+    "screenshots/17/17.1/02-request-payment-sources.70f73b7f.png",
+    "screenshots/17/17.1/03-requested-table.0f77a9ab.png",
+    "screenshots/17/17.1/04-pay-tab.fb895d9f.png",
+    "screenshots/17/17.1/05-team-payment-tab.c86c3208.png"
+  ],
+  "body": "<p>Scoryboard lets you ask your players for money and pay them back. Everything lives under <strong>Payment</strong> in the sidebar.</p>\n\n<h2>Before you start</h2>\n\n<p>To <em>ask</em> for money you need a payout account. Setting one up takes a few minutes and you only do it once. See \"Setting up your payout account\".</p>\n\n<p>To <em>pay</em> a request you need nothing. Anybody can pay.</p>\n\n<h2>How it works</h2>\n\n<ol>\n  <li>Open <strong>Payment</strong>. Before you have asked for anything, the page shows you the three steps.\n    <p><img src=\"https://cdn.jsdelivr.net/gh/MaabSaleeem/scoryboard@6fde7f174a61b4d44e71d2fa26e77db8689028ff/screenshots/17/17.1/01-payment-empty-steps.c54edb00.png\" alt=\"The Payment page before any request has been made, showing three steps: Setup Your Account, Request and Make Payments, and Track and Remind.\"></p>\n  </li>\n  <li>Choose <strong>Request Payment</strong> and pick where your players come from. You can charge a leaderboard, a team or your friends list.\n    <p><img src=\"https://cdn.jsdelivr.net/gh/MaabSaleeem/scoryboard@6fde7f174a61b4d44e71d2fa26e77db8689028ff/screenshots/17/17.1/02-request-payment-sources.70f73b7f.png\" alt=\"The Request Payment window offering Leaderboards, Teams and Friends, with Teams outlined.\"></p>\n  </li>\n  <li><strong>REQUESTED</strong> lists everything you have asked for, and how many people have paid.\n    <p><img src=\"https://cdn.jsdelivr.net/gh/MaabSaleeem/scoryboard@6fde7f174a61b4d44e71d2fa26e77db8689028ff/screenshots/17/17.1/03-requested-table.0f77a9ab.png\" alt=\"The REQUESTED tab with four payment requests, each showing the due date, the total, the amount per person, and how many have paid.\"></p>\n  </li>\n  <li><strong>PAY</strong> lists what you owe other people.\n    <p><img src=\"https://cdn.jsdelivr.net/gh/MaabSaleeem/scoryboard@6fde7f174a61b4d44e71d2fa26e77db8689028ff/screenshots/17/17.1/04-pay-tab.fb895d9f.png\" alt=\"The PAY tab showing three requests to pay, each with the amount, who it goes to, and its status.\"></p>\n  </li>\n  <li>Payments also sit on a team, a leaderboard and a match, under their own <strong>PAYMENT</strong> tab.\n    <p><img src=\"https://cdn.jsdelivr.net/gh/MaabSaleeem/scoryboard@6fde7f174a61b4d44e71d2fa26e77db8689028ff/screenshots/17/17.1/05-team-payment-tab.c86c3208.png\" alt=\"The PAYMENT tab on a team page, listing the requests raised against that team.\"></p>\n  </li>\n</ol>\n\n<h2>What you will see</h2>\n\n<p>Money is handled by Stripe, not by Scoryboard. Your bank details go to Stripe and Scoryboard never sees them.</p>\n\n<p>Every amount is in pounds. Each request carries a small transaction fee, and you choose whether your players pay it or you do. See \"Fees - passing them on or absorbing them\".</p>\n\n<h2>Related</h2>\n\n<ul>\n  <li>\"Setting up your payout account\"</li>\n  <li>\"Requesting payment - choosing a source\"</li>\n  <li>\"Tracking money you have asked for\"</li>\n  <li>\"Paying a request you have received\"</li>\n</ul>"
+}

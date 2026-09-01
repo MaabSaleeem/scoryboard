@@ -29,7 +29,7 @@ target.
 | 14 | Tournaments - the fixture schedule | 8 | 37 | organiser | drafts on Intercom | [briefs/14.md](../briefs/14.md) | flag: TOURNAMENT_FEATURE_ENABLED. 8 drafts, 37 screenshots. 14.5 retitled - fixtures cannot be deleted. Account: kb-organiser-14@yopmail.com |
 | 15 | Tournaments - publishing & running | 9 | 62 | organiser | published | [briefs/15.md](../briefs/15.md) | flag: TOURNAMENT_FEATURE_ENABLED. 65 screenshots. **All nine published by the reviewer 2026-09-01, within the hour the run posted them as drafts. 15.8 step 1 was simplified and republished afterwards, live.** Four articles retitled: **15.1 there is nothing to publish** (`isPublic` is already true on every tournament, and the public page really IS public, unlike the leaderboard and match share links); 15.2 drops access tokens (`/tournaments/token/:token` exists and nothing mints one); 15.6 drops prizes because **the PRIZES tab is a Winner panel whose picker records nothing** - Save Winner can never be enabled, established with a trusted click sequence and a passing control test; 15.9's "completing" re-scoped to the aftermath, since there is no Complete control. **Score entry is now verified** - START, two typed boxes that save on their own, END - and ending the PHASE is what closes it. 15.7's free_pro flag does NOT bite: Free and Pro read a long tournament message identically. Announcement-only chat refuses a tournament ADMIN too. The info page and gallery DO exist, behind a 16-pixel unlabelled pencil. Four accounts: `kb-organiser-15@`, `kb-15-admin@`, `kb-15-free@`, `kb-15-outsider@`. Six tournaments; two on FIXED dates in Oct and Nov 2026 and the seed refuses to run once they have passed |
 | ~~16~~ | ~~Tournament plans & payment~~ | - | - | - | **retired** | - | **RETIRED 2026-08-29, merged into 04.** 16.1+16.2 -> 04.4, 16.3+16.4 -> 04.5, 16.6 -> 04.6. 16.5 dropped - managing a live Annual subscription needs a completed payment. Intercom collection 19733985 is empty and must not be reused |
-| 17 | Collecting & making payments | 9 | 63 | manager_pro | not started | - | REAL MONEY, Stripe Connect. Two audiences - the organiser collecting and the player paying. |
+| 17 | Collecting & making payments | 9 | 63 | manager_pro | drafts on Intercom | [briefs/17.md](../briefs/17.md) | 52 screenshots. **All nine drafted 2026-09-02, nothing published.** Every capture stops before Stripe, on instruction: setting up a payout account opens a window at connect.stripe.com, Pay Now opens Stripe Elements, and both are CAPTCHA-gated. 17.9 retitled "Payment statuses and failed payments" - the app has no refund feature at all. 17.2 is 4 shots not 12, 17.8 is 6 not 8; the rest were Stripe's own screens. **The payout account on `kb-manager-pro-17@` was connected by a human and cannot be rebuilt from here** - never `--rebuild` this collection without one. `kb-17-nopayout@` must stay un-onboarded. Four accounts: `kb-manager-pro-17@`, `kb-player-17@`, `kb-17-admin@`, `kb-17-nopayout@` |
 | 18 | Chat & messaging | 4 | 27 | manager_free | not started | - | - |
 | 19 | Comments, likes & ratings | 4 | 19 | player | not started | - | - |
 | 20 | Notifications, emails & the activity feed | 4 | 16 | player | not started | - | No push notifications exist. Do not write one. |
@@ -2836,3 +2836,201 @@ from `python -c print(sha) | while read` on Windows built image URLs Intercom
 refused with *"Failed to ingest image at url ...@<sha>{CR}/screenshots/..."*. The
 bad build was rejected by Intercom, so nothing broken was ever published, but the
 guard moves the failure to the build where it is readable.
+
+### 2026-09-02 - collection 17 complete. Nine articles, all drafts.
+
+**Collecting & making payments.** 52 screenshots, nine drafts in Intercom
+collection `19733986`, nothing published. Brief: [briefs/17.md](../briefs/17.md).
+
+| Article | Intercom id | Shots |
+|---|---|---|
+| 17.1 Collecting money through Scoryboard - an overview | 16775809 | 5 |
+| 17.2 Setting up your payout account | 16775810 | 4 |
+| 17.3 Requesting payment - choosing a source | 16775811 | 9 |
+| 17.4 Choosing who to charge, and setting the amount and due date | 16775812 | 7 |
+| 17.5 Fees - passing them on or absorbing them | 16775813 | 5 |
+| 17.6 Editing, cancelling and sending reminders | 16775816 | 6 |
+| 17.7 Tracking money you have asked for | 16775817 | 5 |
+| 17.8 Paying a request you have received | 16775818 | 6 |
+| 17.9 Payment statuses and failed payments | 16775819 | 5 |
+
+Images pinned to `6fde7f174a61b4d44e71d2fa26e77db8689028ff`. All 52 URLs verified
+200 `image/png` on jsDelivr before publishing. Live state read back off the
+Intercom API afterwards: all nine `draft`, all nine `parent_ids: [19733986]`.
+
+### The payout account is human-made and cannot be rebuilt from here
+
+This is the thing a future session most needs to know.
+
+**Nothing in this collection works without a connected Stripe payout account.**
+`POST /payments` answers `500 internal error` for any account whose payout
+account is not live - verified against four accounts in three states - and there
+is no admin endpoint that enables one.
+
+**Stripe's signup is CAPTCHA-gated**, so it cannot be automated. The submit step
+raises a visible hCaptcha challenge ("Identify the TWO characters that are
+partially hidden behind a line") and the payment form loads `hcaptcha-invisible`.
+The account on `kb-manager-pro-17@` (`acct_1UAuuNRXqNL8FLzZ`, test mode,
+`chargesEnabled: true`) was completed by the repo owner by hand on 2026-09-01.
+
+So: **never run `scripts/seed-17.mjs --rebuild` without a person available to
+redo the onboarding.** It deletes the accounts and the payout account goes with
+them. The plain seed is safe and idempotent - a second run makes zero writes.
+
+**`kb-17-nopayout@` must stay un-onboarded.** It is the only account that can
+still show the "Get started with payments" state, which is what 17.1 and 17.2
+are about. Connecting it would destroy that fixture permanently.
+
+### Where Scoryboard stops, and why the shot counts are down
+
+Two handoffs, and on instruction no capture crosses either:
+
+- **Setting up a payout account.** `Add information` opens a **new browser
+  window** at `connect.stripe.com`.
+- **Paying.** `Pay Now` fires `POST /payments/transaction/:id/pay` and swaps the
+  dialog for **Stripe Elements** - card number, expiry, security code.
+
+That is why 17.2 is 4 shots against 12 mapped and 17.8 is 6 against 8. The
+dropped ones were all Stripe screens. Same rule collection 04 followed for
+Tournament Pro.
+
+### 17.9 retitled, because refunds do not exist
+
+The map called it "Payment statuses, failed payments and refunds". The string
+`refund` appears **zero** times across every JavaScript chunk the app loads,
+there is no refund endpoint on the wire or in the Postman export, and there is no
+refund control on any screen. Now "Payment statuses and failed payments", and it
+says a refund is a support request rather than inventing a feature.
+
+### Six things worth a ticket
+
+1. **"You're all set to receive payments!" is shown when the account is NOT set
+   up.** The dialog fires when the Stripe window closes, not when the account
+   becomes chargeable. Reproduced twice: an account left `Restricted` with
+   `chargesEnabled: false` got the same congratulation as a finished one. It
+   misled this session for a full round trip. 17.2 tells readers to check by
+   pressing **Request Payment** again instead of trusting it.
+2. **Select Team and Select Leaderboard are empty until `/teams` is visited.**
+   "Your Teams (0) / No teams found where you are the owner" for an owner of two
+   teams. Same persisted-Redux cause as the External badge. A reader who goes
+   straight to Payment after signing in hits it. Photographed as 17.3 shot 09.
+3. **Absorbing the fee hides the breakdown**, so the organiser is shown no figure
+   at all for what they will receive - and the helper text underneath still reads
+   "Recipients will pay the total price and will not see the transaction fee",
+   which is the opposite of what is then happening.
+4. **The Cancel Request window has two buttons both labelled some form of
+   "Cancel".** "Cancel" dismisses; "Cancel request" goes through.
+5. **A cancelled request's people still read Pending.** The status is overridden
+   on the request row and not carried down to the participants.
+6. **The due-date calendar shows no month or year.** The popover draws the arrows
+   and the day grid; "September 2026" exists only in the accessibility tree as a
+   `status` element. Visible in 17.4 shot 05.
+
+### config/api.md - the payments section was rewritten
+
+The Postman export had three things wrong and was missing five endpoints. The
+status read is `GET /payments/stripe/account/status` with **no body**, not the
+`POST ... {name}` the collection lists - that path answers 404. Create, edit,
+cancel and the three per-entity listings were absent entirely. All now recorded,
+with the `POST /payments` body, the fee arithmetic, both status enums and the
+rules that decide which actions are available.
+
+**The request enum differs between the API and the screen.** `GET
+/payments/my/requests` answers `status: "Active"` for a live request and the
+table renders it as **Pending**. Do not assert one against the other.
+
+### Fixtures
+
+Four accounts, two teams, one leaderboard, one venue, one Scheduled match and
+four payment requests. `scripts/seed-17.mjs` builds all of it and makes zero
+writes on a second run.
+
+`KB 17 Away travel` is created and then **cancelled by the seed**, on purpose.
+`DELETE /payments/:id` does not delete - it sets the status and the row stays for
+ever - so a spec that cancelled one of the others would add a dead row on every
+run and change what 17.7 photographs.
+
+### Determinism
+
+- Clock frozen to `2026-09-05T09:00:00.000Z`. Not only for the date picker: the
+  app decides `overdue` in the browser as `dueDate <= now`, and an overdue
+  request has **Add participants** and **Edit** disabled. The fixtures are due
+  30 September 2026, so without the freeze 17.6's captures would change
+  behaviour on their own the day that date passes.
+- **Every persona gets its own browser context.** Signing a second account in on
+  the same page leaves the first one's persisted Redux store behind, and that
+  store decides what the Teams page and Select Team can see. 17.1's first run
+  signed Nils in, then Mo, and Mo's Teams page never rendered.
+- The unread bell badge and the "Grow Your Team" promo are hidden in `quiet17()`.
+  The badge counts up every time the seed runs, because seeding a request
+  notifies both participants.
+
+### Capture defects found and fixed in the specs
+
+Six, all fixed in the specs. Full table in [briefs/17.md](../briefs/17.md). The
+two that would have been worst:
+
+- **17.5 published a form with no fee figures on it.** The fee block sits below
+  the fold of the Payment Request window scroller, so a dialog-wide clip lost the
+  article's entire subject.
+- **17.6, 17.7 and 17.9 lost their participant rows** the same way.
+
+Both are now shared helpers - `feeBlock()` and `participantRows()` - so the next
+collection that photographs a scrolling dialog does not rediscover them.
+
+### Flakes
+
+- **The Request Payment button can be clicked before the page is ready**, and the
+  click is swallowed silently - no dialog, no error. Cost 17.1 one run.
+  `openSourceChooser()` now settles first and retries the click once.
+- **The Select Friends list is fetched after its window is on screen**, so 17.3
+  photographed six skeleton rows. Caught by the skeleton backstop in `shot()`.
+  `dialogSettled()` now gates on a row.
+
+### Where to look hard in the drafts
+
+- **17.2 shot 03 contains a spinner, deliberately**, against the letter of
+  `docs/style-guide.md`. The loading state is the article's subject: it is the
+  last thing Scoryboard shows before a Stripe window opens over the top. If the
+  reviewer disagrees, drop the shot and 17.2 stands at three.
+- **17.5's claim about what you receive when you absorb the fee.** The app never
+  shows that figure and no payout was ever observed, so the article does not
+  quote one. It tells the reader to switch the toggle on to read the fee instead.
+  Do not add a number here without observing a real payout.
+- **17.9's Paid, Processing and Failed statuses are described, not photographed.**
+  Each needs a completed or declined card payment, which this run did not make.
+  The colours and meanings come from the bundle.
+- **17.7's table is all Pending.** A part-paid request would need a real payment.
+
+### Cross-references are quoted titles, not links
+
+Intercom gives a draft no public URL, so `scripts/build-article.mjs` renders each
+`{{link:...}}` as the quoted title rather than a broken anchor. **Once the
+reviewer publishes, rebuild and re-publish the collection to turn them into
+links** - the same second pass collection 15 needed:
+
+```
+for a in 17.1 17.2 17.3 17.4 17.5 17.6 17.7 17.8 17.9; do
+  node scripts/build-article.mjs $a 6fde7f174a61b4d44e71d2fa26e77db8689028ff
+  node scripts/publish-article.mjs $a
+done
+```
+
+### One hazard in the tooling, not in this collection
+
+`scripts/build-article.mjs` writes `state: "published"` into every
+`articles/<id>.json` (line 158). `scripts/publish-article.mjs` overrides it and
+sends `draft`, so nothing has ever gone out wrong - but a file on disk that says
+`published`, in a project whose cardinal rule is drafts only, is one careless
+`curl` away from publishing a collection. Worth changing to `draft`.
+
+### The shared browser was signed in as collection 15's organiser, again
+
+The in-app browser this session opened still held `kb-organiser-15@`, and its
+persisted Redux store survived a fresh sign-in - the sidebar showed Oona while
+Firebase was authenticated as Mo. Nothing was written as her; the session was
+signed out through the UI and all exploration moved to Playwright, which starts
+every context signed out. This is the second session to hit it. Sign out before
+you finish, or do not use the shared browser for a signed-in persona at all.
+
+Next: pick from the remaining collections - 09, 10, 18, 19, 20, 21, 22, 24.

@@ -1,0 +1,19 @@
+{
+  "id": "17.5",
+  "title": "Fees - passing them on or absorbing them",
+  "description": "Every payment carries a transaction fee. You choose whether your players pay it on top, or you take it out of what you receive.",
+  "collection": "17",
+  "intercom_collection_id": "19733986",
+  "author_id": "11443412",
+  "state": "published",
+  "spec": "specs/17/17.5.spec.ts",
+  "commit_sha": "6fde7f174a61b4d44e71d2fa26e77db8689028ff",
+  "screenshots": [
+    "screenshots/17/17.5/01-fee-passed-on.9f3816ff.png",
+    "screenshots/17/17.5/02-fee-absorbed.00ee21a9.png",
+    "screenshots/17/17.5/03-fee-helper.098f3001.png",
+    "screenshots/17/17.5/04-payer-total-passed-on.8b941ae7.png",
+    "screenshots/17/17.5/05-payer-total-absorbed.fb28ab4a.png"
+  ],
+  "body": "<p>Taking a payment costs money. Scoryboard lets you decide who carries that cost, and you decide it per request.</p>\n\n<h2>Before you start</h2>\n\n<p>The choice sits in the <strong>Payment Request</strong> form, under the base price. It is set for each request and cannot be changed once the request has gone out.</p>\n\n<h2>Choosing who pays the fee</h2>\n\n<ol>\n  <li>Set your <strong>Base Price</strong>. The fee appears underneath it.</li>\n  <li><strong>Add transaction fee to price</strong> is on by default. Your players pay the total, and you receive the base price in full.\n    <p><img src=\"https://cdn.jsdelivr.net/gh/MaabSaleeem/scoryboard@6fde7f174a61b4d44e71d2fa26e77db8689028ff/screenshots/17/17.5/01-fee-passed-on.9f3816ff.png\" alt=\"The fee breakdown with the toggle on, reading: You will receive £10.00, Transaction fee £0.56, Total price £10.56.\"></p>\n  </li>\n  <li>Turn it off to carry the fee yourself. Your players pay the base price, and the fee comes out of your payout.\n    <p><img src=\"https://cdn.jsdelivr.net/gh/MaabSaleeem/scoryboard@6fde7f174a61b4d44e71d2fa26e77db8689028ff/screenshots/17/17.5/02-fee-absorbed.00ee21a9.png\" alt=\"The same block with the toggle off and no breakdown shown.\"></p>\n  </li>\n  <li>The line underneath describes the switched-on behaviour, and when your payout arrives.\n    <p><img src=\"https://cdn.jsdelivr.net/gh/MaabSaleeem/scoryboard@6fde7f174a61b4d44e71d2fa26e77db8689028ff/screenshots/17/17.5/03-fee-helper.098f3001.png\" alt=\"The helper text under the toggle, reading that recipients pay the total price and will not see the transaction fee.\"></p>\n  </li>\n</ol>\n\n<h2>What your players are charged</h2>\n\n<ol>\n  <li>With the fee passed on, a £10 request costs each player £10.56.\n    <p><img src=\"https://cdn.jsdelivr.net/gh/MaabSaleeem/scoryboard@6fde7f174a61b4d44e71d2fa26e77db8689028ff/screenshots/17/17.5/04-payer-total-passed-on.8b941ae7.png\" alt=\"A player's PAY list with a £10 pass-on request outlined, showing £10.56.\"></p>\n  </li>\n  <li>With the fee absorbed, a £15 request costs each player exactly £15.00, and you receive less than £15.\n    <p><img src=\"https://cdn.jsdelivr.net/gh/MaabSaleeem/scoryboard@6fde7f174a61b4d44e71d2fa26e77db8689028ff/screenshots/17/17.5/05-payer-total-absorbed.fb28ab4a.png\" alt=\"The same PAY list with a £15 absorbed request outlined, showing £15.00.\"></p>\n  </li>\n</ol>\n\n<h2>What you will see</h2>\n\n<p>The fee is worked out from your base price. At £10 it is 56p, giving a total of £10.56.</p>\n\n<p>Your payout arrives up to 7 days after a request has been paid.</p>\n\n<p>Turning the fee off hides the breakdown, so the form stops telling you what you will receive. To see the fee for your amount, turn the toggle back on and read it off before you decide.</p>\n\n<h2>Related</h2>\n\n<ul>\n  <li>\"Choosing who to charge, and setting the amount and due date\"</li>\n  <li>\"Paying a request you have received\"</li>\n</ul>"
+}
