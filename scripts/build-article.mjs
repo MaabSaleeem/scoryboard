@@ -23,6 +23,18 @@ if (!articleId || !sha) {
   process.exit(1);
 }
 
+// A sha with whitespace on it builds image URLs Intercom refuses to ingest:
+// "Failed to ingest image at url ...@<sha>{CR}/screenshots/...". It happened once,
+// from `python -c 'print(sha)' | while read` on Windows, where print emits CRLF
+// and the shell hands the carriage return straight through. Caught here rather
+// than three stages later in an Intercom 400.
+if (!/^[0-9a-f]{40}$/.test(sha)) {
+  console.error(`build-article: "${sha}" is not a 40-character commit sha. `
+    + 'Check for whitespace - a trailing carriage return is invisible and builds '
+    + 'image URLs Intercom will refuse.');
+  process.exit(1);
+}
+
 const collection = articleId.split('.')[0];
 const intercom = yaml.parse(fs.readFileSync('config/intercom.yaml', 'utf8'));
 const collectionId = intercom.collections[collection]?.id;
@@ -73,6 +85,35 @@ for (const chunk of betweenLists) {
   }
 }
 
+// --- {{link:<article-id>|link text}} ----------------------------------------
+//
+// A cross-reference to another article. The prose never carries a URL: the
+// address is read from state/manifest.json, which scripts/publish-article.mjs
+// fills in from Intercom's own answer.
+//
+// An article that is not published yet has no public address - Intercom answers
+// `url: null` for a draft - and the placeholder then renders as the quoted title
+// in plain text, which is what this project did before links existed. It warns
+// and carries on rather than throwing: a collection's articles reference each
+// other, so the first build of a fresh collection would otherwise be impossible
+// to get past. Publish, then build again, and the same placeholders become
+// anchors.
+const linkManifest = fs.existsSync('state/manifest.json')
+  ? JSON.parse(fs.readFileSync('state/manifest.json', 'utf8')).articles ?? {}
+  : {};
+
+const unresolved = [];
+
+function crossReference(targetId, text) {
+  const entry = linkManifest[targetId];
+  const href = entry?.status === 'published' ? entry.intercom_url : null;
+  if (!href) {
+    unresolved.push(`${targetId} (${entry ? `status ${entry.status}` : 'not in the manifest'})`);
+    return `"${text}"`;
+  }
+  return `<a href="${href}">${text}</a>`;
+}
+
 const used = new Set();
 const body = src
   .replace(/<!--.*?-->\n?/gs, '')
@@ -82,7 +123,24 @@ const body = src
     used.add(n);
     return `<p><img src="${url}" alt="${alt.replace(/"/g, '&quot;')}"></p>`;
   })
+  .replace(/\{\{link:([0-9]+\.[0-9]+)\|(.+?)\}\}/g, (_, target, text) => {
+    if (target === articleId) {
+      throw new Error(`${articleId}: {{link:${target}}} points at this article.`);
+    }
+    return crossReference(target, text);
+  })
   .trim();
+
+if (/\{\{(shot|link):/.test(body)) {
+  const left = body.match(/\{\{[^}]*\}\}/g) ?? [];
+  throw new Error(`${articleId}: placeholder(s) left unresolved: ${left.join(', ')}`);
+}
+
+if (unresolved.length) {
+  console.warn(`${articleId}: ${unresolved.length} cross-reference(s) rendered as plain text `
+    + `because the target has no public address yet - ${unresolved.join('; ')}. `
+    + 'Publish those, then build this article again to turn them into links.');
+}
 
 const unused = [...byNumber.keys()].filter((n) => !used.has(n));
 if (unused.length) {

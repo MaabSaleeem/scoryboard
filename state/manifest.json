@@ -163,6 +163,7 @@
     },
     "12.9": {
       "intercom_id": "16733367",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16733367-referees-on-a-tournament",
       "collection": "12",
       "intercom_collection_id": "19733981",
       "brief": "briefs/12.md",
@@ -176,7 +177,7 @@
         "screenshots/12/12.9/05-start-and-end-matches-permission.93b5e6a2.png",
         "screenshots/12/12.9/06-referees-on-the-tournament.d2c610cd.png"
       ],
-      "published_at": "2026-08-28T11:02:32.000Z",
+      "published_at": "2026-09-01T13:15:30.000Z",
       "status": "published"
     },
     "12.10": {
@@ -320,6 +321,7 @@
     },
     "13.5": {
       "intercom_id": "16735816",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16735816-reading-the-group-standings-table-in-a-football-tournament",
       "collection": "13",
       "intercom_collection_id": "19733982",
       "brief": "briefs/13.md",
@@ -330,7 +332,7 @@
         "screenshots/13/13.5/02-standings-columns.b557f265.png",
         "screenshots/13/13.5/03-fixtures-with-scores.17636c51.png"
       ],
-      "published_at": "2026-08-28T14:41:25.000Z",
+      "published_at": "2026-09-01T13:15:36.000Z",
       "status": "published"
     },
     "13.6": {
@@ -420,6 +422,7 @@
     },
     "13.11": {
       "intercom_id": "16735884",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16735884-tournament-phases-preview-start-end-and-undo",
       "collection": "13",
       "intercom_collection_id": "19733982",
       "brief": "briefs/13.md",
@@ -437,7 +440,7 @@
         "screenshots/13/13.11/09-end-phase-card.7d5c3024.png",
         "screenshots/13/13.11/10-end-phase-confirm.a91c1bd8.png"
       ],
-      "published_at": "2026-08-28T14:44:29.000Z",
+      "published_at": "2026-09-01T13:15:55.000Z",
       "status": "published"
     },
     "14.1": {
@@ -1660,6 +1663,7 @@
     },
     "15.1": {
       "intercom_id": "16771619",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16771619-your-public-tournament-page",
       "collection": "15",
       "intercom_collection_id": "19733984",
       "brief": "briefs/15.md",
@@ -1676,11 +1680,12 @@
         "screenshots/15/15.1/08-public-leaderboard.dc4ca016.png",
         "screenshots/15/15.1/09-public-info-not-set-up.c64dca17.png"
       ],
-      "published_at": "2026-09-01T13:07:02.000Z",
+      "published_at": "2026-09-01T13:19:46.000Z",
       "status": "published"
     },
     "15.2": {
       "intercom_id": "16771622",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16771622-sharing-your-tournament-link-and-qr-code",
       "collection": "15",
       "intercom_collection_id": "19733984",
       "brief": "briefs/15.md",
@@ -1693,11 +1698,12 @@
         "screenshots/15/15.2/04-share-from-the-public-page.7697c702.png",
         "screenshots/15/15.2/05-access-link-expired.77aa446c.png"
       ],
-      "published_at": "2026-09-01T13:07:07.000Z",
+      "published_at": "2026-09-01T13:19:51.000Z",
       "status": "published"
     },
     "15.3": {
       "intercom_id": "16771627",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16771627-the-presentation-editor-info-page-and-gallery",
       "collection": "15",
       "intercom_collection_id": "19733984",
       "brief": "briefs/15.md",
@@ -1713,11 +1719,12 @@
         "screenshots/15/15.3/07-description-picture-attachment.35902fea.png",
         "screenshots/15/15.3/08-public-info-page.8abae07e.png"
       ],
-      "published_at": "2026-09-01T13:07:15.000Z",
+      "published_at": "2026-09-01T13:19:57.000Z",
       "status": "published"
     },
     "15.4": {
       "intercom_id": "16771638",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16771638-building-a-match-day-slideshow",
       "collection": "15",
       "intercom_collection_id": "19733984",
       "brief": "briefs/15.md",
@@ -1737,11 +1744,12 @@
         "screenshots/15/15.4/11-sponsors-component.fb05a752.png",
         "screenshots/15/15.4/12-save-refused.f2d730e4.png"
       ],
-      "published_at": "2026-09-01T13:07:22.000Z",
+      "published_at": "2026-09-01T13:20:03.000Z",
       "status": "published"
     },
     "15.5": {
       "intercom_id": "16771641",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16771641-running-the-slideshow-on-a-venue-screen",
       "collection": "15",
       "intercom_collection_id": "19733984",
       "brief": "briefs/15.md",
@@ -1753,11 +1761,12 @@
         "screenshots/15/15.5/03-slide-group-table.5c698dbd.png",
         "screenshots/15/15.5/04-no-active-slides.38377081.png"
       ],
-      "published_at": "2026-09-01T13:07:26.000Z",
+      "published_at": "2026-09-01T13:20:07.000Z",
       "status": "published"
     },
     "15.6": {
       "intercom_id": "16771643",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16771643-sponsors-on-your-tournament",
       "collection": "15",
       "intercom_collection_id": "19733984",
       "brief": "briefs/15.md",
@@ -1770,11 +1779,12 @@
         "screenshots/15/15.6/04-sponsors-on-public-page.3f4f45ac.png",
         "screenshots/15/15.6/05-sponsors-slide.240148ba.png"
       ],
-      "published_at": "2026-09-01T13:07:35.000Z",
+      "published_at": "2026-09-01T13:20:12.000Z",
       "status": "published"
     },
     "15.7": {
       "intercom_id": "16771646",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16771646-the-tournament-chat-room",
       "collection": "15",
       "intercom_collection_id": "19733984",
       "brief": "briefs/15.md",
@@ -1789,11 +1799,12 @@
         "screenshots/15/15.7/06-announcement-only-locked.db1205cf.png",
         "screenshots/15/15.7/07-signed-out-chat.ddc0ac5e.png"
       ],
-      "published_at": "2026-09-01T13:07:45.000Z",
+      "published_at": "2026-09-01T13:20:17.000Z",
       "status": "published"
     },
     "15.8": {
       "intercom_id": "16771652",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16771652-entering-results-standings-and-team-statistics",
       "collection": "15",
       "intercom_collection_id": "19733984",
       "brief": "briefs/15.md",
@@ -1810,11 +1821,12 @@
         "screenshots/15/15.8/08-padel-rules.c66483a0.png",
         "screenshots/15/15.8/09-padel-team-statistics.c2fea3e1.png"
       ],
-      "published_at": "2026-09-01T13:06:16.000Z",
+      "published_at": "2026-09-01T13:20:23.000Z",
       "status": "published"
     },
     "15.9": {
       "intercom_id": "16771659",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16771659-participants-followers-and-completing-a-tournament",
       "collection": "15",
       "intercom_collection_id": "19733984",
       "brief": "briefs/15.md",
@@ -1828,7 +1840,7 @@
         "screenshots/15/15.9/05-unfollow-in-the-header.6f11ecdb.png",
         "screenshots/15/15.9/06-tournament-over.640145bc.png"
       ],
-      "published_at": "2026-09-01T13:07:51.000Z",
+      "published_at": "2026-09-01T13:20:28.000Z",
       "status": "published"
     }
   }

@@ -173,6 +173,14 @@ async function main() {
 
   manifest.articles[articleId] = {
     intercom_id: String(body.id),
+    // The article's own public address, as Intercom reports it. Recorded so
+    // scripts/build-article.mjs can turn a {{link:<id>|text}} placeholder into a
+    // real anchor without a network call and without anybody hand-typing a URL.
+    //
+    // Only present on a PUBLISHED article: Intercom answers `url: null` for a
+    // draft, because a draft has no public address. That is what stops the
+    // builder emitting a dead link.
+    intercom_url: body.url ?? existing?.intercom_url ?? null,
     collection: article.collection,
     intercom_collection_id: article.intercom_collection_id,
     brief: `briefs/${article.collection}.md`,
