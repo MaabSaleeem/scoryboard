@@ -1,0 +1,17 @@
+{
+  "id": "10.7",
+  "title": "Choosing Player of the Match",
+  "description": "One button under the feed, one window, two choices. You can do it while the match is still running.",
+  "collection": "10",
+  "intercom_collection_id": "19733979",
+  "author_id": "11443412",
+  "state": "published",
+  "spec": "specs/10/10.7.spec.ts",
+  "commit_sha": "94344ffcf7e2ce3e3da4512d6046aa3e83abb2f7",
+  "screenshots": [
+    "screenshots/10/10.7/01-potm-button.f50004be.png",
+    "screenshots/10/10.7/02-potm-window.a0246555.png",
+    "screenshots/10/10.7/03-potm-on-feed.3b2e2502.png"
+  ],
+  "body": "<p><strong>Player of Match</strong> sits under the match feed, beside the two card buttons.</p>\n\n<h2>Before you start</h2>\n\n<p>Only the team's <strong>Owner</strong> and an <strong>Administrator</strong> can choose - see \"Starting, pausing and ending a match\" for what everybody else sees. The match has to be running.</p>\n\n<ol>\n  <li>Go to <strong>FEED</strong> and select <strong>Player of Match</strong>.\n    <p><img src=\"https://cdn.jsdelivr.net/gh/MaabSaleeem/scoryboard@94344ffcf7e2ce3e3da4512d6046aa3e83abb2f7/screenshots/10/10.7/01-potm-button.f50004be.png\" alt=\"The four buttons under the feed with Player of Match outlined.\"></p>\n  </li>\n  <li>Choose the team, then the player. Both teams are offered.\n    <p><img src=\"https://cdn.jsdelivr.net/gh/MaabSaleeem/scoryboard@94344ffcf7e2ce3e3da4512d6046aa3e83abb2f7/screenshots/10/10.7/02-potm-window.a0246555.png\" alt=\"The Player Of Match window: Select team with both crests, then a Player field reading Select Player.\"></p>\n  </li>\n  <li>Select <strong>Save</strong>. The choice joins the feed in the middle, with a laurel marker.\n    <p><img src=\"https://cdn.jsdelivr.net/gh/MaabSaleeem/scoryboard@94344ffcf7e2ce3e3da4512d6046aa3e83abb2f7/screenshots/10/10.7/03-potm-on-feed.3b2e2502.png\" alt=\"The feed entry headed &quot;Player of the match&quot; with the player's name and avatar beneath it, outlined, among the goals and cards.\"></p>\n  </li>\n</ol>\n\n<h2>What you will see</h2>\n\n<p><strong>You do not have to wait for full time.</strong> The choice can be made at any point while the match is running, and changed while it is still running.</p>\n\n<p><strong>The laurel follows the player.</strong> It is one of the markers the <strong>KEYS</strong> panel explains.</p>\n\n<p><strong>It counts towards their record.</strong> Player of the Match appears in a team's statistics, so it is worth setting rather than skipping.</p>\n\n<h2>If it does not work</h2>\n\n<ul>\n  <li><strong>The button is not there.</strong> The match has not started, or it has finished, or you are not the Owner or an Administrator.</li>\n  <li><strong>Save will not work.</strong> Choose the team first. The player field stays greyed out until you have.</li>\n  <li><strong>The player you want is not listed.</strong> They are not in either lineup for this match.</li>\n  <li><strong>The match has ended and you forgot.</strong> Nothing can be added to a finished match.</li>\n</ul>\n\n<h2>Related</h2>\n\n<ul>\n  <li>\"Yellow and red cards, and how the final score is set\"</li>\n  <li>\"The match feed and commentary\"</li>\n  <li>\"How team and player statistics are calculated\"</li>\n</ul>"
+}

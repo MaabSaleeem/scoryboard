@@ -1477,6 +1477,186 @@
       ],
       "published_at": "2026-08-31T16:09:45.000Z",
       "status": "draft"
+    },
+    "10.1": {
+      "intercom_id": "16769856",
+      "collection": "10",
+      "intercom_collection_id": "19733979",
+      "brief": "briefs/10.md",
+      "spec": "specs/10/10.1.spec.ts",
+      "commit_sha": "f7bf8cd39830cdea1bccf7ea8ac205469957d03f",
+      "screenshots": [
+        "screenshots/10/10.1/01-match-screen.9dc3d6b3.png",
+        "screenshots/10/10.1/02-tab-strip.1cb40e57.png",
+        "screenshots/10/10.1/03-feed-panel.f4339952.png",
+        "screenshots/10/10.1/04-facts-panel.6b9d3a89.png",
+        "screenshots/10/10.1/05-lineup-panel.5d557d71.png",
+        "screenshots/10/10.1/06-keys-panel.5a625598.png",
+        "screenshots/10/10.1/07-tour-details.257aa00d.png",
+        "screenshots/10/10.1/08-tour-feed.2d3f3363.png",
+        "screenshots/10/10.1/09-tour-lineup.5a90475e.png"
+      ],
+      "published_at": "2026-09-01T08:22:21.000Z",
+      "status": "draft"
+    },
+    "10.2": {
+      "intercom_id": "16769863",
+      "collection": "10",
+      "intercom_collection_id": "19733979",
+      "brief": "briefs/10.md",
+      "spec": "specs/10/10.2.spec.ts",
+      "commit_sha": "904b80f88a22f12bf60e607372a4a4228e545195",
+      "screenshots": [
+        "screenshots/10/10.2/01-your-pitch.9945e714.png",
+        "screenshots/10/10.2/02-formation-open.af0e1e0c.png",
+        "screenshots/10/10.2/03-select-player.491d3983.png",
+        "screenshots/10/10.2/04-substitutes.7ab9d171.png",
+        "screenshots/10/10.2/05-team-members.77e25749.png",
+        "screenshots/10/10.2/06-sub-limit-free.49bd7d59.png",
+        "screenshots/10/10.2/07-sub-slot-pro.491d3983.png",
+        "screenshots/10/10.2/08-player-view.86d5d58f.png",
+        "screenshots/10/10.2/09-formation-changed.f0c09a55.png"
+      ],
+      "published_at": "2026-09-01T08:22:55.000Z",
+      "status": "draft"
+    },
+    "10.3": {
+      "intercom_id": "16769866",
+      "collection": "10",
+      "intercom_collection_id": "19733979",
+      "brief": "briefs/10.md",
+      "spec": "specs/10/10.3.spec.ts",
+      "commit_sha": "0bc9018d58eb0a4c76f240fa29ab8a210d679b3c",
+      "screenshots": [
+        "screenshots/10/10.3/01-start-match.3ea6924d.png",
+        "screenshots/10/10.3/02-timer-live.7e6f2d7b.png",
+        "screenshots/10/10.3/03-paused.626b7f48.png",
+        "screenshots/10/10.3/04-end-match.9b2b2a8e.png",
+        "screenshots/10/10.3/05-match-ended.7f8554ef.png",
+        "screenshots/10/10.3/06-player-no-controls.7db738b0.png"
+      ],
+      "published_at": "2026-09-01T08:23:25.000Z",
+      "status": "draft"
+    },
+    "10.4": {
+      "intercom_id": "16769870",
+      "collection": "10",
+      "intercom_collection_id": "19733979",
+      "brief": "briefs/10.md",
+      "spec": "specs/10/10.4.spec.ts",
+      "commit_sha": "70200f31577e669127f3769c4ab31fb55d2889fb",
+      "screenshots": [
+        "screenshots/10/10.4/01-timer-pill.5b4d4873.png",
+        "screenshots/10/10.4/02-timer-in-card.6f56333f.png",
+        "screenshots/10/10.4/03-timer-paused.f01b2ca2.png"
+      ],
+      "published_at": "2026-09-01T08:23:44.000Z",
+      "status": "draft"
+    },
+    "10.5": {
+      "intercom_id": "16769873",
+      "collection": "10",
+      "intercom_collection_id": "19733979",
+      "brief": "briefs/10.md",
+      "spec": "specs/10/10.5.spec.ts",
+      "commit_sha": "eb3346f45293c108c9b6fd8f945d5811d63ae007",
+      "screenshots": [
+        "screenshots/10/10.5/01-steppers.f4473b5c.png",
+        "screenshots/10/10.5/02-goal-awarded.8d2eaba0.png",
+        "screenshots/10/10.5/03-edit-goal.fd075c19.png",
+        "screenshots/10/10.5/04-choose-scorer.1ca50cff.png",
+        "screenshots/10/10.5/05-goal-with-scorer.d4ad7dea.png",
+        "screenshots/10/10.5/06-goal-revoked.7bca294c.png"
+      ],
+      "published_at": "2026-09-01T08:24:06.000Z",
+      "status": "draft"
+    },
+    "10.6": {
+      "intercom_id": "16769874",
+      "collection": "10",
+      "intercom_collection_id": "19733979",
+      "brief": "briefs/10.md",
+      "spec": "specs/10/10.6.spec.ts",
+      "commit_sha": "69eb3e540913822d148c7404c577266d08d2597b",
+      "screenshots": [
+        "screenshots/10/10.6/01-action-bar.29370f77.png",
+        "screenshots/10/10.6/02-yellow-window.ff13ef90.png",
+        "screenshots/10/10.6/03-choose-player.1b9fb05e.png",
+        "screenshots/10/10.6/04-yellow-on-feed.7d0e6f4b.png",
+        "screenshots/10/10.6/05-red-window.8b743cd3.png",
+        "screenshots/10/10.6/06-red-on-feed.97c92b6d.png",
+        "screenshots/10/10.6/07-final-score.44c75a2a.png"
+      ],
+      "published_at": "2026-09-01T08:24:30.000Z",
+      "status": "draft"
+    },
+    "10.7": {
+      "intercom_id": "16769875",
+      "collection": "10",
+      "intercom_collection_id": "19733979",
+      "brief": "briefs/10.md",
+      "spec": "specs/10/10.7.spec.ts",
+      "commit_sha": "94344ffcf7e2ce3e3da4512d6046aa3e83abb2f7",
+      "screenshots": [
+        "screenshots/10/10.7/01-potm-button.f50004be.png",
+        "screenshots/10/10.7/02-potm-window.a0246555.png",
+        "screenshots/10/10.7/03-potm-on-feed.3b2e2502.png"
+      ],
+      "published_at": "2026-09-01T08:24:43.000Z",
+      "status": "draft"
+    },
+    "10.8": {
+      "intercom_id": "16769877",
+      "collection": "10",
+      "intercom_collection_id": "19733979",
+      "brief": "briefs/10.md",
+      "spec": "specs/10/10.8.spec.ts",
+      "commit_sha": "a7f49878c778791f103b38e4b36b6704321368f8",
+      "screenshots": [
+        "screenshots/10/10.8/01-feed-panel.df7487b8.png",
+        "screenshots/10/10.8/02-feed-entries.e530873e.png",
+        "screenshots/10/10.8/03-comment-button.b4c83503.png",
+        "screenshots/10/10.8/04-comment-window.37751971.png",
+        "screenshots/10/10.8/05-comment-typed.ebdb94ef.png",
+        "screenshots/10/10.8/06-comment-on-feed.dc935929.png",
+        "screenshots/10/10.8/07-add-media-free.2cef72c4.png",
+        "screenshots/10/10.8/08-add-media-pro.ab5268ef.png"
+      ],
+      "published_at": "2026-09-01T08:25:16.000Z",
+      "status": "draft"
+    },
+    "10.9": {
+      "intercom_id": "16769879",
+      "collection": "10",
+      "intercom_collection_id": "19733979",
+      "brief": "briefs/10.md",
+      "spec": "specs/10/10.9.spec.ts",
+      "commit_sha": "41af7d11a8cc70155b97686a352f3075641c1e9a",
+      "screenshots": [
+        "screenshots/10/10.9/01-match-details-form.420abb3e.png",
+        "screenshots/10/10.9/02-date-picker.e29f53cd.png",
+        "screenshots/10/10.9/03-started-itself.3078a1bd.png",
+        "screenshots/10/10.9/04-system-event.65070c95.png",
+        "screenshots/10/10.9/05-too-old.d0203e42.png"
+      ],
+      "published_at": "2026-09-01T08:25:40.000Z",
+      "status": "draft"
+    },
+    "10.10": {
+      "intercom_id": "16769883",
+      "collection": "10",
+      "intercom_collection_id": "19733979",
+      "brief": "briefs/10.md",
+      "spec": "specs/10/10.10.spec.ts",
+      "commit_sha": "9c4ca1982dabd8caccc7bebcb0ec5fa0a7180376",
+      "screenshots": [
+        "screenshots/10/10.10/01-online-one.be96ccef.png",
+        "screenshots/10/10.10/02-online-two.ed6280aa.png",
+        "screenshots/10/10.10/03-follower-view.d109bb03.png",
+        "screenshots/10/10.10/04-score-arrived.bccdbdb6.png"
+      ],
+      "published_at": "2026-09-01T08:25:57.000Z",
+      "status": "draft"
     }
   }
 }

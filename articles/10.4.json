@@ -1,0 +1,17 @@
+{
+  "id": "10.4",
+  "title": "The match timer",
+  "description": "It counts down from the match length, it runs from the moment the match actually started, and pausing does not cost you any of it.",
+  "collection": "10",
+  "intercom_collection_id": "19733979",
+  "author_id": "11443412",
+  "state": "published",
+  "spec": "specs/10/10.4.spec.ts",
+  "commit_sha": "70200f31577e669127f3769c4ab31fb55d2889fb",
+  "screenshots": [
+    "screenshots/10/10.4/01-timer-pill.5b4d4873.png",
+    "screenshots/10/10.4/02-timer-in-card.6f56333f.png",
+    "screenshots/10/10.4/03-timer-paused.f01b2ca2.png"
+  ],
+  "body": "<p>The clock beside the tabs counts <strong>down</strong>. A 60 minute match starts at 60:00 and works towards zero.</p>\n\n<ol>\n  <li>Find it at the right-hand end of the tab strip, next to the share button.\n    <p><img src=\"https://cdn.jsdelivr.net/gh/MaabSaleeem/scoryboard@70200f31577e669127f3769c4ab31fb55d2889fb/screenshots/10/10.4/01-timer-pill.5b4d4873.png\" alt=\"The timer button reading 48:00 with a pause mark, outlined.\"></p>\n  </li>\n  <li>The same figure sits under the score, so you can read it without looking up.\n    <p><img src=\"https://cdn.jsdelivr.net/gh/MaabSaleeem/scoryboard@70200f31577e669127f3769c4ab31fb55d2889fb/screenshots/10/10.4/02-timer-in-card.6f56333f.png\" alt=\"The MATCH DETAILS card: the score above, the timer reading 48:00 below it, outlined.\"></p>\n  </li>\n  <li>Select the clock to pause. It holds where it is, and the pause mark becomes a play arrow.\n    <p><img src=\"https://cdn.jsdelivr.net/gh/MaabSaleeem/scoryboard@70200f31577e669127f3769c4ab31fb55d2889fb/screenshots/10/10.4/03-timer-paused.f01b2ca2.png\" alt=\"The timer button paused: a play arrow, and the figure beside it covered.\"></p>\n  </li>\n</ol>\n\n<h2>What you will see</h2>\n\n<p><strong>It runs from when the match started, not from the kick-off time you set.</strong> If a match was due at 6:00 and actually started at 6:03, the clock counts its 60 minutes from 6:03.</p>\n\n<p><strong>Time spent paused does not count.</strong> Pause for ten minutes and full time moves ten minutes later. The match still gets its full length.</p>\n\n<p><strong>At zero the clock becomes END MATCH.</strong> It does not go negative and it does not keep counting.</p>\n\n<p><strong>It is the same clock on every device.</strong> Anybody watching the match sees the same figure you do.</p>\n\n<h2>If it does not work</h2>\n\n<ul>\n  <li><strong>The clock reads less than you expect.</strong> The match started before you opened it. A match starts itself at its kick-off time.</li>\n  <li><strong>The clock is running when you paused it.</strong> The page was reloaded, which puts a paused match back on. Pause it again.</li>\n  <li><strong>There is no clock.</strong> The match has not started, or it has finished. Before kick-off you get <strong>START MATCH</strong>; afterwards you get nothing.</li>\n  <li><strong>You can see the clock but not press it.</strong> You are not the Owner, an Administrator or the referee.</li>\n</ul>\n\n<h2>Related</h2>\n\n<ul>\n  <li>\"Starting, pausing and ending a match\"</li>\n  <li>\"Awarding a goal, and revoking one entered by mistake\"</li>\n</ul>"
+}
