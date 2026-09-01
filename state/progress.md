@@ -29,7 +29,7 @@ target.
 | 14 | Tournaments - the fixture schedule | 8 | 37 | organiser | drafts on Intercom | [briefs/14.md](../briefs/14.md) | flag: TOURNAMENT_FEATURE_ENABLED. 8 drafts, 37 screenshots. 14.5 retitled - fixtures cannot be deleted. Account: kb-organiser-14@yopmail.com |
 | 15 | Tournaments - publishing & running | 9 | 62 | organiser | published | [briefs/15.md](../briefs/15.md) | flag: TOURNAMENT_FEATURE_ENABLED. 65 screenshots. **All nine published by the reviewer 2026-09-01, within the hour the run posted them as drafts. 15.8 step 1 was simplified and republished afterwards, live.** Four articles retitled: **15.1 there is nothing to publish** (`isPublic` is already true on every tournament, and the public page really IS public, unlike the leaderboard and match share links); 15.2 drops access tokens (`/tournaments/token/:token` exists and nothing mints one); 15.6 drops prizes because **the PRIZES tab is a Winner panel whose picker records nothing** - Save Winner can never be enabled, established with a trusted click sequence and a passing control test; 15.9's "completing" re-scoped to the aftermath, since there is no Complete control. **Score entry is now verified** - START, two typed boxes that save on their own, END - and ending the PHASE is what closes it. 15.7's free_pro flag does NOT bite: Free and Pro read a long tournament message identically. Announcement-only chat refuses a tournament ADMIN too. The info page and gallery DO exist, behind a 16-pixel unlabelled pencil. Four accounts: `kb-organiser-15@`, `kb-15-admin@`, `kb-15-free@`, `kb-15-outsider@`. Six tournaments; two on FIXED dates in Oct and Nov 2026 and the seed refuses to run once they have passed |
 | ~~16~~ | ~~Tournament plans & payment~~ | - | - | - | **retired** | - | **RETIRED 2026-08-29, merged into 04.** 16.1+16.2 -> 04.4, 16.3+16.4 -> 04.5, 16.6 -> 04.6. 16.5 dropped - managing a live Annual subscription needs a completed payment. Intercom collection 19733985 is empty and must not be reused |
-| 17 | Collecting & making payments | 9 | 63 | manager_pro | drafts on Intercom | [briefs/17.md](../briefs/17.md) | 52 screenshots. **All nine drafted 2026-09-02, nothing published.** Every capture stops before Stripe, on instruction: setting up a payout account opens a window at connect.stripe.com, Pay Now opens Stripe Elements, and both are CAPTCHA-gated. 17.9 retitled "Payment statuses and failed payments" - the app has no refund feature at all. 17.2 is 4 shots not 12, 17.8 is 6 not 8; the rest were Stripe's own screens. **The payout account on `kb-manager-pro-17@` was connected by a human and cannot be rebuilt from here** - never `--rebuild` this collection without one. `kb-17-nopayout@` must stay un-onboarded. Four accounts: `kb-manager-pro-17@`, `kb-player-17@`, `kb-17-admin@`, `kb-17-nopayout@` |
+| 17 | Collecting & making payments | 9 | 63 | manager_pro | published | [briefs/17.md](../briefs/17.md) | 52 screenshots. **All nine published by the repo owner 2026-09-02, on their instruction, without the usual draft review.** Every capture stops before Stripe, on instruction: setting up a payout account opens a window at connect.stripe.com, Pay Now opens Stripe Elements, and both are CAPTCHA-gated. 17.9 retitled "Payment statuses and failed payments" - the app has no refund feature at all. 17.2 is 4 shots not 12, 17.8 is 6 not 8; the rest were Stripe's own screens. **The payout account on `kb-manager-pro-17@` was connected by a human and cannot be rebuilt from here** - never `--rebuild` this collection without one. `kb-17-nopayout@` must stay un-onboarded. Four accounts: `kb-manager-pro-17@`, `kb-player-17@`, `kb-17-admin@`, `kb-17-nopayout@` |
 | 18 | Chat & messaging | 4 | 27 | manager_free | not started | - | - |
 | 19 | Comments, likes & ratings | 4 | 19 | player | not started | - | - |
 | 20 | Notifications, emails & the activity feed | 4 | 16 | player | not started | - | No push notifications exist. Do not write one. |
@@ -3002,19 +3002,21 @@ collection that photographs a scrolling dialog does not rediscover them.
   The colours and meanings come from the bundle.
 - **17.7's table is all Pending.** A part-paid request would need a real payment.
 
-### Cross-references are quoted titles, not links
+### Cross-references are links - the second pass was done
 
-Intercom gives a draft no public URL, so `scripts/build-article.mjs` renders each
-`{{link:...}}` as the quoted title rather than a broken anchor. **Once the
-reviewer publishes, rebuild and re-publish the collection to turn them into
-links** - the same second pass collection 15 needed:
+Intercom gives a draft no public URL, so the first build rendered every
+`{{link:...}}` as a quoted title. After publishing, the collection was rebuilt and
+re-published and all **29 cross-references are now real anchors**. Verified off
+the live API: 29 links and 52 images across the nine articles.
 
-```
-for a in 17.1 17.2 17.3 17.4 17.5 17.6 17.7 17.8 17.9; do
-  node scripts/build-article.mjs $a 6fde7f174a61b4d44e71d2fa26e77db8689028ff
-  node scripts/publish-article.mjs $a
-done
-```
+**Intercom rewrites anchors on ingest.** `<a href="...">` comes back as
+`<a href="..." target="_blank" class="intercom-content-link">`, so a verification
+regex that expects `">` immediately after the href matches nothing and looks like
+a total failure. It cost this session one false alarm. Match
+`<a [^>]*href="..."[^>]*>` instead.
+
+The nine live URLs are under `https://help.scoryboard.com/en/articles/`, ids
+16775809-13 and 16775816-19.
 
 ### One hazard in the tooling, not in this collection
 
