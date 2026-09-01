@@ -1676,8 +1676,8 @@
         "screenshots/15/15.1/08-public-leaderboard.dc4ca016.png",
         "screenshots/15/15.1/09-public-info-not-set-up.c64dca17.png"
       ],
-      "published_at": "2026-09-01T12:31:03.000Z",
-      "status": "draft"
+      "published_at": "2026-09-01T13:07:02.000Z",
+      "status": "published"
     },
     "15.2": {
       "intercom_id": "16771622",
@@ -1693,8 +1693,8 @@
         "screenshots/15/15.2/04-share-from-the-public-page.7697c702.png",
         "screenshots/15/15.2/05-access-link-expired.77aa446c.png"
       ],
-      "published_at": "2026-09-01T12:31:37.000Z",
-      "status": "draft"
+      "published_at": "2026-09-01T13:07:07.000Z",
+      "status": "published"
     },
     "15.3": {
       "intercom_id": "16771627",
@@ -1713,8 +1713,8 @@
         "screenshots/15/15.3/07-description-picture-attachment.35902fea.png",
         "screenshots/15/15.3/08-public-info-page.8abae07e.png"
       ],
-      "published_at": "2026-09-01T12:32:12.000Z",
-      "status": "draft"
+      "published_at": "2026-09-01T13:07:15.000Z",
+      "status": "published"
     },
     "15.4": {
       "intercom_id": "16771638",
@@ -1737,8 +1737,8 @@
         "screenshots/15/15.4/11-sponsors-component.fb05a752.png",
         "screenshots/15/15.4/12-save-refused.f2d730e4.png"
       ],
-      "published_at": "2026-09-01T12:32:54.000Z",
-      "status": "draft"
+      "published_at": "2026-09-01T13:07:22.000Z",
+      "status": "published"
     },
     "15.5": {
       "intercom_id": "16771641",
@@ -1753,8 +1753,8 @@
         "screenshots/15/15.5/03-slide-group-table.5c698dbd.png",
         "screenshots/15/15.5/04-no-active-slides.38377081.png"
       ],
-      "published_at": "2026-09-01T12:33:21.000Z",
-      "status": "draft"
+      "published_at": "2026-09-01T13:07:26.000Z",
+      "status": "published"
     },
     "15.6": {
       "intercom_id": "16771643",
@@ -1770,8 +1770,8 @@
         "screenshots/15/15.6/04-sponsors-on-public-page.3f4f45ac.png",
         "screenshots/15/15.6/05-sponsors-slide.240148ba.png"
       ],
-      "published_at": "2026-09-01T12:33:52.000Z",
-      "status": "draft"
+      "published_at": "2026-09-01T13:07:35.000Z",
+      "status": "published"
     },
     "15.7": {
       "intercom_id": "16771646",
@@ -1789,8 +1789,8 @@
         "screenshots/15/15.7/06-announcement-only-locked.db1205cf.png",
         "screenshots/15/15.7/07-signed-out-chat.ddc0ac5e.png"
       ],
-      "published_at": "2026-09-01T12:34:20.000Z",
-      "status": "draft"
+      "published_at": "2026-09-01T13:07:45.000Z",
+      "status": "published"
     },
     "15.8": {
       "intercom_id": "16771652",
@@ -1810,8 +1810,8 @@
         "screenshots/15/15.8/08-padel-rules.c66483a0.png",
         "screenshots/15/15.8/09-padel-team-statistics.c2fea3e1.png"
       ],
-      "published_at": "2026-09-01T12:34:59.000Z",
-      "status": "draft"
+      "published_at": "2026-09-01T13:06:16.000Z",
+      "status": "published"
     },
     "15.9": {
       "intercom_id": "16771659",
@@ -1828,8 +1828,8 @@
         "screenshots/15/15.9/05-unfollow-in-the-header.6f11ecdb.png",
         "screenshots/15/15.9/06-tournament-over.640145bc.png"
       ],
-      "published_at": "2026-09-01T12:35:34.000Z",
-      "status": "draft"
+      "published_at": "2026-09-01T13:07:51.000Z",
+      "status": "published"
     }
   }
 }
