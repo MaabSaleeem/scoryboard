@@ -222,7 +222,10 @@ Per article, in order:
    with a delay before you decide a URL is broken. **A 404 at fetch time becomes a
    permanently broken article.** Do not skip this stage. Intercom rehosts images on
    publish, so these URLs are transitional - but they must resolve at publish time.
-7. **Build the article JSON** under `articles/<article-id>.json`.
+7. **Read the prose back, then build the article JSON** under
+   `articles/<article-id>.json`. Split any sentence carrying three ideas, or whose
+   pronoun points further back than the clause before it - collection 10 published a
+   dozen of those and a reader found them in minutes.
 8. **Publish to Intercom as a draft.** POST to the Articles API with `author_id`,
    `parent_id` (the collection id from `config/intercom.yaml`),
    `parent_type: "collection"` and `state: "draft"`. The parent matters even for a
@@ -247,7 +250,7 @@ Per article, in order:
 9. **Record the ID** in `state/manifest.json`.
 
 Order matters and does not bend: capture, inspect, optimise, commit, push, verify,
-build, publish, record.
+read, build, publish, record.
 
 ### Fix it yourself, then log it
 
