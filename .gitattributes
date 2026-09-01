@@ -1,0 +1,17 @@
+# Files that must arrive byte-for-byte in a fresh clone.
+#
+# git detects most binaries by content and leaves them alone, and every PNG in
+# screenshots/ is handled that way. A PDF is not: the one-page file
+# scripts/make-assets-15.mjs writes is almost all ASCII, so git decided it was
+# text and warned that it would convert LF to CRLF on checkout. That conversion
+# would add a byte per line and leave every offset in the PDF's xref table
+# pointing at the wrong place - a file that is committed intact and broken on
+# arrival.
+#
+# The screenshots are listed as well. They are content-hashed and their URLs are
+# pinned to a commit, so a checkout that altered a single byte would serve an
+# image whose name no longer matches its contents.
+
+*.pdf  binary
+*.png  binary
+*.webp binary
