@@ -200,7 +200,11 @@ Follows step 1 immediately, in the same session. Run each stage, read the output
 and only then move on. Never chain stages blindly. Nobody else is watching this
 run, so reading the output of each stage is the only oversight there is.
 
-Per article, in order:
+You do not commit and you do not push. Those are the human's, and they are the
+one place this run stops. Everything before the stop is per article; everything
+after it is per article again.
+
+**Phase A, per article, in order:**
 
 1. **Capture.** Run the spec. Screenshots land in
    `screenshots/<collection-id>/<article-id>/`.
@@ -211,10 +215,40 @@ Per article, in order:
 4. **Filename.** Each file carries a content hash:
    `<nn>-<slug>.<hash8>.png`. A changed image gets a new URL, so a stale CDN copy
    can never be served in its place.
-5. **Commit and push.** Screenshots for one article, one commit. Push before the
-   next stage - an unpushed image cannot be fetched. **Straight to `master`** - no
-   feature branch, no pull request. See "How you work" in
-   [CLAUDE.md](../CLAUDE.md).
+
+Do phase A for every article before going further. Then stop once.
+
+**The handoff.** Stage everything with `git add -A`, check `git status` shows what
+you expect and nothing from `local/`, and give the human one command to run:
+
+```
+git commit -m "<message>" && git push origin master
+```
+
+Write the message yourself - you know what changed. Then say plainly that you are
+waiting, and stop. **Straight to `master`**: no feature branch, no pull request.
+Screenshot URLs are pinned to the commit that holds them, so work on a side branch
+is work whose images resolve from somewhere the help centre will not keep.
+
+You cannot commit or push. `.claude/settings.json` denies both, so attempting
+either fails rather than slipping through. This is not a formality you can route
+around: nothing below works until the images are on `origin`, because jsDelivr
+serves them from the pushed commit.
+
+When the human confirms, do not take their word for it - prove the commit reached
+`origin`, because that is what jsDelivr serves and a local commit looks identical
+from here:
+
+```
+git fetch origin && git rev-parse HEAD && git merge-base --is-ancestor HEAD origin/master && echo "on origin"
+```
+
+If that fails, the push did not land. Say so and wait; do not start phase B. The
+SHA it prints is the one every image URL is pinned to - pass it to
+`verify-urls.mjs` and `build-article.mjs`.
+
+**Phase B, per article, in order:**
+
 6. **Verify each URL.** `HEAD` every image URL. It must return `200` and a
    `image/*` content type. Pinned to the commit SHA you just pushed:
    `https://cdn.jsdelivr.net/gh/MaabSaleeem/scoryboard@<sha>/screenshots/<path>`
@@ -249,8 +283,8 @@ Per article, in order:
    and says so - omitting it can never unpublish anything.
 9. **Record the ID** in `state/manifest.json`.
 
-Order matters and does not bend: capture, inspect, optimise, commit, push, verify,
-read, build, publish, record.
+Order matters and does not bend: capture, inspect, optimise, name - stop, and let
+the human commit and push - then verify, read, build, publish, record.
 
 ### Fix it yourself, then log it
 
@@ -285,6 +319,16 @@ changing it quietly: update the file, and say what changed and why in the report
 - Never add a screenshot the brief did not list.
 - Never publish an article the brief did not cover.
 - Never publish with `state: "published"`. Drafts only.
+
+### The second handoff
+
+Phase B writes `articles/<article-id>.json` and updates `state/manifest.json`, and
+the report updates `state/progress.md`. None of that is committed either. Stage it
+and hand over a second command at the very end.
+
+This one does not block anything: the drafts are already in Intercom and their
+images are already pinned to the first commit. It is bookkeeping, and it matters
+only so the next session can tell what was published from what.
 
 ### End-of-session report
 

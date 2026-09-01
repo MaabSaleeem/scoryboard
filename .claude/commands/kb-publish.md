@@ -23,9 +23,17 @@ First:
 
 Then, per article in the brief, in this order and no other:
 
-capture -> inspect every screenshot -> optimise -> commit -> push -> HEAD each URL
-for 200 and `image/*` -> build the article JSON -> POST or PUT to Intercom as a
-**draft** -> record the ID in `state/manifest.json`.
+Phase A, every article: capture -> inspect every screenshot -> optimise -> content-hash
+the filename.
+
+Then STOP once. Stage with `git add -A`, write the commit message, and give the
+human one command to run - `git commit -m "..." && git push origin master`. You
+cannot commit or push; the project settings deny both, and nothing downstream works
+until the images are on `origin`.
+
+Phase B, every article: HEAD each URL for 200 and `image/*` -> build the article
+JSON -> POST or PUT to Intercom as a **draft** -> record the ID in
+`state/manifest.json`.
 
 Publish is idempotent by article ID: if `state/manifest.json` already holds an
 Intercom ID, update instead of creating. Safe to re-run.

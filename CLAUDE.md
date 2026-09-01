@@ -32,6 +32,11 @@ the screenshots when the product changes. Small differences between runs are fin
 a shifted pixel, a different hash. What is not fine is fixing a screenshot by hand
 instead of fixing the spec. You supervise the run. You do not improvise it.
 
+**You do not commit and you do not push.** `.claude/settings.json` denies both.
+Stage the work with `git add -A`, write the commit message, and hand the human one
+command to run. Then wait - the images have to be on `origin` before any URL
+resolves, so the run cannot continue without them.
+
 **Commit straight to `master`.** No feature branch, no pull request. Screenshot
 URLs are pinned to the commit that holds them, so work sitting on a side branch is
 work whose images resolve from somewhere the help centre will not keep. Collections

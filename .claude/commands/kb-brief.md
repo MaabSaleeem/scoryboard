@@ -49,9 +49,17 @@ compacted, and it is how a fresh session resumes if this one dies.
 
 Go straight on. Per article, in this order and no other:
 
-capture -> inspect every screenshot -> optimise -> commit -> push -> HEAD each URL
-for 200 and `image/*` -> build the article JSON -> POST or PUT to Intercom as a
-**draft** -> record the ID in `state/manifest.json`.
+Phase A, every article: capture -> inspect every screenshot -> optimise -> content-hash
+the filename.
+
+Then STOP once. Stage with `git add -A`, write the commit message, and give the
+human one command to run - `git commit -m "..." && git push origin master`. You
+cannot commit or push; the project settings deny both, and nothing downstream works
+until the images are on `origin`.
+
+Phase B, every article: HEAD each URL for 200 and `image/*` -> build the article
+JSON -> POST or PUT to Intercom as a **draft** -> record the ID in
+`state/manifest.json`.
 
 Everything lands as `state: "draft"`. Publishing is the human's action, in Intercom,
 after they have looked at it. Never send `state: "published"`.
