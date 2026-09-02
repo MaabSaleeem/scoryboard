@@ -2,31 +2,39 @@
 
 Read this first, every session. Update it at the end of every session.
 
-Status values: `not started` | `in progress` | `drafts on Intercom` | `published` |
-`blocked`.
+Status values: `not started` | `in progress` | `published` | `blocked`.
 
-`drafts on Intercom` is where a finished run leaves a collection: every article
-drafted, nothing public, waiting for a human to read it in Intercom. Only a human
-moves a collection to `published`.
+`published` is where a finished run leaves a collection: every article live on
+`https://help.scoryboard.com`. **Changed 2026-09-02** - a run used to stop at
+`drafts on Intercom` and wait for a human to read the drafts and publish them, and
+only a human could move a collection to `published`. That gate is gone; phase B
+publishes. See the session log entry "The workflow changed".
+
+`drafts on Intercom` still appears in older entries below. Read it as history.
+
+The status column is checked against Intercom, not remembered:
+`node scripts/reconcile-manifest.mjs` reads every article back and reports what
+disagrees. On 2026-09-02 that found 90 stale rows and seven wrong collection
+statuses.
 
 One collection per session. Do not touch a collection that is not this session's
 target.
 
 | # | Collection | Articles | Shots (est.) | Persona default | Status | Brief | Notes |
 |---|---|---|---|---|---|---|---|
-| 01 | Getting started & onboarding | 7 | 44 | fresh | drafts on Intercom | [briefs/01.md](../briefs/01.md) | 43 screenshots. **01.4-01.7 published by the reviewer 2026-08-28; 01.1-01.3 still drafts.** 01.3 retitled "Resetting your password" - the invited-account half was dropped. Seven accounts, all `kb-fresh-01@` or `kb-01-*@`; two now unused |
+| 01 | Getting started & onboarding | 7 | 44 | fresh | published | [briefs/01.md](../briefs/01.md) | 43 screenshots. **01.4-01.7 published by the reviewer 2026-08-28; 01.1-01.3 followed later.** 01.3 retitled "Resetting your password" - the invited-account half was dropped. Seven accounts, all `kb-fresh-01@` or `kb-01-*@`; two now unused **Status corrected to `published` 2026-09-02: scripts/reconcile-manifest.mjs read every article in this collection back off Intercom and all of them are live.** |
 | 02 | Finding your way around & your profile | 8 | 36 | player | published | [briefs/02.md](../briefs/02.md) | 36 screenshots. **All eight published by the reviewer 2026-08-29.** 02.1, 02.3 and 02.6 amended and republished afterwards. 03 merged in 2026-08-29; four articles dropped. Accounts: `kb-player-02@`, `kb-02-owner@`, `kb-02-pro@` |
 | 04 | Plans & membership | 6 | 30 | manager_free | published | [briefs/04.md](../briefs/04.md) | 30 screenshots. **All six published by the reviewer 2026-08-29.** 04.6 amended and republished afterwards - when a slot is spent. Collection 16 was retired into this one 2026-08-29 - its six articles became three, and 16.5 was dropped. 04.1 amended and republished - the Coming soon paragraph was dropped. Pro is a free self-serve toggle during beta - no payment step, and no confirmation in either direction. Flag for rewrite when beta ends. Three accounts, NOT one flipped: `kb-manager-free-04@`, `kb-04-pro@`, `kb-04-upgrade@` |
-| 05 | Friends | 5 | 26 | manager_free | drafts on Intercom | [briefs/05.md](../briefs/05.md) | 26 screenshots. **05.1-05.4 published by the reviewer 2026-08-31; 05.5 is a draft.** Collection 06 was retired into this one 2026-08-31 - 06.1 became 05.5. Found that a **refused Add To Team deletes the friend** (ONE_FRIEND_PER_TEAM), which also answers collection 04's open question 1. Accounts: `kb-manager-free-05@`, `kb-05-mate@`, `kb-05-player@`, `kb-05-invitee@`. `kb-05-claimer@` is burnt - see the session log |
+| 05 | Friends | 5 | 26 | manager_free | published | [briefs/05.md](../briefs/05.md) | 26 screenshots. **05.1-05.4 published by the reviewer 2026-08-31; 05.5 followed later.** Collection 06 was retired into this one 2026-08-31 - 06.1 became 05.5. Found that a **refused Add To Team deletes the friend** (ONE_FRIEND_PER_TEAM), which also answers collection 04's open question 1. Accounts: `kb-manager-free-05@`, `kb-05-mate@`, `kb-05-player@`, `kb-05-invitee@`. `kb-05-claimer@` is burnt - see the session log **Status corrected to `published` 2026-09-02: scripts/reconcile-manifest.mjs read every article in this collection back off Intercom and all of them are live.** |
 | ~~06~~ | ~~Following~~ | - | - | - | **retired** | - | **RETIRED 2026-08-31, merged into 05.** 06.1 became 05.5. Intercom collection 19733975 was empty before the merge and is empty after it; it must not be reused |
 | 07 | Teams | 11 | 63 | manager_pro | published | [briefs/07.md](../briefs/07.md) | 63 screenshots. **All eleven published by the reviewer 2026-08-29.** 07.7 and 07.9 retitled - the app has no ownership transfer and no Fan role. Accounts: `kb-manager-pro-07@`, `kb-fresh-07@`, six `kb-07-*@` |
-| 08 | Leaderboards & leagues | 5 | 30 | manager_pro | drafts on Intercom | [briefs/08.md](../briefs/08.md) | 30 screenshots. Found that **removing a team from a leaderboard has no confirmation at all**, that the league table carries **no points, no draws and no goals conceded**, that the Share Leaderboard "public link" sends a signed-out visitor to `/signin`, and that a comment can never be deleted - `DELETE /comments/:id` answers 401 even to its author. The **External** badge on a team row means "not one of your own", and it wrongly marks the owner’s own teams until the account has opened `/teams` once. Four accounts: `kb-manager-pro-08@`, `kb-08-admin@`, `kb-08-free@`, `kb-08-outsider@`. Four played matches; they cannot be undone |
-| 09 | Creating & scheduling matches | 7 | 44 | manager_pro | drafts on Intercom | [briefs/09.md](../briefs/09.md) | 44 screenshots. Found that **Create Match creates the match** on the click, that **seven** fields decide Incomplete vs Scheduled - and a **leaderboard is one of them, even for a friendly** - and that **`DELETE /matches/:id` does not delete**, it sets `status: "Cancelled"`. 09.5 retitled "Editing or cancelling a match" - there is no delete anywhere in the app. 09.6's referee half narrowed: the Referee box only offers referees saved from a tournament, so it reads "No results found" for a manager who has never run one. The match **share link is not public** - a signed-out visitor gets Sign In and permanent skeletons. Four accounts: `kb-manager-pro-09@`, `kb-09-admin@`, `kb-09-player@`, `kb-referee-09@`. Two Scheduled fixtures on FIXED dates (24 and 30 Sept 2026); the seed refuses to run once they have passed. **All seven were published by the reviewer 2026-08-31, two minutes after the run posted them as drafts** |
+| 08 | Leaderboards & leagues | 5 | 30 | manager_pro | published | [briefs/08.md](../briefs/08.md) | 30 screenshots. Found that **removing a team from a leaderboard has no confirmation at all**, that the league table carries **no points, no draws and no goals conceded**, that the Share Leaderboard "public link" sends a signed-out visitor to `/signin`, and that a comment can never be deleted - `DELETE /comments/:id` answers 401 even to its author. The **External** badge on a team row means "not one of your own", and it wrongly marks the owner’s own teams until the account has opened `/teams` once. Four accounts: `kb-manager-pro-08@`, `kb-08-admin@`, `kb-08-free@`, `kb-08-outsider@`. Four played matches; they cannot be undone **Status corrected to `published` 2026-09-02: scripts/reconcile-manifest.mjs read every article in this collection back off Intercom and all of them are live.** |
+| 09 | Creating & scheduling matches | 7 | 44 | manager_pro | published | [briefs/09.md](../briefs/09.md) | 44 screenshots. Found that **Create Match creates the match** on the click, that **seven** fields decide Incomplete vs Scheduled - and a **leaderboard is one of them, even for a friendly** - and that **`DELETE /matches/:id` does not delete**, it sets `status: "Cancelled"`. 09.5 retitled "Editing or cancelling a match" - there is no delete anywhere in the app. 09.6's referee half narrowed: the Referee box only offers referees saved from a tournament, so it reads "No results found" for a manager who has never run one. The match **share link is not public** - a signed-out visitor gets Sign In and permanent skeletons. Four accounts: `kb-manager-pro-09@`, `kb-09-admin@`, `kb-09-player@`, `kb-referee-09@`. Two Scheduled fixtures on FIXED dates (24 and 30 Sept 2026); the seed refuses to run once they have passed. **All seven were published by the reviewer 2026-08-31, two minutes after the run posted them as drafts** **Status corrected to `published` 2026-09-02: scripts/reconcile-manifest.mjs read every article in this collection back off Intercom and all of them are live.** |
 | 10 | Match day | 10 | 60 | manager_pro | published | [briefs/10.md](../briefs/10.md) | 60 screenshots. **All ten published 2026-09-01 on the owner's instruction, straight after the run - not reviewed in Intercom first. The help centre is LIVE, so they are public.** See the session log. Found that **a match runs itself**: it starts when its date arrives and **ends itself 24 hours after full time** - the card says "Match auto-ends in" - so a match created more than a day after it finished arrives `Finished` at 0-0 and can never be scored (10.9). **END MATCH does not exist until the timer hits 00:00**; the timer pill IS the pause control. **Penalties and typed score entry are tournament-only**, so 10.6 was retitled "Yellow and red cards, and how the final score is set". The match feed has **no REST read at all** - it is a Firestore subscription, which is what makes 10.10 work. Two Free gates with no error code: the fourth substitute slot and Add media. **Reloading a paused match resumes it** - a real defect, warned about in 10.3 and 10.4. Four accounts: `kb-manager-pro-10@`, `kb-10-admin@`, `kb-10-player@`, `kb-referee-10@`. Two leaderboards: KB 10 Sunday League holds the fixtures, KB 10 Midweek holds every throwaway. One Scheduled fixture on a FIXED date (15 Oct 2026); the seed refuses to run once it has passed |
-| 11 | Match insights & statistics | 3 | 9 | player | drafts on Intercom | [briefs/11.md](../briefs/11.md) | 9 screenshots. 11.1 retitled - the app has no form guide and no head-to-head record. Found that **a match outside a leaderboard writes no statistics at all** and that a player counts the matches they were in the LINEUP for. Accounts: `kb-player-11@`, `kb-11-owner@`. Four played matches; they cannot be undone. **All three published by the reviewer 2026-08-31, then all three rewritten for clarity and republished** |
+| 11 | Match insights & statistics | 3 | 9 | player | published | [briefs/11.md](../briefs/11.md) | 9 screenshots. 11.1 retitled - the app has no form guide and no head-to-head record. Found that **a match outside a leaderboard writes no statistics at all** and that a player counts the matches they were in the LINEUP for. Accounts: `kb-player-11@`, `kb-11-owner@`. Four played matches; they cannot be undone. **All three published by the reviewer 2026-08-31, then all three rewritten for clarity and republished** **Status corrected to `published` 2026-09-02: scripts/reconcile-manifest.mjs read every article in this collection back off Intercom and all of them are live.** |
 | 12 | Tournaments - setting one up | 10 (+2) | 80 | organiser | published | [briefs/12.md](../briefs/12.md) | 12 published, 80 screenshots. 12.11 and 12.12 added for Padel; not in the map |
-| 13 | Tournaments - groups, brackets & phases | 11 | 55 | organiser | drafts on Intercom | [briefs/13.md](../briefs/13.md) | flag: TOURNAMENT_FEATURE_ENABLED. 11 drafts, 55 screenshots. 13.8 retitled. Account: kb-organiser-13@yopmail.com |
-| 14 | Tournaments - the fixture schedule | 8 | 37 | organiser | drafts on Intercom | [briefs/14.md](../briefs/14.md) | flag: TOURNAMENT_FEATURE_ENABLED. 8 drafts, 37 screenshots. 14.5 retitled - fixtures cannot be deleted. Account: kb-organiser-14@yopmail.com |
+| 13 | Tournaments - groups, brackets & phases | 11 | 55 | organiser | published | [briefs/13.md](../briefs/13.md) | flag: TOURNAMENT_FEATURE_ENABLED. 11 articles, 55 screenshots. 13.8 retitled. Account: kb-organiser-13@yopmail.com **Status corrected to `published` 2026-09-02: scripts/reconcile-manifest.mjs read every article in this collection back off Intercom and all of them are live.** |
+| 14 | Tournaments - the fixture schedule | 8 | 37 | organiser | published | [briefs/14.md](../briefs/14.md) | flag: TOURNAMENT_FEATURE_ENABLED. 8 articles, 37 screenshots. 14.5 retitled - fixtures cannot be deleted. Account: kb-organiser-14@yopmail.com **Status corrected to `published` 2026-09-02: scripts/reconcile-manifest.mjs read every article in this collection back off Intercom and all of them are live.** |
 | 15 | Tournaments - publishing & running | 9 | 62 | organiser | published | [briefs/15.md](../briefs/15.md) | flag: TOURNAMENT_FEATURE_ENABLED. 65 screenshots. **All nine published by the reviewer 2026-09-01, within the hour the run posted them as drafts. 15.8 step 1 was simplified and republished afterwards, live.** Four articles retitled: **15.1 there is nothing to publish** (`isPublic` is already true on every tournament, and the public page really IS public, unlike the leaderboard and match share links); 15.2 drops access tokens (`/tournaments/token/:token` exists and nothing mints one); 15.6 drops prizes because **the PRIZES tab is a Winner panel whose picker records nothing** - Save Winner can never be enabled, established with a trusted click sequence and a passing control test; 15.9's "completing" re-scoped to the aftermath, since there is no Complete control. **Score entry is now verified** - START, two typed boxes that save on their own, END - and ending the PHASE is what closes it. 15.7's free_pro flag does NOT bite: Free and Pro read a long tournament message identically. Announcement-only chat refuses a tournament ADMIN too. The info page and gallery DO exist, behind a 16-pixel unlabelled pencil. Four accounts: `kb-organiser-15@`, `kb-15-admin@`, `kb-15-free@`, `kb-15-outsider@`. Six tournaments; two on FIXED dates in Oct and Nov 2026 and the seed refuses to run once they have passed |
 | ~~16~~ | ~~Tournament plans & payment~~ | - | - | - | **retired** | - | **RETIRED 2026-08-29, merged into 04.** 16.1+16.2 -> 04.4, 16.3+16.4 -> 04.5, 16.6 -> 04.6. 16.5 dropped - managing a live Annual subscription needs a completed payment. Intercom collection 19733985 is empty and must not be reused |
 | 17 | Collecting & making payments | 9 | 63 | manager_pro | published | [briefs/17.md](../briefs/17.md) | 52 screenshots. **All nine published by the repo owner 2026-09-02, on their instruction, without the usual draft review.** Every capture stops before Stripe, on instruction: setting up a payout account opens a window at connect.stripe.com, Pay Now opens Stripe Elements, and both are CAPTCHA-gated. 17.9 retitled "Payment statuses and failed payments" - the app has no refund feature at all. 17.2 is 4 shots not 12, 17.8 is 6 not 8; the rest were Stripe's own screens. **The payout account on `kb-manager-pro-17@` was connected by a human and cannot be rebuilt from here** - never `--rebuild` this collection without one. `kb-17-nopayout@` must stay un-onboarded. Four accounts: `kb-manager-pro-17@`, `kb-player-17@`, `kb-17-admin@`, `kb-17-nopayout@` |
@@ -3187,5 +3195,53 @@ says `drafts on Intercom`. This file says only a human moves a collection to
 JSON. `publish-article.mjs` overrides it and sent `draft` four times here, so
 nothing went out wrong - but collection 17 flagged this and it has not been
 changed. Still worth changing to `draft`.
+
+### The workflow changed: the run now publishes, and there is no draft gate
+
+**2026-09-02, on the repo owner's instruction.** Phase B used to leave every article
+in Intercom as a draft, and a human read the drafts with the screenshots rendered and
+published the ones they were happy with. That click was the review and the approval.
+It is gone. Phase B now publishes with `--state published`, and `website_turned_on`
+is `true`, so an article is publicly readable the moment the run finishes.
+
+Phase B also gained two stages, both mandatory, both because of what this session
+found:
+
+1. `node scripts/reconcile-manifest.mjs --write`, **before the build**, because the
+   build is what resolves `{{link:}}` out of the manifest. A stale row turns a
+   cross-reference into quoted plain text and fails nothing.
+2. **A second build and publish of the whole collection**, after the first publish.
+   Intercom answers `url: null` for a draft, so a first build cannot link an article
+   to its own siblings. Then verify the anchors off the LIVE API, not off the JSON.
+
+The full order is now: capture, inspect, optimise, name - stop for the human to
+commit and push - then verify, reconcile, read, build, publish, build again, publish
+again, verify live, record.
+
+Five files carried the drafts-only rule and all five were updated: `CLAUDE.md`,
+`docs/workflow.md`, `README.md`, `.claude/commands/kb-brief.md` and
+`.claude/commands/kb-publish.md`. `CLAUDE.md` is the one that overrides everything
+else, so a change made only in `docs/workflow.md` would have been ignored by the
+next session.
+
+**What a future session should take from this.** Nobody vets the brief and nobody
+vets the result. "Stop and ask" is now the only check between a step-1
+misunderstanding and a live help centre article, and the end-of-session report is
+read after the fact. `kb-publish` is the sharper edge: it re-runs a collection that
+is usually already public, so a bad capture published there replaces a good live one.
+
+### Still outstanding: cross-references in the other collections
+
+This session rebuilt collection 18 only. Every other collection resolved its
+`{{link:}}` placeholders against the manifest as it stood at build time, and the
+manifest was missing an `intercom_url` for 74 rows across collections 01, 02, 04,
+05, 07, 09, 10, 11, 12, 13 and 14. So there are almost certainly quoted titles on
+the live help centre that should be links.
+
+The manifest is correct now, so the fix is mechanical: for each collection, rebuild
+every article against the commit its images are pinned to (it is in the manifest as
+`commit_sha`) and re-publish. **Not done here** - it touches eleven collections of
+published articles and was not asked for. Verify link counts off the live API before
+and after.
 
 Next: pick from the remaining collections - 09, 10, 19, 20, 21, 22, 24.

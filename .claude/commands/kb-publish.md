@@ -31,17 +31,26 @@ human one command to run - `git commit -m "..." && git push origin master`. You
 cannot commit or push; the project settings deny both, and nothing downstream works
 until the images are on `origin`.
 
-Phase B, every article: HEAD each URL for 200 and `image/*` -> build the article
-JSON -> POST or PUT to Intercom as a **draft** -> record the ID in
-`state/manifest.json`.
+Phase B: HEAD each URL for 200 and `image/*` ->
+`node scripts/reconcile-manifest.mjs --write` (BEFORE the build - the build resolves
+`{{link:}}` out of the manifest) -> build the article JSON -> publish every article
+with `--state published` -> **build and publish the whole collection a second time**, so
+the `{{link:}}` cross-references resolve into real anchors -> verify the anchors and
+images off the LIVE Intercom API -> record the IDs in `state/manifest.json`.
 
 Publish is idempotent by article ID: if `state/manifest.json` already holds an
 Intercom ID, update instead of creating. Safe to re-run.
 
-Everything lands as `state: "draft"`. Publishing is the human's action, in Intercom.
-Never send `state: "published"` - including for an article that is already published,
-where a re-run would otherwise silently overwrite live content. If an article needs
-re-publishing rather than re-drafting, say so in the report and let the human do it.
+**Everything goes live.** Changed 2026-09-02: there is no draft stage and no
+approval step, and `website_turned_on` is `true`, so an article is publicly readable
+the moment you publish it. This command re-runs a collection that is usually already
+public - so a bad capture you publish REPLACES a good live one. Inspect every
+screenshot before phase B, not after.
+
+Two stages are not optional. The reconcile: a stale manifest row silently turns a
+cross-reference into quoted plain text and fails nothing. And the second
+build-and-publish pass: Intercom gives a draft no URL, so a first build cannot link
+an article to its own siblings.
 
 Fix these yourself, then log the fix in the spec and in the report:
 
@@ -62,7 +71,8 @@ Stop and ask when you find:
 Never absorb a failure silently. Never add a screenshot the brief did not list.
 Never publish an article the brief did not cover.
 
-Finish by updating `state/progress.md` and reporting: which articles are drafts in
-Intercom with their IDs, what differed from the brief, what was skipped and why,
-anything you were unsure about, flakes seen, and the commit SHA the image URLs are
-pinned to.
+Finish by updating `state/progress.md` and reporting: which articles are now LIVE,
+with their IDs and public URLs, what differed from the brief, what was skipped and
+why, anything you were unsure about, flakes seen, the cross-reference count verified
+off the live API, and the commit SHA the image URLs are pinned to. Say plainly that
+nothing was reviewed before it went out.

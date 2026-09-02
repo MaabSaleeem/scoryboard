@@ -23,9 +23,14 @@ Write the brief, then keep going. Nobody reads it before step 2, and it is still
 mandatory: it is the plan you execute against, your memory across a long run, and
 what lets a fresh session resume this collection after a crash.
 
-**Everything publishes to Intercom as a draft.** The human reviews the drafts in
-Intercom, with the real screenshots in front of them, and publishes from there.
-That is the only review and it happens after the run.
+**The run publishes. There is no review before it.** Changed 2026-09-02 on the repo
+owner's instruction. Phase B takes every article to `state: "published"`, and the
+help centre is live at `https://help.scoryboard.com`, so an article is publicly
+readable the moment the run finishes. It used to go out as a draft and wait for a
+human to read it in Intercom; that gate is gone. Nobody reads the brief before the
+run and nobody reads the result before a reader does, so "stop and ask" below is the
+only check left - use it. The end-of-session report is what the human actually
+reads, and they read it afterwards.
 
 **The specs are the source of truth.** We must be able to re-run them to regenerate
 the screenshots when the product changes. Small differences between runs are fine -
@@ -83,8 +88,8 @@ happened into the brief so the record and the artifact agree.
 
 ## Never
 
-- Never publish an article the brief did not cover, and never publish one with
-  `state: "published"`. Drafts only - publishing is the human's action.
+- Never publish an article the brief did not cover. The run publishes straight to
+  the live help centre, so this is the rule that keeps an unplanned article off it.
 - Never run a destructive flow against unseeded data. Seed your own fixtures.
 - Never absorb a failure silently. Log every deviation.
 - Never commit anything from `local/`. It holds credentials and client material.

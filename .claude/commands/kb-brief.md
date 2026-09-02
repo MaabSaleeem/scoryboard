@@ -1,13 +1,14 @@
 ---
-description: Run a collection end to end - explore, spec, capture, publish as drafts
+description: Run a collection end to end - explore, spec, capture, publish live
 argument-hint: <collection-id>  e.g. 07
 ---
 
 Target collection: **$ARGUMENTS**
 
 Run this collection from start to finish in one go. There is no approval step in the
-middle. You write the brief, then you execute it. The human reviews the drafts in
-Intercom afterwards.
+middle. You write the brief, then you execute it. **The run publishes to the live
+help centre** - there is no draft stage and no approval step. The human reads your
+report afterwards.
 
 Work on this collection only.
 
@@ -57,12 +58,19 @@ human one command to run - `git commit -m "..." && git push origin master`. You
 cannot commit or push; the project settings deny both, and nothing downstream works
 until the images are on `origin`.
 
-Phase B, every article: HEAD each URL for 200 and `image/*` -> build the article
-JSON -> POST or PUT to Intercom as a **draft** -> record the ID in
-`state/manifest.json`.
+Phase B: HEAD each URL for 200 and `image/*` ->
+`node scripts/reconcile-manifest.mjs --write` (BEFORE the build - the build resolves
+`{{link:}}` out of the manifest) -> build the article JSON -> publish every article
+with `--state published` -> **build and publish the whole collection a second time**, so
+the `{{link:}}` cross-references resolve into real anchors -> verify the anchors and
+images off the LIVE Intercom API -> record the IDs in `state/manifest.json`.
 
-Everything lands as `state: "draft"`. Publishing is the human's action, in Intercom,
-after they have looked at it. Never send `state: "published"`.
+**Everything goes live.** `website_turned_on` is `true`, so an article is publicly
+readable the moment you publish it. Two things follow. The reconcile is not
+optional - a stale manifest row silently turns a cross-reference into quoted plain
+text and fails nothing. And the second build-and-publish pass is not optional
+either: Intercom gives a draft no URL, so a first build cannot link an article to
+its own siblings.
 
 Fix these yourself, then log the fix in the spec and in the report:
 
@@ -81,14 +89,15 @@ Stop and ask when you find:
 - anything that would change what the brief said
 
 Stop means stop on that article. Finish the others, then report. Nobody vetted the
-brief, so you are the only check between a step-1 misunderstanding and a draft that
-documents the product wrongly. Changing the brief mid-run is fine; changing it
+brief and nobody vets the result, so you are the only check between a step-1
+misunderstanding and a LIVE article that documents the product wrongly. Changing the brief mid-run is fine; changing it
 quietly is not.
 
 ## Finish
 
-Update `state/progress.md` and report: which articles are now drafts in Intercom
-with their IDs, what differed from the brief, what was skipped and why, anything you
-were unsure about and where to look hard, flakes seen, and the commit SHA the image
-URLs are pinned to. Say plainly that the drafts are unreviewed and nothing is
-published.
+Update `state/progress.md` and report: which articles are now LIVE, with their IDs
+and public URLs, what differed from the brief, what was skipped and why, anything
+you were unsure about and where to look hard, flakes seen, the cross-reference count
+verified off the live API, and the commit SHA the image URLs are pinned to. Say
+plainly that nothing was reviewed before it went out, and name the articles you
+would re-read first.

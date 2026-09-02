@@ -6,11 +6,12 @@ the live staging app with Playwright and published through the Intercom Articles
 API.
 
 The work is done by Claude Code sessions, one collection at a time. A session runs
-end to end without stopping, and leaves every article in Intercom as a draft. You
-review the drafts there, where the screenshots are rendered, and publish the ones
-you are happy with. The screenshots are regenerable: the Playwright specs are the
-source of truth, so when the product changes the affected specs are re-run rather
-than re-shot by hand.
+end to end without stopping and **publishes**: from 2026-09-02 every article goes
+straight to the live help centre at `https://help.scoryboard.com`. There is no
+draft stage and no approval step. You read the end-of-session report afterwards and
+correct anything you do not like, which is a re-run. The screenshots are
+regenerable: the Playwright specs are the source of truth, so when the product
+changes the affected specs are re-run rather than re-shot by hand.
 
 ## How to run a session
 
@@ -23,11 +24,12 @@ claude
 Then, inside the session:
 
 - `/kb-brief 07` - the whole collection. Claude seeds personas, explores the flows,
-  writes a Playwright spec and a brief per article, then captures, commits, pushes,
-  verifies every image URL, and drafts each article into Intercom. No stop in the
-  middle.
-- **You review the drafts in Intercom** and publish what you are happy with. That
-  click is the approval; nothing goes live without it.
+  writes a Playwright spec and a brief per article, then captures, verifies every
+  image URL, publishes each article, and builds and publishes a second time so the
+  cross-references resolve into real links. One stop in the middle, for you to
+  commit and push the screenshots.
+- **You read the report at the end.** The articles are already live by then. It
+  names what Claude was unsure about and which articles to re-read first.
 - `/kb-publish 07` - step 2 on its own, to resume a run that died or to re-capture
   after the product changes. Safe to re-run.
 

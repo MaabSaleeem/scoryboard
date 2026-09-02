@@ -1,7 +1,9 @@
 # The workflow
 
 Two steps per collection, run back to back with no stop between them. One
-collection per session. Review happens at the end, on Intercom, on the drafts.
+collection per session. **The run publishes** - see
+[Where the review happens](#where-the-review-happens), which changed on
+2026-09-02 and is the first thing to read if you have run this before.
 
 The rule that governs everything below: **the specs are the source of truth.** Step 1
 decides what a screenshot shows and writes that decision into a spec. Step 2 runs the
@@ -160,21 +162,34 @@ What you could not get to, and why.
 
 ## Where the review happens
 
-At the end, in Intercom, on the drafts. Not here.
+**Changed 2026-09-02, on the repo owner's instruction. Read this before anything
+else in step 2.**
 
-Every article is published with `state: "draft"`, so it sits in the Intercom
-collection, images rendered, invisible to the public. The human reads the drafts
-there and publishes the ones they are happy with. That is the review, and that
-click is the approval.
+The run now publishes. Phase B takes each article to `state: "published"`, and the
+help centre is live at `https://help.scoryboard.com`, so an article is publicly
+readable the moment phase B finishes. There is no draft stage and no gate in front
+of it.
 
-Two things follow from this.
+It used to work the other way: every article went out as a draft and a human read
+the drafts in Intercom and published the ones they were happy with. That click was
+the review and the approval. It is gone. What that means in practice:
 
-- **The human never has to open the brief.** So do not write it as a pitch. Write it
-  as a plan, and put anything the human genuinely needs to decide in the
-  end-of-session report instead, where they will actually see it.
-- **A wrong draft costs almost nothing.** Re-run the article; the publish is
-  idempotent by article id and overwrites the draft. That is what buys the removal
-  of the mid-run gate - not a claim that the model is more accurate without it.
+- **Nothing between a step-1 misunderstanding and a live help centre article but
+  you.** The brief is unreviewed, and now so is the result. "Stop and ask" below is
+  no longer a courtesy - it is the only check left. When a flow does not behave the
+  way the brief says, stop on that article, finish the others, and report. Do not
+  reason your way past it.
+- **The end-of-session report is the only thing the human is guaranteed to read**,
+  and now they read it *after* the article is public. Say plainly what you were
+  unsure about and where to look hard.
+- **A wrong article is a wrong PUBLIC article.** It is still cheap to correct - the
+  publish is idempotent by article id and overwrites - but it was visible in the
+  meantime. Correcting one is a re-run, not a panic.
+- **The human never has to open the brief.** Unchanged. Do not write it as a pitch;
+  put anything they genuinely need to decide in the report.
+
+**You still never publish an article the brief did not cover.** That rule did not
+change and it matters more now, not less.
 
 ---
 
@@ -256,35 +271,87 @@ SHA it prints is the one every image URL is pinned to - pass it to
    with a delay before you decide a URL is broken. **A 404 at fetch time becomes a
    permanently broken article.** Do not skip this stage. Intercom rehosts images on
    publish, so these URLs are transitional - but they must resolve at publish time.
-7. **Read the prose back, then build the article JSON** under
+7. **Reconcile the manifest. Do this BEFORE you build anything.**
+   `node scripts/reconcile-manifest.mjs --write`.
+
+   Not optional, and not bookkeeping. `build-article.mjs` turns each
+   `{{link:<id>|text}}` into an anchor by reading `state/manifest.json` - it needs
+   that row to say `published` and to carry an `intercom_url`. And the manifest only
+   ever learns about publishes `publish-article.mjs` itself did, so it is stale by
+   default. A stale row silently degrades the link to a quoted title: it fails
+   nothing and prints nothing, and you find out by reading the live help centre.
+
+   Run over 115 articles on 2026-09-02, **90 rows were wrong**: 16 said `draft` and
+   were live, and 74 had no URL at all. Collection 18 shipped two cross-references
+   into collection 04 as plain text before this step existed.
+
+   The script sends nothing but GETs, so it can neither publish nor unpublish. A row
+   whose id answers 404 is reported and left alone for a human.
+8. **Read the prose back, then build the article JSON** under
    `articles/<article-id>.json`. Split any sentence carrying three ideas, or whose
    pronoun points further back than the clause before it - collection 10 published a
    dozen of those and a reader found them in minutes.
-8. **Publish to Intercom as a draft.** POST to the Articles API with `author_id`,
-   `parent_id` (the collection id from `config/intercom.yaml`),
-   `parent_type: "collection"` and `state: "draft"`. The parent matters even for a
-   draft - an article outside a collection is hard to find in the Intercom UI, and
-   invisible in the help centre once published. If the article already has an
-   Intercom ID in `state/manifest.json`, PUT instead of POST.
-   **Idempotent by article ID. Safe to re-run.** `scripts/publish-article.mjs`
-   sends `draft` unless you pass `--state published`, which is the human's call,
-   not yours.
+9. **Publish to Intercom.** `scripts/publish-article.mjs <id> --state published`.
 
-   **It asks Intercom what state the article is in before it decides**, rather
-   than trusting `state/manifest.json`, and corrects the manifest from the same
-   read. The manifest only knows about publishes the script itself did, and
-   publishing is something the reviewer does in the Intercom UI between sessions -
-   so it is stale by default. Twice that nearly unpublished live articles: four in
-   collection 01 on 2026-08-28, and forty-one across five collections on
-   2026-08-29. You no longer have to reconcile it by hand.
+   It POSTs to the Articles API with `author_id`, `parent_id` (the collection id
+   from `config/intercom.yaml`), `parent_type: "collection"` and the state. If the
+   article already has an Intercom ID in `state/manifest.json` it PUTs instead.
+   The parent matters: an article outside a collection is hard to find in the
+   Intercom UI and invisible in the help centre. **Idempotent by article ID. Safe
+   to re-run.**
+
+   **This makes the article publicly readable.** `website_turned_on` is `true` and
+   the help centre is live at `https://help.scoryboard.com`. See
+   [Where the review happens](#where-the-review-happens): there is no draft stage
+   any more, and you are the last check before a reader.
+
+   **It asks Intercom what state the article is in before it decides**, rather than
+   trusting the manifest, and corrects the manifest from the same read. That guard
+   twice stopped live articles being unpublished: four in collection 01 on
+   2026-08-28, and forty-one across five collections on 2026-08-29. It is why
+   `--state published` on an already-published article is harmless.
 
    If the manifest's id answers 404, the script refuses and tells you rather than
    creating a duplicate. If Intercom cannot be reached at all, it sends no `state`
    and says so - omitting it can never unpublish anything.
-9. **Record the ID** in `state/manifest.json`.
+10. **Resolve the cross-references - a second build and a second publish.**
+
+    Intercom answers `url: null` for a draft, so an article has no public address
+    until it is published. On the first build of a fresh collection, every
+    `{{link:<id>|text}}` pointing at a sibling in that same collection therefore
+    resolves to nothing and renders as a quoted title. `build-article.mjs` warns and
+    carries on, because otherwise the first build would be impossible.
+
+    So once stage 9 has published every article in the collection, **build and publish the whole
+    collection again**:
+
+    ```
+    for a in <every article id>; do node scripts/build-article.mjs $a <sha>; done
+    for a in <every article id>; do node scripts/publish-article.mjs $a; done
+    ```
+
+    The second build prints no warnings if it worked. Pass no `--state` on the
+    second publish: the script reads the live state, sees `published`, and leaves it
+    alone while it updates the body.
+
+    **Then verify off the live API, not off the JSON you just wrote.** Count the
+    anchors and the images in each article's live body and `HEAD` every distinct URL
+    in them. **Intercom rewrites anchors on ingest** - `<a href="...">` comes back as
+    `<a href="..." target="_blank" class="intercom-content-link">` - so match
+    `<a [^>]*href="([^"]+)"` and not `href="..."` followed by `">`. A regex that
+    expects the tag to close immediately matches nothing and reads as a total
+    failure. It cost collection 17 a session and one false alarm.
+11. **Record the ID** in `state/manifest.json`. `publish-article.mjs` does this, and
+    records `intercom_url` from Intercom's own answer.
 
 Order matters and does not bend: capture, inspect, optimise, name - stop, and let
-the human commit and push - then verify, read, build, publish, record.
+the human commit and push - then verify, reconcile, read, build, publish, build
+again, publish again, verify live, record.
+
+The reconcile comes before the first build and the second build comes after the
+first publish. Both orderings are the whole point: the first build can only link
+into collections the manifest already knows are live, and it can never link an
+article to a sibling that has no URL yet.
 
 ### Fix it yourself, then log it
 
@@ -306,9 +373,10 @@ the fix in the spec, that is a substantive problem - stop.
 - anything that would change what the brief said
 
 Stop means stop on that article. Finish the others, then report. Nobody vetted the
-brief, so you are the only thing standing between a misunderstanding in step 1 and a
-draft that documents the product wrongly. When a flow does not behave the way the
-brief says it does, that is the signal - do not reason your way past it.
+brief, and since 2026-09-02 nobody vets the result either - so you are the only
+thing standing between a misunderstanding in step 1 and a LIVE article that
+documents the product wrongly. When a flow does not behave the way the brief says
+it does, that is the signal - do not reason your way past it.
 
 Changing the brief mid-run is allowed, and sometimes right. What is not allowed is
 changing it quietly: update the file, and say what changed and why in the report.
@@ -317,8 +385,8 @@ changing it quietly: update the file, and say what changed and why in the report
 
 - Never silently absorb a failure.
 - Never add a screenshot the brief did not list.
-- Never publish an article the brief did not cover.
-- Never publish with `state: "published"`. Drafts only.
+- Never publish an article the brief did not cover. **This one matters more now
+  that the run publishes, not less.**
 
 ### The second handoff
 
@@ -326,24 +394,27 @@ Phase B writes `articles/<article-id>.json` and updates `state/manifest.json`, a
 the report updates `state/progress.md`. None of that is committed either. Stage it
 and hand over a second command at the very end.
 
-This one does not block anything: the drafts are already in Intercom and their
-images are already pinned to the first commit. It is bookkeeping, and it matters
-only so the next session can tell what was published from what.
+This one does not block anything: the articles are already live and Intercom has
+already rehosted their images. It is bookkeeping, and it matters only so the next
+session can tell what is published from what is not.
 
 ### End-of-session report
 
-This is the only thing the human is guaranteed to read, so it carries everything a
-gate used to carry. Write it into `state/progress.md` and say it in chat:
+This is the only thing the human is guaranteed to read, and since 2026-09-02 they
+read it after the articles are already public. It carries everything the draft gate
+used to carry. Write it into `state/progress.md` and say it in chat:
 
-- what is now sitting in Intercom as a draft, with article IDs and the collection
-  it landed in, so the reviewer can go straight there
+- **what is now LIVE**, with article IDs, their public URLs, and the collection they
+  landed in
 - what differed from the brief, and why
 - what was skipped, and why
 - **anything you were unsure about** - a step you could not fully verify, a screen
   you interpreted rather than confirmed, a flow that behaved oddly. Name the
-  article. A reviewer who knows where to look hard is worth more than a clean
-  report.
+  article. A reader who knows where to look hard is worth more than a clean report,
+  and now they are correcting something public rather than approving a draft.
 - flakes seen, and which specs they were in
 - the commit SHA the image URLs are pinned to
+- the cross-reference count, verified off the live API
 
-Say plainly that the drafts are unreviewed and nothing is published.
+Say plainly that nothing was reviewed before it went out, and name the articles you
+would re-read first.
