@@ -57,6 +57,8 @@ Voice, structure and screenshot conventions: [docs/style-guide.md](docs/style-gu
 Every session, in this order:
 
 1. Read [state/progress.md](state/progress.md) - what is done, what is in flight.
+   Its status column is a record, not a fact: run `node scripts/audit-live.mjs`
+   (read-only) if you need to know what the help centre actually holds.
 2. Read the target collection in [config/articles.yaml](config/articles.yaml) -
    the article list, flags, shot estimates and personas.
 3. Read [config/api.md](config/api.md) - the endpoints. Never read the Postman JSON.

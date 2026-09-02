@@ -3230,19 +3230,50 @@ misunderstanding and a live help centre article, and the end-of-session report i
 read after the fact. `kb-publish` is the sharper edge: it re-runs a collection that
 is usually already public, so a bad capture published there replaces a good live one.
 
-### Still outstanding: cross-references in the other collections
+### The cross-collection link sweep was run. There was nothing to fix.
 
-This session rebuilt collection 18 only. Every other collection resolved its
-`{{link:}}` placeholders against the manifest as it stood at build time, and the
-manifest was missing an `intercom_url` for 74 rows across collections 01, 02, 04,
-05, 07, 09, 10, 11, 12, 13 and 14. So there are almost certainly quoted titles on
-the live help centre that should be links.
+I raised this as an outstanding job and I was wrong, so here is the correction with
+the evidence. The reasoning was: 74 manifest rows had no `intercom_url`, and
+`build-article.mjs` resolves `{{link:}}` out of the manifest, therefore eleven
+collections must have published quoted titles where links belong.
 
-The manifest is correct now, so the fix is mechanical: for each collection, rebuild
-every article against the commit its images are pinned to (it is in the manifest as
-`commit_sha`) and re-publish. **Not done here** - it touches eleven collections of
-published articles and was not asked for. Verify link counts off the live API before
-and after.
+The middle step does not follow. Those articles were built when the manifest DID
+carry the URLs; the field was lost from the manifest afterwards, and the published
+bodies were never affected. Swept 2026-09-02 and measured three ways:
+
+- **87 cross-references** across all 119 prose sources. All 87 resolve, and all 87
+  are already anchors in the built JSON. **Nothing would gain a link from a
+  rebuild.**
+- **All 119 live articles match their built JSON** - same anchor count, same anchor
+  targets, same image count - and not one live body contains a quoted title where a
+  link belongs.
+- **The workspace is clean.** Intercom holds 121 articles: our 119, all
+  `published` and all in the collection the manifest names, plus two untouched
+  drafts in no collection - `16640595` "Your first public article" (Intercom's own
+  starter) and `16742469` "Untitled public article" (an API test). Deleting those
+  needs a human's say-so; `docs/workflow.md` has said so since the one-off setup,
+  where there were five of them.
+
+**No article was rebuilt or re-published.** The sweep was read-only, because it
+found nothing to change.
+
+### scripts/audit-live.mjs - ask this before you trust the record
+
+The sweep is now a script, and it is worth running at the start of a session as
+well as the end. Read-only, GETs only, writes nothing. It answers the three things
+a per-article stage cannot:
+
+1. every `{{link:}}` in every source - resolvable? an anchor in the built JSON?
+2. every live article against its built JSON - anchors, images, and state
+3. the workspace - untracked articles, and anything filed in the wrong collection
+
+It exits non-zero on a real problem and reports the two untracked starter drafts
+without failing. It compares COUNTS and TARGETS, never raw HTML, because Intercom
+rewrites what it stores - it rehosts every image and turns `<a href="x">` into
+`<a href="x" target="_blank" class="intercom-content-link">`.
+
+This matters more now that the run publishes. There is no draft to read, so the
+only way to know the live help centre matches this repo is to ask it.
 
 Next: pick from the remaining collections - 20, 21, 22, 24.
 

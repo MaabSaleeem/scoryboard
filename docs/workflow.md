@@ -334,13 +334,18 @@ SHA it prints is the one every image URL is pinned to - pass it to
     second publish: the script reads the live state, sees `published`, and leaves it
     alone while it updates the body.
 
-    **Then verify off the live API, not off the JSON you just wrote.** Count the
-    anchors and the images in each article's live body and `HEAD` every distinct URL
-    in them. **Intercom rewrites anchors on ingest** - `<a href="...">` comes back as
+    **Then verify off the live API, not off the JSON you just wrote.**
+    `node scripts/audit-live.mjs` does it for the whole project: every `{{link:}}`
+    in every source, every live article against its built JSON, and the workspace
+    for untracked or misfiled articles. It is read-only and exits non-zero on a
+    real problem. Also `HEAD` every distinct URL in the articles you just published.
+
+    **Intercom rewrites anchors on ingest** - `<a href="...">` comes back as
     `<a href="..." target="_blank" class="intercom-content-link">` - so match
     `<a [^>]*href="([^"]+)"` and not `href="..."` followed by `">`. A regex that
     expects the tag to close immediately matches nothing and reads as a total
-    failure. It cost collection 17 a session and one false alarm.
+    failure. It cost collection 17 a session and one false alarm. Compare counts and
+    targets, never raw HTML: Intercom also rehosts every image.
 11. **Record the ID** in `state/manifest.json`. `publish-article.mjs` does this, and
     records `intercom_url` from Intercom's own answer.
 
