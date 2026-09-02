@@ -39,7 +39,7 @@ target.
 | ~~16~~ | ~~Tournament plans & payment~~ | - | - | - | **retired** | - | **RETIRED 2026-08-29, merged into 04.** 16.1+16.2 -> 04.4, 16.3+16.4 -> 04.5, 16.6 -> 04.6. 16.5 dropped - managing a live Annual subscription needs a completed payment. Intercom collection 19733985 is empty and must not be reused |
 | 17 | Collecting & making payments | 9 | 63 | manager_pro | published | [briefs/17.md](../briefs/17.md) | 52 screenshots. **All nine published by the repo owner 2026-09-02, on their instruction, without the usual draft review.** Every capture stops before Stripe, on instruction: setting up a payout account opens a window at connect.stripe.com, Pay Now opens Stripe Elements, and both are CAPTCHA-gated. 17.9 retitled "Payment statuses and failed payments" - the app has no refund feature at all. 17.2 is 4 shots not 12, 17.8 is 6 not 8; the rest were Stripe's own screens. **The payout account on `kb-manager-pro-17@` was connected by a human and cannot be rebuilt from here** - never `--rebuild` this collection without one. `kb-17-nopayout@` must stay un-onboarded. Four accounts: `kb-manager-pro-17@`, `kb-player-17@`, `kb-17-admin@`, `kb-17-nopayout@` |
 | 18 | Chat & messaging | 4 | 27 | manager_free | published | [briefs/18.md](../briefs/18.md) | 27 screenshots. **All four published by the repo owner 2026-09-02, on their instruction, without the usual draft review. All 10 cross-references are live anchors.** **The persona default does NOT work here.** On Free an incoming message arrives as its first ten characters and an ellipsis, and replying to one or reacting to one is refused with 403 - so `kb-18-pro@` takes every capture and `kb-manager-free-18@` appears only in 18.1 where the gate is the subject. **Chat has a full REST surface** - nineteen `/chats` endpoints, now in config/api.md; personas.yaml's "seed the group chat through the UI" was wrong and is corrected. Deleting a message is NOT confirmed and cannot be undone. No read receipts exist. Five accounts: `kb-18-pro@`, `kb-manager-free-18@`, `kb-18-member@`, `kb-18-outsider@`, `kb-18-empty@` (holds no conversation, for the empty state) |
-| 19 | Comments, likes & ratings | 4 | 19 | player | not started | - | - |
+| 19 | Comments, likes & ratings | 4 | 19 | player | published | [briefs/19.md](../briefs/19.md) | 20 screenshots. **All four published by the repo owner 2026-09-02, on their instruction, without the usual draft review. All 6 sibling cross-references are live anchors (17 in all).** **Two of the four mapped titles describe features this build does not have, and both are retitled**: 19.1 "Commenting on a team or a leaderboard" - only a team page and a leaderboard render a comment panel, though `commentType` accepts match, player and tournament too; 19.2 "Replying to and liking comments" - a comment cannot be edited or deleted, by anyone, ever. 19.1's `free_pro` flag is **dropped**: Add Media on a comment is not Pro-gated, unlike the match feed's. 19.3 is 7 shots not 6 - a rating CAN be removed, from a kebab on your own row in the reviews list, found mid-run. **`POST /tournaments/:id/referee` is what sets `isReferee`** - closes a TODO collections 09 and 21 both left open. Five accounts: `kb-player-19@`, `kb-19-owner@`, `kb-19-pro@`, `kb-referee-19@`, `kb-19-outsider@` |
 | 20 | Notifications, emails & the activity feed | 4 | 16 | player | not started | - | No push notifications exist. Do not write one. |
 | 21 | Referees | 3 | 18 | referee | not started | - | - |
 | 22 | Venues & club locations | 2 | 11 | manager_pro | not started | - | - |
@@ -3244,4 +3244,111 @@ every article against the commit its images are pinned to (it is in the manifest
 published articles and was not asked for. Verify link counts off the live API before
 and after.
 
-Next: pick from the remaining collections - 09, 10, 19, 20, 21, 22, 24.
+Next: pick from the remaining collections - 20, 21, 22, 24.
+
+---
+
+## Collection 19 - Comments, likes & ratings - 2026-09-02
+
+Four articles, 20 screenshots, all four LIVE. Images pinned to
+`3a5cb094d67f3c5bf2abccc4a96dc390fc56252f`.
+
+| Article | Intercom id | Shots | Public URL |
+|---|---|---|---|
+| 19.1 Commenting on a team or a leaderboard | 16782573 | 6 | [/16782573](https://help.scoryboard.com/en/articles/16782573-commenting-on-a-team-or-a-leaderboard) |
+| 19.2 Replying to and liking comments | 16782574 | 4 | [/16782574](https://help.scoryboard.com/en/articles/16782574-replying-to-and-liking-comments) |
+| 19.3 Rating a match, player, team or referee | 16782576 | 7 | [/16782576](https://help.scoryboard.com/en/articles/16782576-rating-a-match-player-team-or-referee) |
+| 19.4 How average ratings are calculated | 16782578 | 3 | [/16782578](https://help.scoryboard.com/en/articles/16782578-how-average-ratings-are-calculated) |
+
+Verified off the live Intercom API: 4 published, all in collection 19733988,
+**17 anchors and 20 images, 0 broken, 0 stray placeholders**. Six of those anchors
+are sibling links inside collection 19 and only resolved on the second
+build-and-publish pass. Intercom rehosted every image.
+
+### The map promised more than the app has
+
+Two of the four titles in `config/articles.yaml` describe features that do not
+exist on this build. Both were measured endpoint by endpoint and screen by screen
+before anything was written, and both are retitled rather than dropped.
+
+- **Comments exist on two screens, not five.** `POST /comments` takes
+  `commentType` from `leaderboard | team | match | player | tournament` - the API
+  prints that list in its own validation error - and stores all five. Only a
+  **team** page and a **leaderboard** page render a comment panel. A match page
+  fires no `/comments` request at all (its FEED is the match event list), a player
+  profile fires none, and no tournament tab fires one either. So 19.1 became
+  **"Commenting on a team or a leaderboard"**.
+- **A comment cannot be edited or deleted.** The whole surface is post, read,
+  replies, like and the media pair. There is no `editComment` and no
+  `deleteComment` in the bundle; `PUT /comments/:id` works over the API and
+  nothing calls it; `DELETE /comments/:id` answers 401 to the author. So 19.2
+  became **"Replying to and liking comments"**, and says plainly that a comment is
+  permanent. Collection 08's article 08.5 already had this right - only
+  `config/api.md` was behind.
+- **19.1's `free_pro` flag has no basis and is dropped.** There are two Add Media
+  buttons in the bundle. The **match feed**'s checks `membership === Pro`; the
+  **comment composer**'s checks nothing, and `POST /comments/media` answers 200 to
+  a Free account. Nothing else in the comment or rating surface differs by plan,
+  so there is no dual capture in this collection.
+
+### Corrected mid-run: a rating CAN be removed
+
+The brief said a rating could be changed and never taken back, because the Rate
+panel offers only Post, Update and Close and `useDeleteRatingMutation` looked
+unwired. It is wired somewhere easy to miss: the read-only **reviews list** puts a
+kebab on **your own** review row - and only on yours - carrying **Edit** and
+**Delete**. No accessible name, plain ellipsis icon. It surfaced when an unrelated
+assertion in 19.4 failed and printed the dialog's accessibility tree.
+
+19.3 therefore has a seventh capture. `config/api.md` and `lib/fixtures-19.mjs`
+both carried the wrong claim for part of the run and are corrected.
+
+### config/api.md
+
+Eight corrections, all observed on the wire or in the app. The two that matter
+beyond this collection:
+
+- **`POST /tournaments/:id/referee` sets `isReferee: true` and
+  `defaultProfile: "Referee"`.** That closes the TODO collections 09 and 21 both
+  left open about how somebody becomes a referee. There is still no way to become
+  one outside a tournament, which is why `scripts/seed-19.mjs` holds one.
+- **`POST /matches/:id/status {"status":"Cancelled"}` works on a match the server
+  auto-finished**, and only on that. `config/api.md` said the endpoint could never
+  set Cancelled.
+
+The rest: the `commentType` enum (closing this collection's own TODO), `PUT` and
+`DELETE` on a comment, the 409 on a double like, leaderboard commenting being open
+to a player on a member team, a rating being replaced rather than duplicated, and
+where Edit and Delete for a rating actually live.
+
+### The seed rebuilds rather than reconciles, and here is why
+
+`scripts/seed-19.mjs` deletes and remakes both teams, the leaderboard, the played
+match and every comment on every run. **A comment cannot be deleted**, so the only
+way to make a thread say exactly what the brief planned is to throw away the entity
+it hangs off. Team ids, the leaderboard id, the match id and every comment id
+therefore change on every run, and no spec hardcodes one - `fixtures19()` looks
+each up by name. Accounts, memberships, the venue, the referee flag and every
+rating are reconciled.
+
+### Flakes and traps, for the next session
+
+- **The star row lights on hover.** The Rate chooser's rows sit roughly where the
+  stars appear, so the pointer is left resting on a star the moment a panel opens.
+  The first walk through read three amber stars on an account that had never rated
+  the match. `openRate()` parks the pointer and every capture asserts the star
+  count.
+- **"MATCH ENDED" is upper-cased by CSS.** Its accessible name is `match ended`.
+  The same text-transform trap collections 14 and 01 hit.
+- **Opening a menu makes Radix mark the dialog under it `aria-hidden`**, so a live
+  `getByRole('dialog')` locator stops resolving mid-capture. Clip targets that
+  outlive a menu opening have to be attribute selectors.
+- **A comment's attachment is not an `<img>`.** It is a `blob:` URL painted as a
+  CSS background; the composer's own preview IS an `<img alt="preview-N">`. Two
+  different locators for what looks like one thing.
+- **The upload is not the thumbnail.** The preview appears from a local blob
+  before `/comments/media` has answered, with a spinner over it. The first run
+  published that.
+
+No test-level flakes: the four specs passed together on the final run, and each
+has been run at least three times.

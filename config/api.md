@@ -787,7 +787,8 @@ button `disabled`, and no message explaining why. The API agrees:
 That section records `POST /comments` as 403 for anybody who is not the Owner
 or an Administrator. A player on a team that is **in** the leaderboard may
 comment too - measured with an account that was neither owner nor admin, only a
-squad member of a member team.
+squad member of a member team. Collection 08's own article 08.5 already said so;
+this reference was the part that was behind.
 
 **Add Media on a comment is NOT Pro-gated.** There are two Add Media buttons in
 the bundle and they are different components. The **match feed**'s checks
