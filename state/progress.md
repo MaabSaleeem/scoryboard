@@ -3331,6 +3331,21 @@ therefore change on every run, and no spec hardcodes one - `fixtures19()` looks
 each up by name. Accounts, memberships, the venue, the referee flag and every
 rating are reconciled.
 
+### Cut after the report, on the repo owner's instruction
+
+19.3's "If it does not work" carried one line saying the Team rating panel's
+dropdown is labelled **Player** even though it lists teams. The report flagged it
+as a judgement call - naming a defect rather than the product - and the owner had
+it cut. 19.3 was rebuilt against the same commit and republished; the live article
+no longer mentions it, and nothing else in it changed. Verified off the live API
+afterwards: still published, still 4 anchors and 7 images.
+
+**The defect is still there and is still worth a ticket**, and shot 05 shows the
+label whether the prose names it or not.
+
+The rule this settles for later collections: a defect goes in the brief, the report
+and a ticket - not into an article that teaches a reader to work around it.
+
 ### Flakes and traps, for the next session
 
 - **The star row lights on hover.** The Rate chooser's rows sit roughly where the
