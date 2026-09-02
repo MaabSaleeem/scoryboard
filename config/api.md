@@ -1356,6 +1356,121 @@ run one. Collection 21 owns the article; collection 09 documents the empty field
 
 There are no push-notification endpoints. Do not document push.
 
+## Chat and messaging
+
+**(observed in app, not in collection, 2026-09-02.)** Every path below was read out
+of the web app's own bundle by collection 18 and then exercised against staging
+with an ordinary bearer token. None of them is in the Postman collection, which
+holds only the admin chat-report resolver.
+
+This settles the open question this file carried under
+[Not in the collection](#not-in-the-collection): **chat is not a separate service
+and it is not socket-only.** Writes are plain REST on `staging-sb.api.scoryboard.com`.
+Reads happen twice over - once through the REST endpoints below, and again through
+a Firestore listener the chat page opens at
+`firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel`, which is
+what makes a transcript update without a refresh. The Realtime Database socket
+(`wss://scoryboard-staging-default-rtdb.europe-west1.firebasedatabase.app`) carries
+presence only, under `/online/users/:uid`, and is what puts the green dot on an
+avatar.
+
+So chat fixtures are seeded over the API, not through the UI. `scripts/seed-18.mjs`
+builds a group, three members, a seven-message transcript, a reaction, an edit and
+a deletion in about twenty-six writes.
+
+### The conversation list
+
+| Method | Path | For | Body / notes |
+|---|---|---|---|
+| GET | `/chats` | Every conversation you are in | `limit`. Answers `{conversations: [...]}`. A row carries `id`, `type` (`direct` or `group`), `title`, `memberUidList`, `participantProfiles`, `groupAdminUidList`, `memberState[uid].lastReadAt`, `lastMessage`, `lastMessageAt`, and `tournamentId` where the group belongs to a tournament |
+| POST | `/chats/conversations` | Start one | Direct: `{"type":"direct","targetUid":"<firebase uid>"}`. Group: `{"type":"group","title":"...","memberUids":["..."]}`, optional `avatarToken`. **`targetUid` and `memberUids` are Firebase uids, not playerIds** - read `uid` off `GET /users/me`, or off `participantProfiles` |
+| DELETE | `/chats/conversations/:conversationId` | Leave the conversation in your own list | Removes it for the CALLER only; the other members keep it. The app's own wording: "This will remove the chat from your list and clear your chat history here. If new messages arrive later, the chat will appear again with those new messages." |
+| PATCH | `/chats/conversations/:conversationId/read` | Mark it read | `{}`. Sets your `memberState.lastReadAt` |
+
+**A direct conversation's id is derived, not allocated.** It comes back as
+`direct_<uidA>_<uidB>` with the two uids sorted, so `POST` for a pair that already
+has one returns the same row rather than a second. Group ids are ordinary
+Firestore ids.
+
+### Messages
+
+| Method | Path | For | Body / notes |
+|---|---|---|---|
+| GET | `/chats/conversations/:id/messages` | The transcript | `limit`, `cursor`. Answers `{messages[], nextCursor, memberUidList, memberState}` |
+| POST | `/chats/conversations/:id/messages` | Send | `text`; optional `mediaTokens[]`, `replyToMessageId` |
+| GET | `/chats/conversations/:id/messages/:messageId` | One message in full | This is the call the Pro gate sits on |
+| PATCH | `/chats/conversations/:id/messages/:messageId` | Edit your own | `{"text": "..."}`. The message then renders with an `edited` tag beside its time |
+| PATCH | `/chats/conversations/:id/messages/:messageId/delete` | Delete | `{"scope":"me"}` or `{"scope":"everyone"}` |
+| PATCH | `/chats/conversations/:id/messages/:messageId/reactions` | Toggle a reaction | `{"emoji":"👍"}`. Sending the same emoji twice removes it |
+| POST | `/chats/conversations/:id/messages/:messageId/forward` | Forward | `{"targetConversationIds":["..."]}` |
+| POST | `/chats/conversations/:id/messages/:messageId/report` | Report | `{"reason": "spam"\|"abuse"\|"harassment"\|"scam"\|"other", "note": "<=300 chars"}` |
+| GET | `/chats/conversations/:id/messages/:messageId/media/:filename` | Download an attachment | Returns the file; the app turns it into a blob URL |
+| POST | `/chats/media` | Upload an attachment, returns a media token | multipart. Up to 5 files per message |
+
+The reaction picker offers six and only six: 👍 ❤️ 😂 😮 😢 🙏.
+
+**Deleting a message is not confirmed.** *Delete for me* and *Delete for everyone*
+both fire on the click; there is no "are you sure" dialog for either, and there is
+no undo. Verified on staging 2026-09-02 by choosing *Delete for everyone* on an own
+message - it left the transcript immediately. Others see *This message was deleted*
+in its place; **the sender sees nothing at all**, the row is simply gone from their
+own view.
+
+### Groups
+
+| Method | Path | For | Body / notes |
+|---|---|---|---|
+| PATCH | `/chats/conversations/:id/group` | Rename, re-describe, re-avatar, announcement-only | `title`, `description`, `avatarToken`, `announcementOnly` |
+| DELETE | `/chats/conversations/:id/group` | Delete the group for everyone | Admin only |
+| GET | `/chats/conversations/:id/group/members` | The member list | `{members: [{uid, name, lastName, playerId, avatarVersion, isAdmin}]}` |
+| POST | `/chats/conversations/:id/group/members` | Add members | `{"memberUids":["..."]}` |
+| DELETE | `/chats/conversations/:id/group/members/:uid` | Remove a member, or leave | Admin only for somebody else. Your own uid is what **Leave group** sends |
+| PATCH | `/chats/conversations/:id/group/admins/:uid` | Grant or revoke admin | `{"action":"grant"}` or `{"action":"revoke"}`. **Not** `promote`/`demote` - those answer `400 SCHEMA_VALIDATION_ERROR`, "Expected 'grant' \| 'revoke'" |
+
+**Announcement-only is not a tournament feature.** `GET /tournaments/:id/chat/settings`
+made it look like one. An ordinary group chat has the same switch in its **Group
+Info** dialog - "Announcement only / Only group admins can send messages when this
+is enabled." - and it is stored on the conversation, not the tournament.
+
+**The only admin cannot leave.** The **Leave group** button is disabled with the
+note "Leave group is disabled because you are the only admin." Grant somebody else
+admin first, or delete the group.
+
+### The Pro gate, measured
+
+`CHAT_PRO_REQUIRED` is listed under
+[MembershipLimits](#membershiplimits---the-eight-error-codes) as "reading an
+incoming message in full". **(observed 2026-09-02)** It is wider than that:
+
+- `GET .../messages` returns somebody else's message as its **first ten characters
+  plus an ellipsis**, with `isContentLocked: true`, `canViewFullText: false` and
+  `previewText` carrying the same stub. Your own messages come back whole. The
+  conversation list's `lastMessage` preview is truncated the same way.
+- **Replying to an incoming message is refused**, and so is reacting to one:
+  `403 {"reason":"Upgrade to Pro to access the full message content"}`. The gate is
+  on the message, not on the verb.
+- Sending, starting a conversation and creating a group are all fine on Free.
+
+In the app every incoming bubble carries an **Unlock with Pro** button under the
+stub. It opens the standard membership modal, titled **Unlock full chat with Pro**:
+"You can start conversations and send messages on Free, but reading full incoming
+messages and opening attachments is a Pro feature." with the usual **FREE Upgrade
+(Beta)** button.
+
+### Chat app routes
+
+| Route | What it is |
+|---|---|
+| `/chat` | The chat page. Three columns: sidebar, the conversation list, the open conversation |
+| `/chat?conversationId=<id>` | Opens one conversation directly. The friends list's **Chat** button builds `direct_<uid>_<uid>` this way |
+| `/chats` | Present in the route table; the app never links to it |
+
+The **Start New Chat** dialog is a wizard, and its steps carry these headings:
+*Start New Chat* (Select Chat Type) -> *Start Chat* or *Select Players* (Find Player
+From: Leaderboards, Teams, Friends, Anyone) -> the player list -> *Create Group
+Chat* (Group Details) for a group. A group name is optional and capped at 80
+characters; leaving it blank names the group after its first two members.
+
 ## Venues (club locations)
 
 | Method | Path | For | Body / notes |
@@ -2289,13 +2404,20 @@ One likely exception. The bundle references `firestore.googleapis`, `WebSocket`,
 `wss://` and a Firebase Realtime Database URL, and `/online/users/:uid` has the
 shape of an RTDB presence path. Chat may therefore have no REST surface at all -
 Firestore for messages, RTDB for presence - which would explain why the collection
-holds only the admin chat-report resolver. Confirm before writing collection 18.
-It changes how chat fixtures get seeded: through the UI, not the API.
+holds only the admin chat-report resolver. **Answered 2026-09-02, and the guess
+was half right.** Firestore does carry the live message read and the RTDB does
+carry presence - but there is also a full REST surface for every write, so chat
+fixtures are seeded over the API, not through the UI. See
+[Chat and messaging](#chat-and-messaging).
 
-- **Chat and messaging** (collection 18) - conversations, group chats, group
-  admins, messages, attachments, reactions, read receipts, reporting. Only the
-  admin chat-report resolver exists. TODO: is chat a separate service or a socket
-  transport?
+- ~~**Chat and messaging** (collection 18)~~ - found 2026-09-02. Nineteen
+  `/chats` endpoints, all ordinary bearer-token REST, recovered from the app
+  bundle and exercised against staging. They are recorded under
+  [Chat and messaging](#chat-and-messaging). Chat is neither a separate service
+  nor socket-only: Firestore carries the live read, the Realtime Database carries
+  presence, and every write is REST. **Still missing:** nothing marks a message
+  as read per person - `memberState[uid].lastReadAt` is the whole of it, and
+  there is no per-message read receipt in the API or on any screen.
 - **Tournament plans and payment** (collection 16) - Basic, Pro, Annual; upgrade
   and subscription management. Only the admin grant and whitelist exist.
 - ~~**Tournament publishing and running** (collection 15)~~ - mostly found

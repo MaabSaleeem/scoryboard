@@ -5464,3 +5464,409 @@ export function participantRows(details: Locator) {
     .filter({ hasText: 'Pia KB' })
     .last();
 }
+
+// ---------------------------------------------------------------------------
+// Collection 18 - Chat & messaging
+// ---------------------------------------------------------------------------
+//
+// The whole collection lives on one route, `/chat`, and on one shape: a three
+// column page whose middle column is the conversation list and whose right hand
+// column is the open transcript.
+//
+// Two things about this page decide how every helper below is written.
+//
+// **It opens a conversation by itself.** Landing on /chat selects the most
+// recent conversation, which is whichever one the seed wrote last. So a spec
+// always clicks the conversation it wants; it never assumes the one on screen.
+//
+// **Nothing here has an id a spec may hold.** `scripts/seed-18.mjs` deletes and
+// rebuilds every conversation on each run, so conversation ids and message ids
+// change between runs. Every helper below takes text - a title, a message - and
+// never an id. The one exception is 18.2's teardown, which deletes a
+// conversation the SPEC created moments earlier and therefore knows the id of.
+
+// @ts-ignore - plain JS module, no types
+import * as F18 from './fixtures-18.mjs';
+
+export const KB18 = F18.ACCOUNTS as Record<'pro' | 'free' | 'member' | 'outsider' | 'empty', string>;
+export const KB18_PROFILES = F18.PROFILES as Record<string, { name: string; lastName: string; membership: string }>;
+export const KB18_TEAMS = F18.TEAMS as Record<'chat' | 'chatAway' | 'free', string>;
+export const KB18_LEADERBOARD: string = F18.LEADERBOARD;
+export const KB18_GROUP = F18.GROUP as { title: string; admin: string; members: string[] };
+export const KB18_TRANSCRIPT = F18.GROUP_TRANSCRIPT as {
+  key: string; from: string; text: string; replyTo?: string;
+  editedFrom?: string; deleteForEveryone?: boolean;
+}[];
+export const KB18_DIRECT_PRO = F18.DIRECT_PRO_TRANSCRIPT as { from: string; text: string }[];
+export const KB18_DIRECT_FREE = F18.DIRECT_FREE_TRANSCRIPT as { from: string; text: string }[];
+export const KB18_SPEC_GROUP = F18.SPEC_GROUP as { title: string; members: string[] };
+export const KB18_REACTION = F18.REACTION as { on: string; by: string; emoji: string };
+export const KB18_REPORT_REASONS: string[] = F18.REPORT_REASONS;
+export const lockedPreview = F18.lockedPreview as (text: string) => string;
+
+export const FROZEN_NOW_18 = new Date(F18.FROZEN_NOW);
+
+/** One row of the seeded transcript, by its fixture key. */
+export function kb18Message(key: string) {
+  const row = KB18_TRANSCRIPT.find((m) => m.key === key);
+  if (!row) throw new Error(`kb18Message(): no transcript row keyed "${key}"`);
+  return row;
+}
+
+/**
+ * Freeze the clock.
+ *
+ * setFixedTime rather than install, for the reason freezeClock() gives: the
+ * Firebase session refreshes on a timer, and installing a fake clock signs the
+ * spec out mid-run. Chat needs it for the `today` divider above the transcript
+ * and for the relative time on a conversation row.
+ *
+ * It does NOT freeze the times inside the bubbles. Those come from the server's
+ * own `createdAt` at seed time, so they move whenever the seed is re-run, and
+ * they are masked instead - see chat18Times().
+ */
+export async function freezeClock18(page: Page) {
+  await page.clock.setFixedTime(FROZEN_NOW_18);
+}
+
+// --- Transcript timestamps are NOT masked, and that is a decision ----------
+//
+// There was a chat18Times() here, matching every `h:mm` node the way collection
+// 15 masks the tournament chat's. It was removed after looking at what it
+// produced, and this note is here so the next session does not add it back
+// without reading the same screenshot.
+//
+// docs/style-guide.md says to mask "absolute dates and times that are not the
+// point of the screenshot". A tournament chat has three or four times on screen.
+// A collection 18 capture has twelve to fourteen - one under every bubble, one
+// on every conversation row - and a mask over all of them turns the transcript
+// into a column of black rectangles. The same guide says to write for "someone
+// who is stuck, on their phone, at a pitch, in the rain", and forbids masking
+// the thing the article is about. A timestamp under a message is part of what a
+// chat message looks like; the article is a tour of that.
+//
+// Two further reasons, both specific to this collection:
+//
+//   - The times are not identifying and not absolute. They are `h:mm` on the
+//     day the seed ran, with no date beside them.
+//   - The app renders an edited message's footer as ONE node, `8:21 · edited`.
+//     Any regex loose enough to catch the time also paints over the word that
+//     18.3's last capture exists to show, and a regex tight enough to spare it
+//     leaves exactly one legible time among a dozen blocks - which reads worse
+//     than leaving all of them.
+//
+// The times move whenever `scripts/seed-18.mjs` is re-run. docs/workflow.md
+// allows that: "Two runs may differ slightly and still be correct."
+//
+// What IS still hidden: the signed-in name (sidebarIdentity18) and every unread
+// badge (quiet18).
+
+/** The signed-in name in the sidebar. Masked in every full-page capture. */
+export function sidebarIdentity18(page: Page, name: string) {
+  return page.getByText(name, { exact: true }).locator('visible=true').first();
+}
+
+/** Everything that must be off-screen before a chat capture. */
+export async function quiet18(page: Page) {
+  await quiet(page);
+  await page.addStyleTag({
+    content: `
+      /* The three unread counts: the bell's badge, the sidebar's Chat badge and
+         the blue pill on a conversation row. docs/style-guide.md says mask
+         notification badges, and all three move on their own - seeding a
+         transcript leaves every other account with unread messages, so they
+         climb on every re-seed. Hidden rather than masked: a painted block on a
+         nav item reads as a defect rather than as redaction.
+
+         Each selector is pinned to that badge and nothing else. A first draft
+         matched bg-red-* and rounded-full broadly and took the PRESENCE DOT
+         off every avatar with it - the 12px border-2 border-white bg-red-500
+         marker that says somebody is offline. That is ordinary UI, it is in
+         every capture in this collection, and hiding it was invisible until two
+         screenshots were compared side by side. */
+      div[class*="-top-2"][class*="-right-2"][class*="bg-red-500"],
+      span[class*="pointer-events-none"][class*="right-3"][class*="bg-red-500"],
+      span[class*="bg-blue-600"][class*="tabular-nums"] {
+        visibility: hidden !important;
+      }
+    `,
+  });
+}
+
+/**
+ * A browser context of its own, signed in, with the chat page open.
+ *
+ * One context per persona, closed before the next opens. Two reasons, and the
+ * second is particular to chat:
+ *
+ *   - The app persists a Redux store per origin, so signing a second account in
+ *     on the same page leaves the first one's state behind. Collection 17 hit
+ *     that on its Teams page - see context17.
+ *   - **Presence is live.** The app writes to /online/users/:uid over the
+ *     Realtime Database and paints a green dot on anybody signed in. Two open
+ *     contexts therefore put a green dot on an avatar that is red in every other
+ *     capture, and nothing in the spec would explain the difference.
+ *
+ * Caller closes it.
+ */
+export async function context18(browser: Browser, email: string) {
+  const ctx = await browser.newContext({
+    baseURL: process.env.SCORYBOARD_APP_BASE,
+    viewport: { width: 1440, height: 900 },
+    deviceScaleFactor: 2,
+    timezoneId: 'Europe/London',
+    locale: 'en-GB',
+    reducedMotion: 'reduce',
+    serviceWorkers: 'block',
+  });
+  const page = await ctx.newPage();
+  await signInAs(page, email, '/chat');
+  await freezeClock18(page);
+  await expect(page.getByRole('button', { name: 'Start a new chat' })).toBeVisible({ timeout: 30_000 });
+  await quiet18(page);
+  return { ctx, page };
+}
+
+/**
+ * Open one conversation from the Chats list, and wait for its transcript.
+ *
+ * `mustContain` is a message only the loaded transcript has. The header paints
+ * from the conversation row the moment it is clicked, so the header is never a
+ * safe gate - collection 15 learned the same on the tournament chat, see
+ * chatReady().
+ */
+export async function openConversation(page: Page, title: string, mustContain: string) {
+  await page.getByText(title, { exact: true }).locator('visible=true').first().click();
+  await expect(page.getByText(mustContain, { exact: true }).locator('visible=true').first())
+    .toBeVisible({ timeout: 30_000 });
+  await transcriptSettled(page);
+}
+
+/**
+ * Wait for the transcript to stop fetching.
+ *
+ * Two gates, and the second one is not covered by shot()'s skeleton backstop.
+ *
+ * The transcript paginates on scroll, and it puts a **"Loading older
+ * messages..."** pill at the top of the column while it does. That is a loading
+ * indicator, which docs/style-guide.md forbids in a capture - and it is a plain
+ * text pill, not an `.animate-pulse`, so nothing in shot() catches it. 18.3's
+ * shot 09 published one: two earlier clipped captures had scrolled the column up
+ * far enough to trigger the fetch, on a group with no older messages to fetch.
+ *
+ * Call this before any capture that shows the transcript, and after anything
+ * that scrolls it.
+ */
+export async function transcriptSettled(page: Page) {
+  await expect(page.locator('.animate-pulse')).toHaveCount(0, { timeout: 30_000 });
+  await expect(page.getByText('Loading older messages...')).toHaveCount(0, { timeout: 30_000 });
+  await imagesPainted(page);
+}
+
+/**
+ * One row in the Chats list, with its avatar, title, tag, preview and time.
+ *
+ * The row, not the column. The column is an `<aside>` 899 pixels tall with two
+ * rows at the top of it and white space for the rest, so a capture clipped to it
+ * is nine tenths empty - which is what 18.1's first run published.
+ */
+export function conversationRow(page: Page, title: string) {
+  return page.getByText(title, { exact: true }).locator('visible=true').first()
+    .locator('xpath=ancestor::div[contains(@class,"border-b")][1]');
+}
+
+/**
+ * The open conversation - header, transcript and message box - without the
+ * sidebar or the Chats list.
+ *
+ * For the one capture that has to hold two bubbles at once. The transcript is a
+ * column of rows with no wrapper around any two of them, and its own messages
+ * sit on the right while everybody else's sit on the left, so a padded clip
+ * around one bubble can never reach the other: 18.3's shot 09 first came back
+ * showing the deleted message and 400 pixels of empty background where the
+ * edited one was meant to be.
+ */
+export function transcriptColumn(page: Page) {
+  return page.locator('section')
+    .filter({ has: page.getByPlaceholder('Write a message...') })
+    .first();
+}
+
+/**
+ * The bubble holding one message. The chevron and the reaction pill live on it.
+ *
+ * **A bubble whose menu has been opened keeps its chevron for good.** Not while
+ * hovered, and not while focused - for good: parking the pointer does not clear
+ * it and neither does blurring the trigger. So a capture of a message AT REST
+ * has to be taken before any menu is opened on that bubble, which is why 18.3
+ * captures out of order. There is no way to put a bubble back once it has been
+ * opened, short of reloading the page.
+ */
+export function bubble18(page: Page, text: string) {
+  return page.getByText(text, { exact: true }).locator('visible=true').first()
+    .locator('xpath=ancestor::div[contains(@class,"rounded")][1]');
+}
+
+/**
+ * Open the chevron menu on one message.
+ *
+ * The trigger only paints on hover, so the hover is part of opening it rather
+ * than a nicety. Returns the bubble, because most of these captures clip to it.
+ */
+export async function openMessageMenu(page: Page, text: string) {
+  const b = bubble18(page, text);
+  await b.scrollIntoViewIfNeeded();
+  await b.hover();
+  const trigger = b.getByRole('button', { name: 'Open message actions' });
+  await expect(trigger).toBeVisible({ timeout: 15_000 });
+  await trigger.click();
+  await expect(page.getByRole('menuitem', { name: 'Copy', exact: true })).toBeVisible({ timeout: 15_000 });
+  return b;
+}
+
+/** Close whatever menu is open, and prove it closed. */
+export async function closeMessageMenu(page: Page) {
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('menuitem', { name: 'Copy', exact: true })).toBeHidden({ timeout: 15_000 });
+}
+
+/** The conversation header. It is also the button that opens Group Info. */
+export function conversationHeader(page: Page, title: string) {
+  return page.getByRole('button', { name: new RegExp(`${title}\\s+(Group conversation|Direct message)`) });
+}
+
+/**
+ * Open Group Info.
+ *
+ * There is no gear and no menu: the header itself is the control, and it carries
+ * no label of its own beyond the group name and the subtitle. Worth knowing
+ * before writing 18.2's step 6.
+ */
+export async function openGroupInfo(page: Page, title: string) {
+  await conversationHeader(page, title).click();
+  await expect(page.getByRole('heading', { name: 'Group Info' })).toBeVisible({ timeout: 20_000 });
+  await expect(page.locator('.animate-pulse')).toHaveCount(0, { timeout: 30_000 });
+  await imagesPainted(page);
+  return groupInfoPanel(page);
+}
+
+/** The Group Info window itself, for clipping. */
+export function groupInfoPanel(page: Page) {
+  return panelFor(page, 'Group Info');
+}
+
+/**
+ * The smallest block holding a floating window's heading and its controls.
+ *
+ * Every dialog in this collection - the New Chat wizard, Group Info, the four
+ * confirms, Forward Message, Report message - is portalled and carries no role
+ * of its own. There is nothing to ask for with getByRole('dialog'), so the
+ * heading's nearest rounded ancestor is the window.
+ *
+ * `.last()`, not `.first()`: a confirm opens ON TOP of the window that raised
+ * it, and the heading of the one underneath can still be in the DOM.
+ */
+export function panelFor(page: Page, heading: string) {
+  // The shared modal shell, matched on the three classes every one of them
+  // carries: relative, z-50 and shadow-lg. The dimmed overlay behind it is also
+  // z-50 but has no shadow.
+  //
+  // NOT the heading's nearest rounded ancestor. That was the first version and
+  // it resolved to the dialog's HEADER strip - the one with rounded-t-2xl - so
+  // 18.2's first capture was a 384x137 crop of a title and nothing else, with
+  // its annotation drawn outside the frame. Nor is `rounded-lg` in the selector:
+  // the wizard's shell has it and Group Info's does not.
+  //
+  // Two shells, because Forward Message is not built from the shared modal. It
+  // is an overlay rendered inside the conversation column with shadow-xl and
+  // rounded-2xl, and no z-50 of its own; everything else - the wizard, Group
+  // Info, Report message, all four confirms - is the shared one.
+  return page
+    .locator(
+      'div[class*="relative"][class*="z-50"][class*="shadow-lg"],'
+      + ' div[class*="shadow-xl"][class*="rounded-2xl"]',
+    )
+    .filter({ hasText: heading })
+    .last();
+}
+
+/**
+ * Delete a group chat by its title, as the account that admins it.
+ *
+ * 18.2 creates a group, photographs it and disposes of it. Called at the START
+ * of that spec as well as at the end: a run that dies between the create and the
+ * teardown would otherwise leave a group behind, and the next run would make a
+ * second one with the same name and photograph whichever the list showed first.
+ *
+ * Silent when there is nothing to delete.
+ */
+export async function deleteGroupByTitle(token: string, title: string) {
+  const list = (await asUser(token, '/chats?limit=50')).body?.data?.conversations ?? [];
+  for (const c of list) {
+    if (c.type !== 'group' || c.title !== title) continue;
+    await asUser(token, `/chats/conversations/${c.id ?? c.conversationId}/group`, { method: 'DELETE' });
+  }
+}
+
+/** A wizard option row. Matched on its subtitle, which is unique on the page. */
+export function wizardOption(page: Page, subtitle: string) {
+  return page.getByRole('button').filter({ hasText: subtitle }).first();
+}
+
+/**
+ * Everything collection 18's specs need from the API, looked up by name.
+ *
+ * No id is stored anywhere. The seed rebuilds the conversations on every run, so
+ * a spec holding one would break the first time the seed was re-run.
+ */
+export async function fixtures18() {
+  const sessions: Record<string, { token: string; uid: string; playerId: string; membership: string }> = {};
+  for (const [key, email] of Object.entries(KB18)) {
+    const session = await mintSession(email);
+    const me = (await asUser(session.idToken, '/users/me')).body?.data;
+    if (!me) throw new Error(`${email} has no Scoryboard user. Run: node scripts/seed-18.mjs`);
+    sessions[key] = {
+      token: session.idToken, uid: me.uid, playerId: me.playerId, membership: me.membership,
+    };
+    // The whole collection turns on who is Free and who is Pro, so check it here
+    // rather than discovering it as a missing "Unlock with Pro" button forty
+    // captures later.
+    const want = KB18_PROFILES[key].membership;
+    if (me.membership !== want) {
+      throw new Error(
+        `${email} is ${me.membership}, and collection 18 needs it ${want}. `
+        + 'Run: node scripts/seed-18.mjs',
+      );
+    }
+  }
+
+  const list = (await asUser(sessions.pro.token, '/chats?limit=50')).body?.data?.conversations ?? [];
+  const group = list.find((c: any) => c.type === 'group' && c.title === KB18_GROUP.title);
+  if (!group) {
+    throw new Error(
+      `"${KB18_GROUP.title}" is not on ${KB18.pro}'s conversation list. Run: node scripts/seed-18.mjs`,
+    );
+  }
+  const directPro = list.find((c: any) => c.type === 'direct');
+  if (!directPro) throw new Error(`No direct conversation for ${KB18.pro}. Run: node scripts/seed-18.mjs`);
+
+  return {
+    sessions,
+    groupId: group.id ?? group.conversationId,
+    directProId: directPro.id ?? directPro.conversationId,
+  };
+}
+
+/** One message id in a conversation, looked up by its text. */
+export async function messageId18(token: string, conversationId: string, text: string) {
+  const r = await asUser(token, `/chats/conversations/${conversationId}/messages?limit=50`);
+  const rows = r.body?.data?.messages ?? [];
+  const hit = rows.find((m: any) => m.text === text);
+  if (!hit) {
+    throw new Error(
+      `No message reading "${text}" in ${conversationId}. Found: `
+      + rows.map((m: any) => JSON.stringify(m.text)).join(', '),
+    );
+  }
+  return hit.id as string;
+}

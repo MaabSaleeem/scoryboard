@@ -166,9 +166,20 @@ personas:
       is Pro at rest - kb-04-pro@yopmail.com. Where an article documents the
       UPGRADE itself, which cannot be photographed unsubmitted because the app
       has no confirm step, it gets a third, throwaway account whose spec resets
-      it: kb-04-upgrade@yopmail.com. Collection 18 should do the same.
-      TODO: chat has no endpoint in the collection. Seed the group chat through
-      the UI and record how in the brief.
+      it: kb-04-upgrade@yopmail.com. Collection 18 did the same.
+
+      CORRECTED 2026-09-02, by collection 18. This used to say chat had no
+      endpoint in the collection and that the group chat had to be seeded
+      through the UI. Chat has nineteen endpoints - see config/api.md, "Chat and
+      messaging" - and scripts/seed-18.mjs builds the whole transcript over the
+      API in one pass.
+
+      Collection 18 also found that this account cannot be its capture persona.
+      On Free an incoming message arrives as its first ten characters and an
+      ellipsis, and replying to one or reacting to one is refused outright with
+      403. Marc therefore appears in collection 18 only where the Pro gate is
+      the subject; kb-18-pro@yopmail.com takes every other capture. See
+      briefs/18.md, "Personas used".
 
   manager_pro:
     email_pattern: "kb-manager-pro-<collection>@yopmail.com"
