@@ -5870,3 +5870,394 @@ export async function messageId18(token: string, conversationId: string, text: s
   }
   return hit.id as string;
 }
+
+// --- collection 19: comments, likes & ratings --------------------------------
+//
+// Read the header of lib/fixtures-19.mjs first. The short version, because it
+// shapes every selector below:
+//
+//   - Comments live on exactly two screens, the **team page** and the
+//     **leaderboard page**. Both render the same panel below every tab.
+//   - A comment row is a `<div id="<commentId>">` holding three controls, in
+//     this order and with no accessible names on two of them: **Reply**, a
+//     thumbs-up carrying the like count, and a speech bubble carrying the reply
+//     count.
+//   - Ratings live in one place, the **Rate** button on a Finished match.
+//
+// Collection 08 photographed the same panel on a leaderboard and its helpers
+// are reused rather than copied: commentBox(), commentsPanel(), commentTimes()
+// and parkPointer() are all its work, and settled08()'s spinner gate is the one
+// that stops a capture landing while "View n more replies" is still fetching.
+//
+// @ts-ignore - plain JS module, no types
+import * as F19 from './fixtures-19.mjs';
+
+export const KB19 = F19.ACCOUNTS as Record<string, string>;
+export const KB19_TEAMS = F19.TEAMS as { home: string; away: string };
+export const KB19_LEADERBOARD: string = F19.LEADERBOARD;
+export const KB19_NAMES = F19.FULL_NAMES as Record<string, string>;
+export const KB19_COMMENTS = F19.COMMENTS as {
+  on: string; by: string; text: string; media?: string;
+  likes: string[]; replies: { by: string; text: string }[];
+}[];
+export const KB19_RATINGS = F19.RATINGS as { on: string; by: string; rating: number; comment?: string }[];
+export const KB19_AVERAGES = F19.EXPECTED_AVERAGES as Record<string, { averageRating: number; totalCount: number; shown: string }>;
+export const FROZEN_NOW_19 = new Date(F19.FROZEN_NOW);
+
+/** One seeded comment, by the text the fixture gives it. */
+export function kb19Comment(startsWith: string) {
+  const row = KB19_COMMENTS.find((c) => c.text.startsWith(startsWith));
+  if (!row) throw new Error(`kb19Comment(): no seeded comment starting "${startsWith}"`);
+  return row;
+}
+
+/**
+ * Everything collection 19's specs need from the API, looked up by NAME.
+ *
+ * scripts/seed-19.mjs rebuilds the teams, the leaderboard and the match on every
+ * run, so their ids change every time. Nothing here may be hardcoded in a spec -
+ * that is the mistake that stopped six of collection 12's specs running.
+ *
+ * Throws with the seed command in the message when a fixture is missing, so a
+ * failure says what to do rather than what was undefined.
+ */
+export async function fixtures19() {
+  const sessions: Record<string, { email: string; token: string; id: string; playerId: string; membership: string }> = {};
+  for (const [key, email] of Object.entries(KB19)) {
+    const s = await mintSession(email);
+    const me = (await asUser(s.idToken, '/users/me')).body?.data;
+    if (!me) throw new Error(`No Scoryboard user for ${email}. Run: node scripts/seed-19.mjs`);
+    sessions[key] = {
+      email, token: s.idToken, id: me.id, playerId: me.playerId, membership: me.membership,
+    };
+  }
+
+  const owner = sessions.owner;
+  const teams = (await asUser(owner.token, '/teams?all=true')).body?.data ?? [];
+  const pick = (name: string) => {
+    const hit = teams.find((t: any) => t.name === name);
+    if (!hit) throw new Error(`No team "${name}". Run: node scripts/seed-19.mjs`);
+    return hit.teamId as string;
+  };
+  const homeId = pick(KB19_TEAMS.home);
+  const awayId = pick(KB19_TEAMS.away);
+
+  const boards = (await asUser(owner.token, '/leaderboards')).body?.data ?? [];
+  const board = boards.find((b: any) => b.name === KB19_LEADERBOARD);
+  if (!board) throw new Error(`No leaderboard "${KB19_LEADERBOARD}". Run: node scripts/seed-19.mjs`);
+
+  // The played match is the only Finished one in the board. `result` is the
+  // list's own wrapper; a Cancelled match is not in it, which is how an earlier
+  // trial match stays out of a spec's way.
+  const listed = (await asUser(owner.token, `/leaderboards/${board.id}/matches`)).body?.data;
+  const matches = listed?.result ?? listed ?? [];
+  const played = matches.find((m: any) => m.status === 'Finished');
+  if (!played) {
+    throw new Error(
+      `No Finished match in "${KB19_LEADERBOARD}" - found ${matches.length} match(es): `
+      + `${matches.map((m: any) => m.status).join(', ') || 'none'}. Run: node scripts/seed-19.mjs`,
+    );
+  }
+
+  return {
+    sessions,
+    teamId: homeId,
+    awayTeamId: awayId,
+    leaderboardId: board.id as string,
+    matchId: played.id as string,
+    playerId: sessions.player.playerId,
+    refereePlayerId: sessions.referee.playerId,
+  };
+}
+
+/**
+ * Freeze the clock.
+ *
+ * setFixedTime rather than install, for the reason freezeClock() gives: Firebase
+ * refreshes the session on a timer and a fake clock signs the spec out mid-run.
+ *
+ * It does NOT freeze the times in a comment footer. Those are the server's
+ * `createdAt` at seed time, rendered as an absolute `03:33 PM • Sep 02, 2026`,
+ * and they move whenever the seed is re-run - so they are MASKED, unlike
+ * collection 18's, which were left alone. The difference is the count and the
+ * shape: a chat capture has a dozen bare `h:mm` stamps and painting over all of
+ * them turns the transcript into black bars, while a comment panel has two or
+ * three and each one carries a full date. docs/style-guide.md: mask "absolute
+ * dates and times that are not the point of the screenshot".
+ */
+export async function freezeClock19(page: Page) {
+  await page.clock.setFixedTime(FROZEN_NOW_19);
+}
+
+/** Everything that must be off-screen before a collection 19 capture. */
+export async function quiet19(page: Page) {
+  await quiet(page);
+  await page.addStyleTag({
+    content: `
+      /* The bell's unread badge and the sidebar's Chat badge. Both climb on
+         their own - seeding a match and five comments leaves every account with
+         notifications - and docs/style-guide.md says mask notification badges.
+         Hidden rather than masked: a painted block on a nav item reads as a
+         defect rather than as redaction. Pinned to those two badges, never to
+         bg-red-* generally: collection 18 found that a loose match takes the
+         offline presence dot off every avatar with it. */
+      div[class*="-top-2"][class*="-right-2"][class*="bg-red-500"],
+      span[class*="pointer-events-none"][class*="right-3"][class*="bg-red-500"] {
+        visibility: hidden !important;
+      }
+    `,
+  });
+}
+
+/**
+ * A browser context of its own, signed in, on `to`.
+ *
+ * One context per persona, closed before the next opens. The app persists a
+ * Redux store per origin, so signing a second account in on the same page leaves
+ * the first one's state behind - collection 17 hit that on the Teams page, and
+ * collection 08 found that the **External** badge on a team row is computed off
+ * that same persisted slice. This collection photographs team rows, so a leaked
+ * store would change what the capture shows.
+ *
+ * Caller closes it.
+ */
+export async function context19(browser: Browser, email: string, to: string) {
+  const ctx = await browser.newContext({
+    baseURL: process.env.SCORYBOARD_APP_BASE,
+    viewport: { width: 1440, height: 900 },
+    deviceScaleFactor: 2,
+    timezoneId: 'Europe/London',
+    locale: 'en-GB',
+    reducedMotion: 'reduce',
+    serviceWorkers: 'block',
+  });
+  const page = await ctx.newPage();
+  await signInAs(page, email, to);
+  await freezeClock19(page);
+  await quiet19(page);
+  return { ctx, page };
+}
+
+/**
+ * Wait for the Comments panel to load, and prove what is in it.
+ *
+ * A thin wrapper over collection 08's commentsPanel(), which already gates on
+ * the heading AND on settled08() - the panel counts its comments and then keeps
+ * loading, because it fetches what sits behind "View n more replies"
+ * separately, and 08.5 published a spinner under a thread before that gate
+ * existed. Waiting for the exact count is also an assertion: it fails loudly
+ * when scripts/seed-19.mjs has not run, rather than photographing an empty
+ * panel.
+ */
+export async function comments19(page: Page, count: number) {
+  const panel = await commentsPanel(page, count);
+  await imagesPainted(page);
+  return panel;
+}
+
+/**
+ * The whole Comments panel - composer, heading and every thread.
+ *
+ * Taken as the heading's nearest ancestor that also holds a textarea, rather
+ * than by class: the panel has no wrapper of its own with a stable name.
+ */
+export function commentsSection(page: Page, count: number) {
+  return page.getByText(`Comments (${count})`, { exact: true })
+    .locator('xpath=ancestor::div[.//textarea][1]');
+}
+
+/**
+ * One comment row, by the start of its text.
+ *
+ * The row is the `<div id="<commentId>">` the app wraps each comment in. That id
+ * is a database id and changes on every seed, so it is never written into a
+ * spec - this finds the row by what the comment says instead, and narrows to the
+ * element that actually holds the controls.
+ */
+export function commentRow(page: Page, startsWith: string) {
+  return page.locator('div[id]')
+    .filter({ hasText: startsWith })
+    .filter({ has: page.getByRole('button', { name: 'Reply', exact: true }) })
+    .last();
+}
+
+/**
+ * The thumbs-up on a comment row, in either state.
+ *
+ * The button has no accessible name - its only text is the like count, which
+ * moves - so it is found by its icon. **Two paths, because the icon changes
+ * with the state**: an outline thumbs-up (`M20 8h-5.612...`) when you have not
+ * liked it, a filled one (`M4 21h1V8H4...`) when you have. Matching only one of
+ * them finds the button before a like and loses it afterwards.
+ */
+export function likeButton(row: Locator) {
+  return row.locator(
+    'button:has(svg path[d^="M20 8h-5.612"]), button:has(svg path[d^="M4 21h1V8H4"])',
+  );
+}
+
+/** The speech bubble carrying the reply count. Its icon does not change state. */
+export function replyCountButton(row: Locator) {
+  return row.locator('button:has(svg path[d^="M20 2H4c-1.103"])');
+}
+
+/** 'liked' or 'not-liked', read off the icon's colour class. */
+export async function likedState(row: Locator): Promise<'liked' | 'not-liked'> {
+  const cls = await likeButton(row).locator('svg').first().getAttribute('class');
+  return (cls ?? '').includes('text-blue-600') ? 'liked' : 'not-liked';
+}
+
+/**
+ * The reply composer that opens under a comment when Reply is clicked.
+ *
+ * It is a SECOND textarea with the SAME placeholder as the panel's own
+ * composer, so the placeholder cannot identify it. Its Cancel button can: the
+ * top-level composer has none.
+ */
+export function replyComposer(page: Page) {
+  return page.getByRole('button', { name: 'Cancel', exact: true })
+    .locator('xpath=ancestor::div[.//textarea][1]');
+}
+
+/**
+ * The image on a comment that carries an attachment.
+ *
+ * Not an `<img>`. `GET /comments/:id/media/:filename` needs the bearer token, so
+ * the app fetches it itself, makes a `blob:` URL and paints it as a CSS
+ * background on a bare div. imagesPainted() covers background images, so the
+ * ordinary capture gate still works - but nothing finds this by role or alt.
+ */
+export function commentAttachment(row: Locator) {
+  return row.locator('div[style*="background-image"]');
+}
+
+/**
+ * Open the Rate dialog on a Finished match and choose one subject.
+ *
+ * **The pointer is parked afterwards, and that is not tidiness.** The star row
+ * lights on hover, and the chooser's rows sit roughly where the stars appear, so
+ * the mouse is left resting over one of them the moment the panel opens. A
+ * capture taken there shows a rating nobody chose: the first walk through this
+ * read three amber stars on an account that had never rated the match. parkPointer() clears
+ * `hoveredRating`, and the form then shows its real value - empty on
+ * a first rating, your own stars on one you are changing.
+ */
+export async function openRate(page: Page, subject: 'Match' | 'Player' | 'Team' | 'Referee') {
+  await page.getByRole('button', { name: 'Rate', exact: true }).first().click();
+  const chooser = page.getByRole('dialog').last();
+  await expect(chooser.getByText('What would you like to rate?')).toBeVisible({ timeout: 15_000 });
+  await chooser.getByRole('button').filter({ hasText: subject }).first().click();
+
+  const panel = page.getByRole('dialog').last();
+  await expect(panel.getByRole('button', { name: /^(Post|Update)$/ })).toBeVisible({ timeout: 15_000 });
+  await parkPointer(page);
+  await expect(panel.locator('[aria-label="Rate 1 star"]')).toBeVisible();
+  await imagesPainted(page);
+  return panel;
+}
+
+/** The five stars in an open rating panel, as one row, for one annotation. */
+export function starRow(panel: Locator) {
+  return panel.locator('[aria-label="Rate 1 star"]')
+    .locator('xpath=ancestor::div[count(.//button[starts-with(@aria-label,"Rate ")])=5][1]');
+}
+
+/**
+ * How many stars are lit in an open rating panel.
+ *
+ * `text-amber-400` on the button, `text-neutral-300` when it is not. Used to
+ * assert that a panel opened on the rating the fixture left rather than on a
+ * hover.
+ */
+export async function starsLit(panel: Locator) {
+  const classes = await panel.locator('[aria-label^="Rate "]').evaluateAll(
+    (els) => els.map((e) => e.getAttribute('class') ?? ''),
+  );
+  return classes.filter((c) => c.includes('text-amber-400')).length;
+}
+
+/**
+ * The signed-in name in the sidebar. Masked in every collection 19 capture.
+ *
+ * The FIRST visible match, and that ordering matters on one page: 19.4's last
+ * shot is Pia's own player profile, where "Pia KB" is both the sidebar name and
+ * the page's own heading. The sidebar comes first in the DOM, so .first() takes
+ * the identity block and leaves the profile heading alone - which is right, both
+ * because docs/style-guide.md masks the signed-in identity in the header and
+ * because it forbids masking the thing the article is about.
+ *
+ * Reads the name off the fixture rather than taking an argument, so a spec
+ * cannot mask one persona's name while signed in as another.
+ */
+export function headerIdentity19(page: Page, persona: keyof typeof KB19_NAMES = 'player') {
+  return page.getByText(KB19_NAMES[persona], { exact: true }).locator('visible=true').first();
+}
+
+/**
+ * The header block that carries an average rating and its "N reviews" button.
+ *
+ * The same shape on a team page and on a player page: a full-width row sitting
+ * over the banner, holding the crest or avatar, the name, the average and the
+ * counters. Found by `items-end justify-between`, which both carry and nothing
+ * else on either page does.
+ *
+ * Walking up a fixed number of divs works and is not used: the two pages differ
+ * by one wrapper, so the count that frames the team header crops the player one
+ * mid-name. Walking up to the average's nearest button-bearing ancestor is
+ * worse - it lands on the 168x24 box holding the number and the link, and 19.4's
+ * first run published a 416x212 crop of two words with no page around them.
+ */
+export function ratingHeader19(average: Locator) {
+  return average.locator(
+    'xpath=ancestor::div[contains(@class,"items-end") and contains(@class,"justify-between")][1]',
+  );
+}
+
+/**
+ * The kebab on YOUR OWN row in a reviews list, and the menu it opens.
+ *
+ * This is the only way to change or remove a rating, and it is easy to miss. The
+ * Rate panel offers Post, Update and Close and nothing else; the edit and the
+ * delete live here, in the read-only list behind the "N reviews" button, on the
+ * one row that is yours. The button has no accessible name and its icon is a
+ * plain vertical ellipsis, so `aria-haspopup="menu"` is the handle.
+ *
+ * `visible=true` is not optional: the page carries other menu triggers that are
+ * mounted and hidden, and a bare .first() picks one of those instead - it cost a
+ * probe a 30-second timeout on an element that was never going to appear.
+ */
+export function reviewMenuButton(dialog: Locator) {
+  return dialog.locator('[aria-haspopup="menu"]').locator('visible=true').first();
+}
+
+/**
+ * The match card's kick-off date and clock time, for masking.
+ *
+ * scripts/seed-19.mjs dates its match 90 seconds before the seed runs - it has
+ * to, because events are only accepted while a match is Live and a match is Live
+ * only between its date and its date plus its duration. So both of these move on
+ * every re-seed, and docs/style-guide.md masks "absolute dates and times that are
+ * not the point of the screenshot". 19.3's shot 01 is about where the Rate button
+ * is; the kick-off time is not its subject.
+ *
+ * Two separate patterns rather than one loose one: "Wed, 2 Sept 2026" and
+ * "11:59". A regex wide enough to catch both also catches the 60 min duration and
+ * the 5 VS 5 beside them, which do NOT move and are ordinary product UI.
+ */
+export function matchStamp19(page: Page) {
+  return [
+    page.getByText(/^\w{3},\s\d{1,2}\s\w{3,9}\s\d{4}$/),
+    page.getByText(/^\d{1,2}:\d{2}$/),
+  ];
+}
+
+/**
+ * The "N reviews" button that opens the read-only review list.
+ *
+ * It is a real `<button class="text-blue-400 underline">` and it appears in
+ * three places: the match header, a team page header and a player page header.
+ * The label is singular at one review, so callers pass the whole string.
+ */
+export function reviewsButton(page: Page, label: string) {
+  return page.getByRole('button', { name: label, exact: true }).locator('visible=true').first();
+}

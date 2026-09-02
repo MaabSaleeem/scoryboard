@@ -723,9 +723,21 @@ sits below every tab.
 
 ## Comments and likes
 
-One comment API serves every entity. The only `commentType` the collection shows is
-`leaderboard`. TODO: confirm the values for match, team, player and tournament
-before writing collection 19.
+One comment API serves every entity. The Postman collection only shows
+`leaderboard`.
+
+**(observed in app, 2026-09-02, by collection 19. Closes the TODO that stood
+here.)** `commentType` is a five-value enum and the API names it in its own
+validation error: `leaderboard | team | match | player | tournament`. All five
+are accepted and stored, and the value is case-sensitive - `Leaderboard` is
+refused.
+
+**Only two of the five have a screen.** A comment panel is rendered on the
+**team** page and the **leaderboard** page and nowhere else. A match page fires
+no `/comments` request at all - its FEED is the match event list - a player
+profile fires none, and no tournament tab fires one either, organiser board or
+public page. So a comment posted with `commentType` `match`, `player` or
+`tournament` is invisible to every screen in the web app.
 
 | Method | Path | For | Body / notes |
 |---|---|---|---|
@@ -739,8 +751,52 @@ before writing collection 19.
 | DELETE | `/comments/:commentId/like` | Unlike | - |
 | GET | `/comments/:commentId/like/count` | Like count | - |
 
-Comment edit and delete are not in the collection. See
-[Not in the collection](#not-in-the-collection).
+Comment edit and delete are not in the collection.
+
+**(observed in app, 2026-09-02, by collection 19.)** Four more things, and the
+first two decide what can be written about comments at all.
+
+- **`PUT /comments/:commentId` exists and works.** It takes `comment` and
+  answers the updated row. **Nothing in the app calls it.** There is no
+  `editComment` mutation anywhere in the bundle, and a comment row carries
+  exactly three controls: **Reply**, a thumbs-up with the like count, and a
+  speech bubble with the reply count.
+- **`DELETE /comments/:commentId` still answers `401 "Unauthorized to delete
+  this comment"`**, to the author included - confirmed again on this build. So a
+  comment is permanent in the app and permanent over the API. The only way to
+  clear a thread is to delete the entity it hangs off, which is why
+  `scripts/seed-19.mjs` rebuilds its team and its leaderboard on every run.
+- **`POST /comments/:id/like` twice answers `409 "Comment already liked"`.**
+  `DELETE` takes it back and the count returns. The thumbs-up icon changes
+  shape as well as colour - outline and `text-gray-600` unliked, filled and
+  `text-blue-600` liked - so a locator pinned to one SVG path finds the button
+  before a like and loses it after.
+- **An attachment is not an `<img>`.** `GET /comments/:id/media/:filename`
+  needs the bearer token, so the app fetches it itself, makes a `blob:` URL and
+  paints it as a CSS `background-image` on a bare div. The composer's file
+  input is `accept="image/*"` - images only, no video.
+
+**(observed in app, 2026-09-02, by collection 19.)** **Commenting is
+members-only, and the app disables rather than hides.** A non-member sees the
+whole panel with the textarea, **Comment**, **Add Media** and every **Reply**
+button `disabled`, and no message explaining why. The API agrees:
+`403 "Only team members can comment on or like team content"`.
+
+**Leaderboard membership is wider than
+[Leaderboard roles](#leaderboard-roles-and-what-a-non-member-cannot-read) says.**
+That section records `POST /comments` as 403 for anybody who is not the Owner
+or an Administrator. A player on a team that is **in** the leaderboard may
+comment too - measured with an account that was neither owner nor admin, only a
+squad member of a member team.
+
+**Add Media on a comment is NOT Pro-gated.** There are two Add Media buttons in
+the bundle and they are different components. The **match feed**'s checks
+`membership === Pro` and otherwise opens the upgrade modal - that is the gate
+[The two Free gates on the match page](#the-two-free-gates-on-the-match-page)
+records. The **comment composer**'s checks nothing, and `POST /comments/media`
+answers 200 to a Free account.
+
+See [Not in the collection](#not-in-the-collection).
 
 ## Ratings
 
@@ -755,6 +811,40 @@ Comment edit and delete are not in the collection. See
 | GET | `/ratings/:entityType/:entityId/summary` | Average, count and distribution | - |
 | GET | `/ratings/:entityType/:entityId/average` | Average only | - |
 | GET | `/ratings/:entityType/:entityId/my-rating` | My rating for it | - |
+
+**(observed in app, 2026-09-02, by collection 19.)**
+
+- **Rating happens in one place: the Rate button on a Finished match.** It opens
+  a chooser - **Match**, **Player**, **Team**, **Referee** - and the Referee row
+  is `hidden` unless the match carries a referee. A team page and a player page
+  show the average and open a read-only review list; neither has a Rate control,
+  and there is no referee page at all (`/referee/:id`, `/referees/:id` and
+  `/referees` are all Page not found).
+- **`POST /ratings` from an account that has already rated that entity replaces
+  its rating.** `totalCount` does not move; the distribution does. One rating
+  per person per thing, enforced by overwrite rather than refusal.
+- **A rating can be changed and removed, and the control is easy to miss.** The
+  Rate panel itself offers only **Post**, **Update** and **Close**. What edits and
+  deletes is a kebab in the read-only **reviews list**, on **your own** review row
+  and no other, carrying **Edit** and **Delete**. It has no accessible name and
+  its icon is a plain vertical ellipsis, so it reads as noise in an accessibility
+  tree. **Edit** reopens the rating panel in Update mode; **Delete** calls
+  `DELETE /ratings/:id` and is not confirmed. The panel's button reads **Post** on
+  something you have not rated and **Update** on something you have, with your
+  stars lit and your review pre-filled.
+- **You cannot rate yourself.** The form is disabled when the subject is your own
+  player record, on the Player and Referee targets.
+- `averageRating` is rounded to two decimals in the response and to **one** in
+  the UI: 4.666... answers `4.67` and the header reads `4.7`. The count's label
+  is singular at one - `1 review`, `2 reviews` - and the count is a real
+  `<button class="text-blue-400 underline">` that opens the review list.
+- `distribution` in the summary response is a five-key histogram **repeated once
+  per rating** - three ratings answer an array of three identical objects. It
+  looks like a defect in the response shape. **Nothing in the web app renders the
+  distribution at all**; the review list is what a reader sees instead.
+- **The star row lights on hover.** A capture taken with the pointer resting over
+  the row shows a rating nobody chose. Park the pointer before reading or
+  photographing an open rating panel.
 
 ## Matches
 
@@ -919,7 +1009,7 @@ a seed can put somebody on a match that a reader could never choose.
 | `pitchNumber` | free text. `""` clears it. Only in the gear menu's **Edit** dialog - the inline MATCH DETAILS form has no pitch field |
 | `note` | up to 250 characters, with a counter. `""` clears it. Editable both in the Edit dialog and in place on the **FEED** panel (**Add Note** when empty, **Edit** when set, then an **Edit Note** window with **Save**) |
 | `refereePlayerId` | any playerId, as above |
-| `status` | `"Cancelled"` works here and nowhere else |
+| `status` | `"Cancelled"` works here. **(corrected 2026-09-02, by collection 19)** and it is not the only place: `POST /matches/:id/status {"status":"Cancelled"}` answers 200 on a match the server **auto-finished** (`autoFinished: true`), and only on that. On a match finished by an explicit `POST /status` it answers "Cannot update status of a Finished match", and this `PUT` is then what works |
 | `tag` | full enum: `friendly`, `league`, `cup`, `tournament`, `pre season`, `casualBooking`, `party`, `camp`, `onlineBooking`, `blockBooking`, `bubbleFootball`, `leagueFixture`, `function`, `transferMarket`. The **Game type** dropdown offers seven of them and **all seven work** - the label-to-value map is not a plain lower-case ("Pre Season" stores `pre season` with a space, "Casual Booking" stores `casualBooking`), so sending a lower-cased label by hand is refused and reads like an app bug when it is not |
 
 The line-up positions accept a **suffixed** variant the enum in
@@ -1341,9 +1431,19 @@ it:
 
 The only call in the whole bundle that *creates* a referee is
 `POST /tournaments/:id/referee`, which is where the app's own "Referee added" toast
-comes from. So on present evidence **there is no way to become a referee outside a
-tournament**, and the match Referee field is unusable for a manager who has never
-run one. Collection 21 owns the article; collection 09 documents the empty field.
+comes from. **SOLVED 2026-09-02, by collection 19.** `POST /tournaments/:id/referee` sets
+`isReferee: true` **and** `defaultProfile: "Referee"` on the target account,
+and answers with the whole user record showing both. Sent with
+`saveForFutureTournaments: true` it also puts that person in the match Referee
+field's own search (`GET /team-players/search?searchType=referee&
+tournamentSelectionOnly=true`), so the two halves of this puzzle are one call.
+`scripts/seed-19.mjs` holds a tournament for no other reason.
+
+So **there is still no way to become a referee outside a tournament** - the
+finding that stood here was right about the shape and wrong only about there
+being no call at all. A manager who has never run a tournament cannot fill the
+match Referee field. Collection 21 owns the article; collection 09 documents the
+empty field.
 
 ## Notifications
 
