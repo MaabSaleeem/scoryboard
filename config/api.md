@@ -1400,7 +1400,7 @@ Firestore ids.
 | POST | `/chats/conversations/:id/messages` | Send | `text`; optional `mediaTokens[]`, `replyToMessageId` |
 | GET | `/chats/conversations/:id/messages/:messageId` | One message in full | This is the call the Pro gate sits on |
 | PATCH | `/chats/conversations/:id/messages/:messageId` | Edit your own | `{"text": "..."}`. The message then renders with an `edited` tag beside its time |
-| PATCH | `/chats/conversations/:id/messages/:messageId/delete` | Delete | `{"scope":"me"}` or `{"scope":"everyone"}` |
+| PATCH | `/chats/conversations/:id/messages/:messageId/delete` | Delete | `{"scope":"self"}` or `{"scope":"everyone"}`. **`self`, not `me`** - `me` answers `400 SCHEMA_VALIDATION_ERROR`, "Expected 'self' \| 'everyone'" |
 | PATCH | `/chats/conversations/:id/messages/:messageId/reactions` | Toggle a reaction | `{"emoji":"👍"}`. Sending the same emoji twice removes it |
 | POST | `/chats/conversations/:id/messages/:messageId/forward` | Forward | `{"targetConversationIds":["..."]}` |
 | POST | `/chats/conversations/:id/messages/:messageId/report` | Report | `{"reason": "spam"\|"abuse"\|"harassment"\|"scam"\|"other", "note": "<=300 chars"}` |
@@ -1412,9 +1412,17 @@ The reaction picker offers six and only six: 👍 ❤️ 😂 😮 😢 🙏.
 **Deleting a message is not confirmed.** *Delete for me* and *Delete for everyone*
 both fire on the click; there is no "are you sure" dialog for either, and there is
 no undo. Verified on staging 2026-09-02 by choosing *Delete for everyone* on an own
-message - it left the transcript immediately. Others see *This message was deleted*
-in its place; **the sender sees nothing at all**, the row is simply gone from their
-own view.
+message - it left the transcript immediately.
+
+What each scope does, measured on a throwaway conversation:
+
+| Scope | The person who deleted it | Everybody else |
+|---|---|---|
+| `self` | the message is **not returned at all** by `GET .../messages` | unchanged, and readable; their copy carries the deleter's uid in `deletedForUids` |
+| `everyone` | the message is gone from their own view entirely - no tombstone | `isDeleted: true`, `text: ""`, `deleteType: "everyone"`, rendered as *This message was deleted* |
+
+So a sender never sees a tombstone for their own message, whichever scope they
+chose. Only the other people in the conversation do, and only for `everyone`.
 
 ### Groups
 

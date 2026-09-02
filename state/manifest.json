@@ -42,7 +42,8 @@
         "screenshots/12/12.1/03-public-page-info.4d653a9c.png"
       ],
       "published_at": "2026-08-28T09:23:47.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16733150-tournaments-explained-the-states-a-tournament-moves-through"
     },
     "12.2": {
       "intercom_id": "16733171",
@@ -62,7 +63,8 @@
         "screenshots/12/12.2/08-board-you-land-on.eae3cfad.png"
       ],
       "published_at": "2026-08-28T11:01:29.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16733171-creating-a-football-tournament"
     },
     "12.3": {
       "intercom_id": "16733190",
@@ -81,7 +83,8 @@
         "screenshots/12/12.3/07-teams-are-added-on-the-board.27098b3b.png"
       ],
       "published_at": "2026-08-28T09:32:04.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16733190-dates-kick-off-time-venues-and-teams"
     },
     "12.4": {
       "intercom_id": "16733249",
@@ -102,7 +105,8 @@
         "screenshots/12/12.4/09-format-saved-groups-generated.8947c953.png"
       ],
       "published_at": "2026-08-28T11:01:48.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16733249-choosing-a-format-for-a-football-tournament"
     },
     "12.5": {
       "intercom_id": "16733298",
@@ -123,7 +127,8 @@
         "screenshots/12/12.5/09-tournament-pro-slots.1f629323.png"
       ],
       "published_at": "2026-08-28T11:02:07.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16733298-adding-teams-assigning-owners-and-claiming-a-team"
     },
     "12.6": {
       "intercom_id": "16733318",
@@ -141,7 +146,8 @@
         "screenshots/12/12.6/06-venues-on-the-public-page.4d653a9c.png"
       ],
       "published_at": "2026-08-28T11:02:21.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16733318-venues-on-a-tournament"
     },
     "12.8": {
       "intercom_id": "16733354",
@@ -159,7 +165,8 @@
         "screenshots/12/12.8/06-no-role-goes-to-the-public-page.a7bc437c.png"
       ],
       "published_at": "2026-08-28T09:48:59.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16733354-tournament-settings-admins-and-what-a-non-admin-gets"
     },
     "12.9": {
       "intercom_id": "16733367",
@@ -196,7 +203,8 @@
         "screenshots/12/12.10/06-type-delete-to-confirm.3109c69b.png"
       ],
       "published_at": "2026-08-28T11:02:45.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16733381-editing-after-setup-and-deleting"
     },
     "12.7": {
       "intercom_id": "16733486",
@@ -213,7 +221,8 @@
         "screenshots/12/12.7/05-rename-a-group.2f97d9e4.png"
       ],
       "published_at": "2026-08-28T10:07:45.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16733486-tournament-crest-banner-and-phase-names"
     },
     "12.11": {
       "intercom_id": "16734124",
@@ -232,7 +241,8 @@
         "screenshots/12/12.11/07-board-you-land-on.0d3fa63d.png"
       ],
       "published_at": "2026-08-28T10:54:54.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16734124-creating-a-padel-tournament"
     },
     "12.12": {
       "intercom_id": "16734128",
@@ -252,7 +262,8 @@
         "screenshots/12/12.12/08-swiss-saved-pairs-and-phases.297c86a3.png"
       ],
       "published_at": "2026-08-28T11:02:53.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16734128-choosing-a-format-for-a-padel-tournament"
     },
     "13.1": {
       "intercom_id": "16735803",
@@ -268,7 +279,8 @@
         "screenshots/13/13.1/04-team-drag-handle.6cf1903c.png"
       ],
       "published_at": "2026-08-28T14:39:26.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16735803-how-teams-are-distributed-into-groups-in-a-football-tournament"
     },
     "13.2": {
       "intercom_id": "16735807",
@@ -284,7 +296,8 @@
         "screenshots/13/13.2/04-autofill-configuration.00b84869.png"
       ],
       "published_at": "2026-08-28T14:40:02.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16735807-how-pairs-are-created-and-grouped-in-a-padel-tournament"
     },
     "13.3": {
       "intercom_id": "16735812",
@@ -301,7 +314,8 @@
         "screenshots/13/13.3/05-team-menu-remove.ad356321.png"
       ],
       "published_at": "2026-08-28T14:40:39.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16735812-editing-and-deleting-a-group-in-a-football-tournament"
     },
     "13.4": {
       "intercom_id": "16735813",
@@ -317,7 +331,8 @@
         "screenshots/13/13.4/04-delete-swiss-format-confirm.c65cf992.png"
       ],
       "published_at": "2026-08-28T14:41:05.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16735813-editing-a-group-in-a-padel-tournament"
     },
     "13.5": {
       "intercom_id": "16735816",
@@ -348,7 +363,8 @@
         "screenshots/13/13.6/03-padel-fixtures-by-round.c8770595.png"
       ],
       "published_at": "2026-08-28T14:41:49.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16735818-reading-the-group-standings-table-in-a-padel-tournament"
     },
     "13.7": {
       "intercom_id": "16735824",
@@ -366,7 +382,8 @@
         "screenshots/13/13.7/06-delete-bracket-confirm.1ca3c8a2.png"
       ],
       "published_at": "2026-08-28T14:42:17.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16735824-brackets-and-knockout-rounds-in-a-football-tournament"
     },
     "13.8": {
       "intercom_id": "16735828",
@@ -384,7 +401,8 @@
         "screenshots/13/13.8/06-delete-bracket-confirm.260c7ef6.png"
       ],
       "published_at": "2026-08-28T14:42:39.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16735828-brackets-in-a-padel-tournament"
     },
     "13.9": {
       "intercom_id": "16735843",
@@ -401,7 +419,8 @@
         "screenshots/13/13.9/05-edit-match-title.4dafc244.png"
       ],
       "published_at": "2026-08-28T14:43:07.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16735843-setting-and-renaming-bracket-matches-in-a-football-tournament"
     },
     "13.10": {
       "intercom_id": "16735857",
@@ -418,7 +437,8 @@
         "screenshots/13/13.10/05-update-confirm.751b22a5.png"
       ],
       "published_at": "2026-08-28T14:43:34.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16735857-changing-a-padel-format-after-you-have-saved-it"
     },
     "13.11": {
       "intercom_id": "16735884",
@@ -458,7 +478,8 @@
         "screenshots/14/14.1/05-knockout-fixtures.60198bfe.png"
       ],
       "published_at": "2026-08-28T17:08:18.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16736750-how-the-fixture-list-is-generated-for-a-football-tournament"
     },
     "14.2": {
       "intercom_id": "16736752",
@@ -475,7 +496,8 @@
         "screenshots/14/14.2/05-swiss-rules.cf151035.png"
       ],
       "published_at": "2026-08-28T17:08:23.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16736752-how-the-fixture-list-is-generated-for-a-padel-tournament"
     },
     "14.3": {
       "intercom_id": "16736753",
@@ -492,7 +514,8 @@
         "screenshots/14/14.3/05-new-kick-off-times.c9f9a116.png"
       ],
       "published_at": "2026-08-28T17:08:28.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16736753-bulk-scheduling-a-football-group-and-the-gap-between-matches"
     },
     "14.4": {
       "intercom_id": "16736755",
@@ -509,7 +532,8 @@
         "screenshots/14/14.4/05-gap-between-rounds.45d2c294.png"
       ],
       "published_at": "2026-08-28T17:08:32.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16736755-bulk-scheduling-padel-rounds-courts-and-the-gap-between-rounds"
     },
     "14.5": {
       "intercom_id": "16736756",
@@ -527,7 +551,8 @@
         "screenshots/14/14.5/06-rolled-across-days.04557b80.png"
       ],
       "published_at": "2026-08-28T17:08:38.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16736756-rescheduling-fixtures-and-rolling-them-onto-the-next-day"
     },
     "14.6": {
       "intercom_id": "16736757",
@@ -543,7 +568,8 @@
         "screenshots/14/14.6/04-empty-slot-on-format.e8389dec.png"
       ],
       "published_at": "2026-08-28T17:08:42.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16736757-why-two-football-fixtures-clash-and-fixtures-showing-only-one-team"
     },
     "14.7": {
       "intercom_id": "16736759",
@@ -559,7 +585,8 @@
         "screenshots/14/14.7/04-courts-in-configuration.3f17fe99.png"
       ],
       "published_at": "2026-08-28T17:08:48.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16736759-why-padel-matches-share-a-start-time-and-when-that-is-a-clash"
     },
     "14.8": {
       "intercom_id": "16736763",
@@ -574,7 +601,8 @@
         "screenshots/14/14.8/03-all-sections-selected.11ce08d9.png"
       ],
       "published_at": "2026-08-28T17:08:52.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16736763-exporting-your-fixture-list-as-a-pdf"
     },
     "01.1": {
       "intercom_id": "16738263",
@@ -594,7 +622,8 @@
         "screenshots/01/01.1/08-email-already-in-use.5552e5c2.png"
       ],
       "published_at": "2026-08-28T20:07:11.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16738263-creating-your-scoryboard-account"
     },
     "01.2": {
       "intercom_id": "16738266",
@@ -610,7 +639,8 @@
         "screenshots/01/01.2/04-signed-in.290c1b3a.png"
       ],
       "published_at": "2026-08-28T20:07:15.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16738266-signing-in-and-common-sign-in-problems"
     },
     "01.3": {
       "intercom_id": "16738270",
@@ -626,7 +656,8 @@
         "screenshots/01/01.3/04-reset-password-form.b7916857.png"
       ],
       "published_at": "2026-08-28T20:03:11.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16738270-resetting-your-password"
     },
     "01.4": {
       "intercom_id": "16738275",
@@ -650,7 +681,8 @@
         "screenshots/01/01.4/12-home-after-skip.eaa27a1d.png"
       ],
       "published_at": "2026-08-28T19:57:57.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16738275-the-setup-wizard-what-each-step-does"
     },
     "01.5": {
       "intercom_id": "16738278",
@@ -670,7 +702,8 @@
         "screenshots/01/01.5/08-leaderboard-created.c6c48f5f.png"
       ],
       "published_at": "2026-08-28T19:57:57.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16738278-setting-up-your-first-team-and-leaderboard"
     },
     "01.6": {
       "intercom_id": "16738281",
@@ -685,7 +718,8 @@
         "screenshots/01/01.6/03-my-bio-highlighted.f10c2ddf.png"
       ],
       "published_at": "2026-08-28T19:57:58.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16738281-the-profile-checklist-in-your-sidebar"
     },
     "01.7": {
       "intercom_id": "16738286",
@@ -701,7 +735,8 @@
         "screenshots/01/01.7/04-credential-error.0a0d9151.png"
       ],
       "published_at": "2026-08-28T20:08:47.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16738286-deleting-your-account-and-why-an-account-may-be-disabled"
     },
     "02.1": {
       "intercom_id": "16738968",
@@ -719,7 +754,8 @@
         "screenshots/02/02.1/06-trending.379f2e25.png"
       ],
       "published_at": "2026-08-28T21:43:29.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16738968-the-main-navigation-and-your-home-feed"
     },
     "02.2": {
       "intercom_id": "16738970",
@@ -734,7 +770,8 @@
         "screenshots/02/02.2/03-too-few-characters.ed4956ed.png"
       ],
       "published_at": "2026-08-28T21:43:35.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16738970-searching-for-players-and-teams"
     },
     "02.3": {
       "intercom_id": "16738971",
@@ -749,7 +786,8 @@
         "screenshots/02/02.3/03-contact-form-filled.7bf2617e.png"
       ],
       "published_at": "2026-08-28T21:43:39.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16738971-getting-help-and-contacting-support"
     },
     "02.4": {
       "intercom_id": "16738974",
@@ -766,7 +804,8 @@
         "screenshots/02/02.4/05-change-password.9a500444.png"
       ],
       "published_at": "2026-08-28T21:43:43.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16738974-profile-settings-what-you-can-change"
     },
     "02.5": {
       "intercom_id": "16738975",
@@ -785,7 +824,8 @@
         "screenshots/02/02.5/07-your-bio.1d721852.png"
       ],
       "published_at": "2026-08-28T21:43:48.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16738975-your-profile-photo-banner-and-bio"
     },
     "02.6": {
       "intercom_id": "16738976",
@@ -801,7 +841,8 @@
         "screenshots/02/02.6/04-matches-no-create.e963401c.png"
       ],
       "published_at": "2026-08-28T21:43:52.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16738976-what-your-public-player-profile-shows"
     },
     "02.7": {
       "intercom_id": "16738977",
@@ -817,7 +858,8 @@
         "screenshots/02/02.7/04-leaderboards-table.a9850c97.png"
       ],
       "published_at": "2026-08-29T09:38:38.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16738977-your-teams-rankings-and-match-history"
     },
     "02.8": {
       "intercom_id": "16738979",
@@ -833,7 +875,8 @@
         "screenshots/02/02.8/04-compare-arrows-pro.5bd5b052.png"
       ],
       "published_at": "2026-08-28T21:44:01.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16738979-comparing-your-stats-with-other-players"
     },
     "07.1": {
       "intercom_id": "16740184",
@@ -853,7 +896,8 @@
         "screenshots/07/07.1/08-new-team-row.349021b1.png"
       ],
       "published_at": "2026-08-29T00:34:44.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16740184-creating-a-team"
     },
     "07.2": {
       "intercom_id": "16740185",
@@ -870,7 +914,8 @@
         "screenshots/07/07.2/05-unclaimed-team-page.689c169b.png"
       ],
       "published_at": "2026-08-29T00:35:15.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16740185-dummy-teams-and-unowned-teams"
     },
     "07.3": {
       "intercom_id": "16740186",
@@ -887,7 +932,8 @@
         "screenshots/07/07.3/05-save-changes.c1a1027d.png"
       ],
       "published_at": "2026-08-29T00:35:30.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16740186-your-team-crest-banner-and-bio"
     },
     "07.4": {
       "intercom_id": "16740187",
@@ -906,7 +952,8 @@
         "screenshots/07/07.4/07-delete-disabled-for-admin.558e3b52.png"
       ],
       "published_at": "2026-08-29T00:35:54.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16740187-your-team-settings-screen"
     },
     "07.5": {
       "intercom_id": "16740189",
@@ -927,7 +974,8 @@
         "screenshots/07/07.5/09-member-invite-link.543f299f.png"
       ],
       "published_at": "2026-08-29T00:36:31.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16740189-inviting-players-to-your-team"
     },
     "07.6": {
       "intercom_id": "16740195",
@@ -944,7 +992,8 @@
         "screenshots/07/07.6/05-no-invitations.fe91aced.png"
       ],
       "published_at": "2026-08-29T00:36:53.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16740195-joining-a-team-you-have-been-invited-to"
     },
     "07.7": {
       "intercom_id": "16740215",
@@ -961,7 +1010,8 @@
         "screenshots/07/07.7/05-free-upgrade-pro.7105a564.png"
       ],
       "published_at": "2026-08-29T00:37:14.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16740215-team-roles-owner-administrator-and-player"
     },
     "07.8": {
       "intercom_id": "16740236",
@@ -978,7 +1028,8 @@
         "screenshots/07/07.8/05-blocked-refusal.ef94be39.png"
       ],
       "published_at": "2026-08-29T00:37:36.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16740236-removing-a-member-and-blocking-them"
     },
     "07.9": {
       "intercom_id": "16740266",
@@ -996,7 +1047,8 @@
         "screenshots/07/07.9/06-role-list-no-owner.a0449294.png"
       ],
       "published_at": "2026-08-29T00:38:06.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16740266-claiming-a-team"
     },
     "07.10": {
       "intercom_id": "16740286",
@@ -1013,7 +1065,8 @@
         "screenshots/07/07.10/05-player-stats.a4cd39ff.png"
       ],
       "published_at": "2026-08-29T00:38:25.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16740286-your-team-page-stats-matches-top-players-and-followers"
     },
     "07.11": {
       "intercom_id": "16740298",
@@ -1028,7 +1081,8 @@
         "screenshots/07/07.11/03-not-the-owner.558e3b52.png"
       ],
       "published_at": "2026-08-29T00:38:37.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16740298-deleting-a-team"
     },
     "04.1": {
       "intercom_id": "16744143",
@@ -1044,7 +1098,8 @@
         "screenshots/04/04.1/04-plans-page-pro.6e7e0c73.png"
       ],
       "published_at": "2026-08-29T11:09:43.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16744143-free-vs-pro-what-is-included"
     },
     "04.2": {
       "intercom_id": "16744144",
@@ -1061,7 +1116,8 @@
         "screenshots/04/04.2/05-pro-in-the-sidebar.6d072016.png"
       ],
       "published_at": "2026-08-29T10:52:15.000Z",
-      "status": "draft"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16744144-pro-is-free-during-beta-how-to-upgrade"
     },
     "04.3": {
       "intercom_id": "16744149",
@@ -1081,7 +1137,8 @@
         "screenshots/04/04.3/08-profile-views-pro.24a3d890.png"
       ],
       "published_at": "2026-08-29T10:53:02.000Z",
-      "status": "draft"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16744149-every-free-plan-limit-and-the-messages-you-will-see"
     },
     "04.4": {
       "intercom_id": "16744250",
@@ -1099,7 +1156,8 @@
         "screenshots/04/04.4/06-currency-open.c38b8004.png"
       ],
       "published_at": "2026-08-29T11:31:36.000Z",
-      "status": "draft"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16744250-tournament-pro-what-it-is-and-the-three-plans"
     },
     "04.5": {
       "intercom_id": "16744251",
@@ -1116,7 +1174,8 @@
         "screenshots/04/04.5/05-no-basic-tournaments.f49267b5.png"
       ],
       "published_at": "2026-08-29T11:31:42.000Z",
-      "status": "draft"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16744251-upgrading-a-tournament-to-tournament-pro"
     },
     "04.6": {
       "intercom_id": "16744252",
@@ -1130,7 +1189,8 @@
         "screenshots/04/04.6/02-free-slots-panel.af395ced.png"
       ],
       "published_at": "2026-08-29T11:44:34.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16744252-free-tournament-pro-slots"
     },
     "05.1": {
       "intercom_id": "16749940",
@@ -1145,7 +1205,8 @@
         "screenshots/05/05.1/03-one-friend-per-team-free.9c4a2af3.png"
       ],
       "published_at": "2026-08-30T06:54:14.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16749940-what-your-friends-list-is-and-why-teams-depend-on-it"
     },
     "05.2": {
       "intercom_id": "16749941",
@@ -1165,7 +1226,8 @@
         "screenshots/05/05.2/08-edit-disabled-linked.d2b517d1.png"
       ],
       "published_at": "2026-08-30T06:54:48.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16749941-adding-editing-and-removing-friends"
     },
     "05.3": {
       "intercom_id": "16749943",
@@ -1181,7 +1243,8 @@
         "screenshots/05/05.3/04-linked-row.299c5ee7.png"
       ],
       "published_at": "2026-08-30T06:55:07.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16749943-merging-a-friend-with-an-existing-player-when-emails-clash"
     },
     "05.4": {
       "intercom_id": "16749944",
@@ -1198,7 +1261,8 @@
         "screenshots/05/05.4/05-claimed-row.91a68c92.png"
       ],
       "published_at": "2026-08-30T06:55:29.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16749944-invite-codes-and-claiming-your-own-record"
     },
     "05.5": {
       "intercom_id": "16755990",
@@ -1216,7 +1280,8 @@
         "screenshots/05/05.5/06-following-window.fb9910fe.png"
       ],
       "published_at": "2026-08-31T05:00:07.000Z",
-      "status": "draft"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16755990-following-players-teams-and-tournaments"
     },
     "11.1": {
       "intercom_id": "16756932",
@@ -1232,7 +1297,8 @@
         "screenshots/11/11.1/04-facts-empty.8c114ec8.png"
       ],
       "published_at": "2026-08-31T08:27:10.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16756932-match-facts-insights-and-statistics-so-far"
     },
     "11.2": {
       "intercom_id": "16756936",
@@ -1247,7 +1313,8 @@
         "screenshots/11/11.2/03-player-stats-table.c07dfe73.png"
       ],
       "published_at": "2026-08-31T08:24:56.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16756936-how-team-and-player-statistics-are-calculated"
     },
     "11.3": {
       "intercom_id": "16756939",
@@ -1261,7 +1328,8 @@
         "screenshots/11/11.3/02-leaderboards-table.fb9f2913.png"
       ],
       "published_at": "2026-08-31T08:25:00.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16756939-when-your-statistics-update-after-a-match"
     },
     "08.1": {
       "intercom_id": "16760527",
@@ -1280,7 +1348,8 @@
         "screenshots/08/08.1/07-limit-modal-free.9583f138.png"
       ],
       "published_at": "2026-08-31T12:44:11.000Z",
-      "status": "draft"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16760527-creating-a-leaderboard"
     },
     "08.2": {
       "intercom_id": "16760641",
@@ -1298,7 +1367,8 @@
         "screenshots/08/08.2/06-settings-blocked.771009fb.png"
       ],
       "published_at": "2026-08-31T13:01:34.000Z",
-      "status": "draft"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16760641-your-leaderboard-settings-screen"
     },
     "08.3": {
       "intercom_id": "16760678",
@@ -1316,7 +1386,8 @@
         "screenshots/08/08.3/06-team-row-remove.8fae2fe6.png"
       ],
       "published_at": "2026-08-31T13:09:34.000Z",
-      "status": "draft"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16760678-adding-and-removing-teams"
     },
     "08.4": {
       "intercom_id": "16760742",
@@ -1334,7 +1405,8 @@
         "screenshots/08/08.4/06-matches-team-filter.d8e74065.png"
       ],
       "published_at": "2026-08-31T13:18:04.000Z",
-      "status": "draft"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16760742-leaderboard-statistics-players-and-matches"
     },
     "08.5": {
       "intercom_id": "16760763",
@@ -1351,7 +1423,8 @@
         "screenshots/08/08.5/05-delete-window.88813b41.png"
       ],
       "published_at": "2026-08-31T13:22:13.000Z",
-      "status": "draft"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16760763-sharing-commenting-on-and-deleting-a-leaderboard"
     },
     "09.1": {
       "intercom_id": "16762189",
@@ -1373,7 +1446,8 @@
         "screenshots/09/09.1/10-match-scheduled.73960d50.png"
       ],
       "published_at": "2026-08-31T16:09:04.000Z",
-      "status": "draft"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16762189-creating-a-match"
     },
     "09.2": {
       "intercom_id": "16762191",
@@ -1390,7 +1464,8 @@
         "screenshots/09/09.2/05-team-card-complete.8506a6d0.png"
       ],
       "published_at": "2026-08-31T16:09:11.000Z",
-      "status": "draft"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16762191-match-statuses-and-why-a-match-is-stuck-on-incomplete"
     },
     "09.3": {
       "intercom_id": "16762193",
@@ -1408,7 +1483,8 @@
         "screenshots/09/09.3/06-saved-strip.ca008dc3.png"
       ],
       "published_at": "2026-08-31T16:09:18.000Z",
-      "status": "draft"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16762193-venue-date-kick-off-time-duration-and-pitch"
     },
     "09.4": {
       "intercom_id": "16762195",
@@ -1425,7 +1501,8 @@
         "screenshots/09/09.4/05-player-view-only.1bf4a8db.png"
       ],
       "published_at": "2026-08-31T16:09:24.000Z",
-      "status": "draft"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16762195-match-tags-and-attaching-a-match-to-a-leaderboard"
     },
     "09.5": {
       "intercom_id": "16762196",
@@ -1442,7 +1519,8 @@
         "screenshots/09/09.5/05-player-no-gear.1bf4a8db.png"
       ],
       "published_at": "2026-08-31T16:09:33.000Z",
-      "status": "draft"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16762196-editing-or-cancelling-a-match"
     },
     "09.6": {
       "intercom_id": "16762197",
@@ -1460,7 +1538,8 @@
         "screenshots/09/09.6/06-edit-note.03babad2.png"
       ],
       "published_at": "2026-08-31T16:17:28.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16762197-assigning-a-referee-and-adding-a-banner-or-note"
     },
     "09.7": {
       "intercom_id": "16762199",
@@ -1479,7 +1558,8 @@
         "screenshots/09/09.7/07-match-invitation.3124c37b.png"
       ],
       "published_at": "2026-08-31T16:09:45.000Z",
-      "status": "draft"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16762199-inviting-people-sharing-a-preview-and-the-matches-calendar"
     },
     "10.1": {
       "intercom_id": "16769856",
@@ -1500,7 +1580,8 @@
         "screenshots/10/10.1/09-tour-lineup.5a90475e.png"
       ],
       "published_at": "2026-09-01T08:46:58.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16769856-the-match-screen-its-tabs-and-the-guided-tour"
     },
     "10.2": {
       "intercom_id": "16769863",
@@ -1521,7 +1602,8 @@
         "screenshots/10/10.2/09-formation-changed.f0c09a55.png"
       ],
       "published_at": "2026-09-01T08:47:08.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16769863-picking-your-lineup-and-choosing-a-formation"
     },
     "10.3": {
       "intercom_id": "16769866",
@@ -1539,7 +1621,8 @@
         "screenshots/10/10.3/06-player-no-controls.7db738b0.png"
       ],
       "published_at": "2026-09-01T08:47:14.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16769866-starting-pausing-and-ending-a-match"
     },
     "10.4": {
       "intercom_id": "16769870",
@@ -1554,7 +1637,8 @@
         "screenshots/10/10.4/03-timer-paused.f01b2ca2.png"
       ],
       "published_at": "2026-09-01T08:47:17.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16769870-the-match-timer"
     },
     "10.5": {
       "intercom_id": "16769873",
@@ -1572,7 +1656,8 @@
         "screenshots/10/10.5/06-goal-revoked.7bca294c.png"
       ],
       "published_at": "2026-09-01T08:47:22.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16769873-awarding-a-goal-and-revoking-one-entered-by-mistake"
     },
     "10.6": {
       "intercom_id": "16769874",
@@ -1591,7 +1676,8 @@
         "screenshots/10/10.6/07-final-score.44c75a2a.png"
       ],
       "published_at": "2026-09-01T08:47:28.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16769874-yellow-and-red-cards-and-how-the-final-score-is-set"
     },
     "10.7": {
       "intercom_id": "16769875",
@@ -1606,7 +1692,8 @@
         "screenshots/10/10.7/03-potm-on-feed.3b2e2502.png"
       ],
       "published_at": "2026-09-01T08:47:32.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16769875-choosing-player-of-the-match"
     },
     "10.8": {
       "intercom_id": "16769877",
@@ -1626,7 +1713,8 @@
         "screenshots/10/10.8/08-add-media-pro.ab5268ef.png"
       ],
       "published_at": "2026-09-01T08:47:37.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16769877-the-match-feed-and-commentary"
     },
     "10.9": {
       "intercom_id": "16769879",
@@ -1643,7 +1731,8 @@
         "screenshots/10/10.9/05-too-old.d0203e42.png"
       ],
       "published_at": "2026-09-01T08:43:40.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16769879-recording-a-match-that-has-already-been-played"
     },
     "10.10": {
       "intercom_id": "16769883",
@@ -1659,7 +1748,8 @@
         "screenshots/10/10.10/04-score-arrived.bccdbdb6.png"
       ],
       "published_at": "2026-09-01T08:47:42.000Z",
-      "status": "published"
+      "status": "published",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16769883-live-viewers-and-following-a-match-from-another-device"
     },
     "15.1": {
       "intercom_id": "16771619",
@@ -2010,6 +2100,85 @@
         "screenshots/17/17.9/05-cancelled-actions-disabled.a3fa166a.png"
       ],
       "published_at": "2026-09-01T20:04:33.000Z",
+      "status": "published"
+    },
+    "18.1": {
+      "intercom_id": "16780987",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16780987-chat-overview-conversations-direct-messages-and-groups",
+      "collection": "18",
+      "intercom_collection_id": "19733987",
+      "brief": "briefs/18.md",
+      "spec": "specs/18/18.1.spec.ts",
+      "commit_sha": "e5874550449770e69464909ed83b8c9066260015",
+      "screenshots": [
+        "screenshots/18/18.1/01-chat-page.795ffcc0.png",
+        "screenshots/18/18.1/02-conversation-list.3a6d8e1b.png",
+        "screenshots/18/18.1/03-direct-conversation.3892cb62.png",
+        "screenshots/18/18.1/04-group-conversation.11847cb1.png",
+        "screenshots/18/18.1/05-free-locked-transcript.7d2817fd.png",
+        "screenshots/18/18.1/06-free-gate-modal.96b73e84.png"
+      ],
+      "published_at": "2026-09-02T08:43:49.000Z",
+      "status": "published"
+    },
+    "18.2": {
+      "intercom_id": "16780990",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16780990-creating-and-setting-up-a-group-chat",
+      "collection": "18",
+      "intercom_collection_id": "19733987",
+      "brief": "briefs/18.md",
+      "spec": "specs/18/18.2.spec.ts",
+      "commit_sha": "e5874550449770e69464909ed83b8c9066260015",
+      "screenshots": [
+        "screenshots/18/18.2/01-start-new-chat.59645b62.png",
+        "screenshots/18/18.2/02-find-player-from.74ef5812.png",
+        "screenshots/18/18.2/03-select-players.c545b63c.png",
+        "screenshots/18/18.2/04-group-details.51de3450.png",
+        "screenshots/18/18.2/05-group-created.4b74b68d.png",
+        "screenshots/18/18.2/06-group-info-admin.884c470e.png"
+      ],
+      "published_at": "2026-09-02T08:43:57.000Z",
+      "status": "published"
+    },
+    "18.3": {
+      "intercom_id": "16780993",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16780993-replying-forwarding-reacting-editing-and-deleting",
+      "collection": "18",
+      "intercom_collection_id": "19733987",
+      "brief": "briefs/18.md",
+      "spec": "specs/18/18.3.spec.ts",
+      "commit_sha": "e5874550449770e69464909ed83b8c9066260015",
+      "screenshots": [
+        "screenshots/18/18.3/01-menu-incoming.651a0bf4.png",
+        "screenshots/18/18.3/02-reply-composer.87d940c6.png",
+        "screenshots/18/18.3/03-reply-in-transcript.2eaa7a45.png",
+        "screenshots/18/18.3/04-react-picker.6ccd831d.png",
+        "screenshots/18/18.3/05-reaction-pill.d128ee25.png",
+        "screenshots/18/18.3/06-forward-dialog.d10cf778.png",
+        "screenshots/18/18.3/07-menu-own.43eebc8a.png",
+        "screenshots/18/18.3/08-edit-composer.fa015950.png",
+        "screenshots/18/18.3/09-edited-and-deleted.68b7442a.png"
+      ],
+      "published_at": "2026-09-02T08:44:02.000Z",
+      "status": "published"
+    },
+    "18.4": {
+      "intercom_id": "16780994",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16780994-leaving-deleting-and-reporting",
+      "collection": "18",
+      "intercom_collection_id": "19733987",
+      "brief": "briefs/18.md",
+      "spec": "specs/18/18.4.spec.ts",
+      "commit_sha": "e5874550449770e69464909ed83b8c9066260015",
+      "screenshots": [
+        "screenshots/18/18.4/01-group-info-member.ecc4b505.png",
+        "screenshots/18/18.4/02-leave-confirm.256f4c09.png",
+        "screenshots/18/18.4/03-group-actions-admin.f0ab0d70.png",
+        "screenshots/18/18.4/04-delete-group-confirm.d270387a.png",
+        "screenshots/18/18.4/05-delete-chat-confirm.d58ab09c.png",
+        "screenshots/18/18.4/06-report-message.fc46ffe5.png"
+      ],
+      "published_at": "2026-09-02T08:44:06.000Z",
       "status": "published"
     }
   }

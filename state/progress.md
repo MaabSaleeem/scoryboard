@@ -30,7 +30,7 @@ target.
 | 15 | Tournaments - publishing & running | 9 | 62 | organiser | published | [briefs/15.md](../briefs/15.md) | flag: TOURNAMENT_FEATURE_ENABLED. 65 screenshots. **All nine published by the reviewer 2026-09-01, within the hour the run posted them as drafts. 15.8 step 1 was simplified and republished afterwards, live.** Four articles retitled: **15.1 there is nothing to publish** (`isPublic` is already true on every tournament, and the public page really IS public, unlike the leaderboard and match share links); 15.2 drops access tokens (`/tournaments/token/:token` exists and nothing mints one); 15.6 drops prizes because **the PRIZES tab is a Winner panel whose picker records nothing** - Save Winner can never be enabled, established with a trusted click sequence and a passing control test; 15.9's "completing" re-scoped to the aftermath, since there is no Complete control. **Score entry is now verified** - START, two typed boxes that save on their own, END - and ending the PHASE is what closes it. 15.7's free_pro flag does NOT bite: Free and Pro read a long tournament message identically. Announcement-only chat refuses a tournament ADMIN too. The info page and gallery DO exist, behind a 16-pixel unlabelled pencil. Four accounts: `kb-organiser-15@`, `kb-15-admin@`, `kb-15-free@`, `kb-15-outsider@`. Six tournaments; two on FIXED dates in Oct and Nov 2026 and the seed refuses to run once they have passed |
 | ~~16~~ | ~~Tournament plans & payment~~ | - | - | - | **retired** | - | **RETIRED 2026-08-29, merged into 04.** 16.1+16.2 -> 04.4, 16.3+16.4 -> 04.5, 16.6 -> 04.6. 16.5 dropped - managing a live Annual subscription needs a completed payment. Intercom collection 19733985 is empty and must not be reused |
 | 17 | Collecting & making payments | 9 | 63 | manager_pro | published | [briefs/17.md](../briefs/17.md) | 52 screenshots. **All nine published by the repo owner 2026-09-02, on their instruction, without the usual draft review.** Every capture stops before Stripe, on instruction: setting up a payout account opens a window at connect.stripe.com, Pay Now opens Stripe Elements, and both are CAPTCHA-gated. 17.9 retitled "Payment statuses and failed payments" - the app has no refund feature at all. 17.2 is 4 shots not 12, 17.8 is 6 not 8; the rest were Stripe's own screens. **The payout account on `kb-manager-pro-17@` was connected by a human and cannot be rebuilt from here** - never `--rebuild` this collection without one. `kb-17-nopayout@` must stay un-onboarded. Four accounts: `kb-manager-pro-17@`, `kb-player-17@`, `kb-17-admin@`, `kb-17-nopayout@` |
-| 18 | Chat & messaging | 4 | 27 | manager_free | not started | - | - |
+| 18 | Chat & messaging | 4 | 27 | manager_free | published | [briefs/18.md](../briefs/18.md) | 27 screenshots. **All four published by the repo owner 2026-09-02, on their instruction, without the usual draft review. All 10 cross-references are live anchors.** **The persona default does NOT work here.** On Free an incoming message arrives as its first ten characters and an ellipsis, and replying to one or reacting to one is refused with 403 - so `kb-18-pro@` takes every capture and `kb-manager-free-18@` appears only in 18.1 where the gate is the subject. **Chat has a full REST surface** - nineteen `/chats` endpoints, now in config/api.md; personas.yaml's "seed the group chat through the UI" was wrong and is corrected. Deleting a message is NOT confirmed and cannot be undone. No read receipts exist. Five accounts: `kb-18-pro@`, `kb-manager-free-18@`, `kb-18-member@`, `kb-18-outsider@`, `kb-18-empty@` (holds no conversation, for the empty state) |
 | 19 | Comments, likes & ratings | 4 | 19 | player | not started | - | - |
 | 20 | Notifications, emails & the activity feed | 4 | 16 | player | not started | - | No push notifications exist. Do not write one. |
 | 21 | Referees | 3 | 18 | referee | not started | - | - |
@@ -3035,4 +3035,157 @@ signed out through the UI and all exploration moved to Playwright, which starts
 every context signed out. This is the second session to hit it. Sign out before
 you finish, or do not use the shared browser for a signed-in persona at all.
 
-Next: pick from the remaining collections - 09, 10, 18, 19, 20, 21, 22, 24.
+### 2026-09-02 - collection 18 complete. Four articles, all drafts.
+
+**Chat & messaging.** 27 screenshots, four articles in Intercom collection
+`19733987`. Brief: [briefs/18.md](../briefs/18.md).
+
+**All four were published by the repo owner on 2026-09-02, on their instruction,
+without the usual draft review.** They went out as drafts first, were published on
+that instruction, then rebuilt and re-published so their cross-references became
+real links. They are live at `https://help.scoryboard.com/en/articles/`.
+
+| Article | Intercom id | Shots |
+|---|---|---|
+| 18.1 Chat overview - conversations, direct messages and groups | 16780987 | 6 |
+| 18.2 Creating and setting up a group chat | 16780990 | 6 |
+| 18.3 Replying, forwarding, reacting, editing and deleting | 16780993 | 9 |
+| 18.4 Leaving, deleting and reporting | 16780994 | 6 |
+
+Images pinned to `e5874550449770e69464909ed83b8c9066260015`. All 27 URLs verified
+200 `image/png` on jsDelivr before publishing. Read back off the Intercom API
+afterwards: all four `draft`, all four `parent_ids: [19733987]`, all 27 images
+rehosted by Intercom.
+
+### Chat is REST, and personas.yaml was wrong about it
+
+`config/api.md` recorded chat as possibly having no REST surface at all -
+Firestore for messages, RTDB for presence - and `config/personas.yaml` told this
+collection to seed its group chat through the UI. Reading the app bundle turned up
+**nineteen `/chats` endpoints**, all ordinary bearer-token REST, and every one was
+exercised against staging. They are now written up in `config/api.md` under
+"Chat and messaging", and `scripts/seed-18.mjs` builds a group, four members, a
+seven-message transcript, a reaction, an edit and a deletion in 26 writes.
+
+Firestore does carry the live read - the chat page opens a `Listen/channel` - and
+the RTDB does carry presence under `/online/users/:uid`. The guess was half right.
+Both files are corrected.
+
+### The Free gate is much wider than CHAT_PRO_REQUIRED said
+
+`config/api.md` described it as "reading an incoming message in full". Measured:
+
+- `GET .../messages` returns somebody else's message as its **first ten characters
+  plus an ellipsis**, `isContentLocked: true`. Your own come back whole. The
+  conversation list's preview is truncated the same way.
+- **Replying to an incoming message is refused**, and so is reacting to one:
+  `403 {"reason":"Upgrade to Pro to access the full message content"}`. The gate is
+  on the message, not on the verb.
+
+So a Free reader sees a column of ten-character stubs, each with an **Unlock with
+Pro** button. That is a true screenshot and a useless one, which is why this
+collection's capture persona is `kb-18-pro@` and not the map's `manager_free`.
+`config/personas.yaml` now says so on the manager_free entry.
+
+The seed found this the hard way: the transcript's reply was Marc's in the first
+draft and the seed stopped on a 403.
+
+### Two things worth a ticket
+
+- **Deleting a message is not confirmed and cannot be undone.** *Delete for me*
+  and *Delete for everyone* both fire on the click. There is no dialog for either.
+  Found by choosing *Delete for everyone* on a seeded message during exploration -
+  it vanished, and the seed had to be re-run to put it back. The scope enum is
+  `self | everyone`, not `me | everyone`.
+- **There are no read receipts.** `memberState[uid].lastReadAt` is the only trace
+  and nothing renders it. The single tick beside an outgoing message is drawn
+  unconditionally and does not change when the other person reads it. The cut
+  article "read receipts" has nowhere to go, and 18.1 does not mention ticks
+  meaning anything.
+
+### Three capture lessons that will bite the next chat-shaped collection
+
+- **A bubble whose menu has been opened keeps its chevron for good.** Not hover,
+  not focus: parking the pointer does not clear it and neither does blurring. Two
+  runs went out with a chevron on the two opened bubbles and none on the rest.
+  18.3 now captures its three at-rest shots BEFORE any menu exists.
+- **Annotations inside the transcript need a clipped capture.** The transcript
+  scrolls in its own container, so `window.scrollY` stays 0 and `annotate()`
+  cannot convert a viewport box to a document box. An outline on a full-page
+  capture lands below its target.
+- **The transcript paginates on scroll** and shows a "Loading older messages..."
+  pill - plain text, not an `.animate-pulse`, so `shot()`'s skeleton backstop does
+  not catch it. One run published one. `transcriptSettled()` now gates on it.
+
+### Transcript timestamps are deliberately NOT masked
+
+A deviation from `docs/style-guide.md`, which lists "absolute dates and times that
+are not the point". A collection 18 capture has twelve to fourteen of them - one
+under every bubble, one on every conversation row - and masking them all turns the
+transcript into a column of black rectangles. They are `h:mm` on the day the seed
+ran, with no date beside them, and identify nobody. The clincher: the app renders
+an edited message's footer as ONE node, `8:34 - edited`, so any regex loose enough
+to catch the time paints over the word 18.3's last capture exists to show. The
+signed-in name and all three unread badges are still hidden. Reasoned at length in
+`lib/kb.ts` where `chat18Times()` would have gone, and in briefs/18.md.
+
+### Cross-references are links - the second pass was done
+
+Intercom gives a draft no public URL, so the first build rendered all ten
+`{{link:...}}` placeholders as quoted titles. After publishing, the four were
+rebuilt and re-published and **all ten are now real anchors** - seven between the
+collection's own articles, three into collection 04. Verified off the live API: 10
+links and 27 images across the four, and all 33 distinct URLs answer 200.
+
+Two of those links only work because of the reconcile below. `04.2` and `04.3` were
+live on the help centre and the manifest still said `draft`, so the first build
+refused to link them and said nothing was wrong.
+
+### The manifest was stale for 90 rows, and it silently broke links
+
+`state/manifest.json` is documented as stale by default: it only learns about
+publishes `publish-article.mjs` itself did, and the reviewer publishes in the
+Intercom UI between sessions. `publish-article.mjs` reconciles - but only for the
+one article it is publishing. **Nothing reconciled the rest**, and
+`build-article.mjs` reads the manifest for every OTHER article when it resolves a
+`{{link:}}`. A stale row degrades the link to quoted plain text and nothing fails.
+
+`scripts/reconcile-manifest.mjs` is new and fixes that. It GETs every article in
+the manifest and corrects `status` and `intercom_url` from Intercom's own answer.
+Read-only against Intercom - it sends nothing but GETs, so it cannot publish or
+unpublish anything, and the only file it can write is the manifest. A row whose id
+answers 404 is reported and left alone.
+
+Run on 115 articles, none missing, **90 rows were wrong**:
+
+- **16 said `draft` and are live**: 04.2, 04.3, 04.4, 04.5, 05.5, 08.1 to 08.5,
+  09.1 to 09.5, 09.7.
+- **74 had no `intercom_url` recorded at all** - rows that predate the field, in
+  collections 01, 02, 04, 05, 07, 09, 10, 11, 12, 13 and 14. Every cross-reference
+  into any of them has been rendering as plain text.
+
+**Worth doing next: rebuild and re-publish the collections that link into those.**
+This session only rebuilt 18. Every other collection's `{{link:}}` placeholders
+were resolved against the stale manifest at the time they were built, so some of
+them are quoted titles on the live help centre that should be links.
+
+### Three status rows in the table above are now wrong, and only a human may fix them
+
+The reconcile shows Intercom holds these as fully published, while the table still
+says `drafts on Intercom`. This file says only a human moves a collection to
+`published`, so they were left alone:
+
+| # | Table says | Intercom says |
+|---|---|---|
+| 05 | drafts on Intercom | all 5 published |
+| 08 | drafts on Intercom | all 5 published |
+| 09 | drafts on Intercom | all 7 published |
+
+### The `articles/<id>.json` hazard is still there
+
+`scripts/build-article.mjs` still writes `state: "published"` into every article
+JSON. `publish-article.mjs` overrides it and sent `draft` four times here, so
+nothing went out wrong - but collection 17 flagged this and it has not been
+changed. Still worth changing to `draft`.
+
+Next: pick from the remaining collections - 09, 10, 19, 20, 21, 22, 24.
