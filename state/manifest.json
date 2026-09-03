@@ -2252,6 +2252,69 @@
       ],
       "published_at": "2026-09-02T11:36:30.000Z",
       "status": "published"
+    },
+    "20.1": {
+      "intercom_id": "16798691",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16798691-your-notifications-reading-marking-and-deleting",
+      "collection": "20",
+      "intercom_collection_id": "19733989",
+      "brief": "briefs/20.md",
+      "spec": "specs/20/20.1.spec.ts",
+      "commit_sha": "e037c26ed9099b0c0782a8e0338aa120d041a984",
+      "screenshots": [
+        "screenshots/20/20.1/01-bell-and-badge.07f698af.png",
+        "screenshots/20/20.1/02-notifications-open.9f75270d.png",
+        "screenshots/20/20.1/03-row-controls.133578a9.png",
+        "screenshots/20/20.1/04-row-marked-read.b6eab644.png",
+        "screenshots/20/20.1/05-all-marked-read.5d67fb82.png",
+        "screenshots/20/20.1/06-no-notifications.1dd291b4.png"
+      ],
+      "published_at": "2026-09-03T07:34:36.000Z",
+      "status": "published"
+    },
+    "20.2": {
+      "intercom_id": "16798692",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16798692-the-emails-scoryboard-sends-you",
+      "collection": "20",
+      "intercom_collection_id": "19733989",
+      "brief": "briefs/20.md",
+      "spec": "specs/20/20.2.spec.ts",
+      "commit_sha": "e037c26ed9099b0c0782a8e0338aa120d041a984",
+      "screenshots": [],
+      "published_at": "2026-09-03T07:34:38.000Z",
+      "status": "published"
+    },
+    "20.3": {
+      "intercom_id": "16798693",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16798693-why-you-are-not-receiving-our-emails",
+      "collection": "20",
+      "intercom_collection_id": "19733989",
+      "brief": "briefs/20.md",
+      "spec": "specs/20/20.3.spec.ts",
+      "commit_sha": "e037c26ed9099b0c0782a8e0338aa120d041a984",
+      "screenshots": [
+        "screenshots/20/20.3/01-email-address-locked.719c74d1.png",
+        "screenshots/20/20.3/02-marketing-opt-in.8f9755e7.png"
+      ],
+      "published_at": "2026-09-03T07:34:42.000Z",
+      "status": "published"
+    },
+    "20.4": {
+      "intercom_id": "16798694",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16798694-trending-the-activity-feed-on-your-home-page",
+      "collection": "20",
+      "intercom_collection_id": "19733989",
+      "brief": "briefs/20.md",
+      "spec": "specs/20/20.4.spec.ts",
+      "commit_sha": "e037c26ed9099b0c0782a8e0338aa120d041a984",
+      "screenshots": [
+        "screenshots/20/20.4/01-trending-strip.2cc888d9.png",
+        "screenshots/20/20.4/02-trending-card.c42655d4.png",
+        "screenshots/20/20.4/03-trending-arrows.d635a9d3.png",
+        "screenshots/20/20.4/04-trending-card-links.777f2272.png"
+      ],
+      "published_at": "2026-09-03T07:34:46.000Z",
+      "status": "published"
     }
   }
 }

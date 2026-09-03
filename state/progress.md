@@ -40,7 +40,7 @@ target.
 | 17 | Collecting & making payments | 9 | 63 | manager_pro | published | [briefs/17.md](../briefs/17.md) | 52 screenshots. **All nine published by the repo owner 2026-09-02, on their instruction, without the usual draft review.** Every capture stops before Stripe, on instruction: setting up a payout account opens a window at connect.stripe.com, Pay Now opens Stripe Elements, and both are CAPTCHA-gated. 17.9 retitled "Payment statuses and failed payments" - the app has no refund feature at all. 17.2 is 4 shots not 12, 17.8 is 6 not 8; the rest were Stripe's own screens. **The payout account on `kb-manager-pro-17@` was connected by a human and cannot be rebuilt from here** - never `--rebuild` this collection without one. `kb-17-nopayout@` must stay un-onboarded. Four accounts: `kb-manager-pro-17@`, `kb-player-17@`, `kb-17-admin@`, `kb-17-nopayout@` |
 | 18 | Chat & messaging | 4 | 27 | manager_free | published | [briefs/18.md](../briefs/18.md) | 27 screenshots. **All four published by the repo owner 2026-09-02, on their instruction, without the usual draft review. All 10 cross-references are live anchors.** **The persona default does NOT work here.** On Free an incoming message arrives as its first ten characters and an ellipsis, and replying to one or reacting to one is refused with 403 - so `kb-18-pro@` takes every capture and `kb-manager-free-18@` appears only in 18.1 where the gate is the subject. **Chat has a full REST surface** - nineteen `/chats` endpoints, now in config/api.md; personas.yaml's "seed the group chat through the UI" was wrong and is corrected. Deleting a message is NOT confirmed and cannot be undone. No read receipts exist. Five accounts: `kb-18-pro@`, `kb-manager-free-18@`, `kb-18-member@`, `kb-18-outsider@`, `kb-18-empty@` (holds no conversation, for the empty state) |
 | 19 | Comments, likes & ratings | 4 | 19 | player | published | [briefs/19.md](../briefs/19.md) | 20 screenshots. **All four published by the repo owner 2026-09-02, on their instruction, without the usual draft review. All 6 sibling cross-references are live anchors (17 in all).** **Two of the four mapped titles describe features this build does not have, and both are retitled**: 19.1 "Commenting on a team or a leaderboard" - only a team page and a leaderboard render a comment panel, though `commentType` accepts match, player and tournament too; 19.2 "Replying to and liking comments" - a comment cannot be edited or deleted, by anyone, ever. 19.1's `free_pro` flag is **dropped**: Add Media on a comment is not Pro-gated, unlike the match feed's. 19.3 is 7 shots not 6 - a rating CAN be removed, from a kebab on your own row in the reviews list, found mid-run. **`POST /tournaments/:id/referee` is what sets `isReferee`** - closes a TODO collections 09 and 21 both left open. Five accounts: `kb-player-19@`, `kb-19-owner@`, `kb-19-pro@`, `kb-referee-19@`, `kb-19-outsider@` |
-| 20 | Notifications, emails & the activity feed | 4 | 16 | player | not started | - | No push notifications exist. Do not write one. |
+| 20 | Notifications, emails & the activity feed | 4 | 16 | player | published | [briefs/20.md](../briefs/20.md) | **12 screenshots, not 16.** All four published by the repo owner 2026-09-03, on their instruction, without the usual draft review. 14 sibling cross-references are live anchors (21 in all). **Three of the four mapped titles describe controls this build does not have, and all three are retitled**: 20.1 drops "filtering" (there is no filter control in the notification modal, the app never sends the API's `type` or `isRead`, and `isRead` answers an empty list for every value); 20.2 drops "Every" (the payment and tournament-organiser emails cannot be produced from here); 20.4 drops "how to filter it" and is named **Trending**, which is what the panel is called - the feed component takes a `query` prop and no caller passes one, across 65 chunks swept from every app route. **20.2 shipped table-only with 0 of its 4 shots**, on the owner's instruction: yopmail rate-limited this IP mid-run and answers a CAPTCHA in place of every message body. Its spec is written and unrun and its header carries the five steps to finish. **The bell badge is a running tally in Firestore, not a count, and it is not clamped** - it goes negative and stays there, so `scripts/seed-20.mjs` must run before EVERY capture and it heals and asserts the tally. **The Trending strip scrolls itself every 2.5 seconds.** The clock is deliberately NOT frozen - every stamp here is relative and freezing made every row read "3 hours ago". Four accounts: `kb-player-20@`, `kb-20-owner@`, `kb-20-mate@`, `kb-20-empty@` (holds no notifications, for the empty state). One match on a FIXED date, 1 Dec 2026; the seed refuses to run once it has passed |
 | 21 | Referees | 3 | 18 | referee | not started | - | - |
 | 22 | Venues & club locations | 2 | 11 | manager_pro | not started | - | - |
 | 24 | Troubleshooting & policies | 4 | 13 | manager_free | not started | - | - |
@@ -3398,3 +3398,179 @@ and a ticket - not into an article that teaches a reader to work around it.
 
 No test-level flakes: the four specs passed together on the final run, and each
 has been run at least three times.
+
+---
+
+## Session 2026-09-03 - collection 20, notifications, emails & the activity feed
+
+Four articles LIVE, 12 screenshots, pinned to `e037c26ed9099b0c0782a8e0338aa120d041a984`.
+
+| ID | Intercom | Public URL |
+|---|---|---|
+| 20.1 | 16798691 | https://help.scoryboard.com/en/articles/16798691-your-notifications-reading-marking-and-deleting |
+| 20.2 | 16798692 | https://help.scoryboard.com/en/articles/16798692-the-emails-scoryboard-sends-you |
+| 20.3 | 16798693 | https://help.scoryboard.com/en/articles/16798693-why-you-are-not-receiving-our-emails |
+| 20.4 | 16798694 | https://help.scoryboard.com/en/articles/16798694-trending-the-activity-feed-on-your-home-page |
+
+Collection: https://help.scoryboard.com/en/collections/19733989-notifications-emails-and-the-activity-feed
+
+**Nothing was reviewed before it went out.** No draft stage, no gate.
+
+### Three of the four mapped titles promised a control that is not there
+
+Not a narrowing of scope - a measurement. All three retitled, and `briefs/20.md`
+carries the evidence.
+
+- **20.1 loses "filtering".** Notifications are a modal, not a route:
+  `/notifications` answers **404 from the server**, and so do `/home` and
+  `/activities`. The modal's hook only ever sends `{limit: 10, skip: n}` and the
+  modal carries three controls - Mark all as read, and per row a tick and a bin.
+  `GET /notifications` accepts `type` and `isRead`; the app sends neither, and
+  **`isRead` does not work at all**: `false`, `true`, `0`, `1` and `False` each
+  answer an empty list on an account holding sixteen unread rows.
+- **20.4 loses "how to filter it", and is renamed Trending.** `GET /activities`
+  takes four filters. The component that renders the feed takes a `query` prop
+  that becomes them - and no caller passes one. Swept across 65 chunks pulled
+  from every path in the app's own `Routes` enum, the component appears twice and
+  both times as `<Trending containerClassName="rounded-lg border bg-white p-3" />`.
+- **20.2 loses "Every".** Fifteen email subjects were observed and tabled. The
+  payment emails need a connected Stripe payout account, which `briefs/17.md`
+  records as un-rebuildable from here, and `TournamentUpdate` needs a tournament
+  phase ended with the "notify followers" option, which is collections 13 and 15.
+
+### The badge is a running tally in Firestore, and it is not clamped
+
+Worth a ticket. `GET /notifications` answers a bare array with no counters; the
+bell badge and the modal title read `{totalCount, unreadCount, notificationIds}`
+off an `onSnapshot` listener on the Firestore document
+`notifications/<firebase uid>`. That number is arithmetic:
+
+- `mark-all-read` **sets** `unreadCount` to 0;
+- `mark-read {ids, isRead: false}` returns every row to unread and **leaves the
+  tally alone** - measured at list-unread 16 with the badge and the title gone;
+- `DELETE /notifications/:id` on an unread row **subtracts one**, so clearing a
+  list whose tally is already 0 drives it negative. One account read
+  `{totalCount: 11, unreadCount: -21}`.
+
+A reader who marks all read and then deletes a few unread rows gets a badge that
+will not come back until as many new notifications arrive as they deleted.
+
+**So `scripts/seed-20.mjs` must run before EVERY capture of this collection**,
+not once. 20.1 photographs the badge and then presses Mark all as read, which
+spends it, and only a new notification raises the tally. The seed marks
+everything read *before* deleting it - that is what heals a negative tally - then
+reads the Firestore document back and refuses to finish unless it says eleven.
+
+### 20.2 shipped with none of its four screenshots
+
+On the repo owner's instruction, mid-run. yopmail rate-limited this IP and began
+answering "Complete the CAPTCHA to continue" in place of every message body. The
+four email captures had rendered correctly twice before that, so they are
+reachable; the article shipped table-only rather than hold the collection.
+
+`lib/api.mjs` already recorded the same service stopping collection 01
+mid-session. **This is a standing fragility, not bad luck** - yopmail is a free
+service with no API, and three flows in this project read mail through it. If
+email captures matter beyond this collection, the durable fix is a mailbox the
+project controls with a real API, which means new persona addresses and a
+re-seed. That is a repo-owner decision and it was not taken tonight.
+
+The owner was offered, and declined, two alternatives: fold the table into 20.3
+and drop 20.2, or hold 20.2 for a later session. Publishing beat dropping
+because **20.2 is the only article in the map that documents the email surface**
+- collection 24's nearest, 24.4, is about stored data - so dropping it would
+have taken the phishing guidance out of the help centre; and 20.3 depends on it.
+
+**A trap for whoever finishes it.** The published article has no `{{shot:}}`
+placeholders, so the moment those four captures exist
+`scripts/build-article.mjs` refuses to build 20.2 with "captured but never shown
+in the article". Put the placeholders back first - `briefs/20.md` keeps their
+alt text and masking. `specs/20/20.2.spec.ts`'s header has the five steps.
+
+### scripts/build-article.mjs could not build a text-only article
+
+`fs.readdirSync` on the screenshot directory threw ENOENT. It now treats a
+missing directory as zero files. Nothing else is relaxed: a `{{shot:nn}}`
+placeholder with no file behind it still throws, tested both ways. This will come
+up again - `config/articles.yaml` describes the deferred collection 25 as "text
+only, no screenshots possible".
+
+### The clock is deliberately NOT frozen
+
+`docs/style-guide.md` says to freeze it "where the screen shows a date or a
+countdown". Every screen this collection photographs shows a **relative** stamp
+instead, computed against `Date.now()`. Freezing does not stabilise those, it
+corrupts them: measured with a 09:00 UTC freeze against a 06:05 UTC seed, every
+row read **"3 hours ago"**, and a seed running after the frozen instant would
+render the same rows as "in 3 hours". The real clock stands, the stamps drift a
+little between runs, and `docs/style-guide.md` allows that. They are not masked
+either - a relative stamp is collection 18's case, not collection 19's.
+
+The one absolute date is the match's, and it comes from the fixture rather than a
+clock: `2026-12-01T19:00:00Z`, printed by three notification rows as
+`01 Dec 2026, 07:00 PM` in `Europe/London`. **The seed refuses to run once it has
+passed.**
+
+### config/api.md
+
+- the complete **18-value** notification `type` enum, printed by the API in its
+  own error. The app's renderer has a case for seventeen and **none for
+  `PaymentFailed`**, which falls through to "You have a new notification."
+- the Firestore badge, its arithmetic, and the sequence that heals it.
+- what sends what, per type, and who receives it.
+- **`MatchLive` needs an explicit `POST /matches/:id/status {"status":"Live"}`.**
+  The automatic start a passed date causes notifies nobody.
+- **A `PlayerFollow` notification is sent once per pair of accounts, for ever.**
+  Unfollow then follow again answers 200 with the **same** `followId` and sends
+  nothing - the record is soft-deleted and revived, the way a friend record is.
+- **`ONE_FRIEND_PER_TEAM` is wider than this file recorded.** On Free,
+  `POST /team-players` was refused for a registered player on **none** of the
+  caller's teams - measured three ways. Every account is born owning two teams,
+  so on Free the refusal is effectively unconditional for a real account, and
+  each refusal also soft-deleted the caller's friend record for him. **Worth a
+  ticket**, and worth re-reading `briefs/05.md` against.
+- **`PlayerJoinedTeam` goes to the Owner AND to Administrators**, which is the
+  only reason a Free account can receive one at all, given the above.
+- **`PUT /team-players/:id` re-issues the invitation.** It requires `name` and
+  `email` even when all it changes is the role, and sending them produces a
+  second `PlayerTeamInvitation`.
+- `/activities` pages with `page` and `limit`, its `referenceType` is an
+  eight-value enum, and the strip's 2.5-second self-scroll.
+- `POST /admins/users` also creates two teams and a leaderboard, sends a
+  "Welcome to Scoryboard, set your password" email, and sets `isMarketingOpted`
+  and `isEmailVerified` true.
+
+### Flakes and traps, for the next session
+
+- **Run `node scripts/seed-20.mjs` before every capture.** Not once. See the
+  badge section. 20.1 fails its first assertion on an unseeded account, which is
+  the intended behaviour.
+- **The notification order is enforced, not hoped for.** The first three
+  generators are one API call each and all three landed inside the same second,
+  and one run came back with the three oldest shuffled. The seed now waits for
+  each row to be Pia's newest before firing the next.
+- **There are two `.overflow-y-auto` divs in the notification modal and only the
+  inner one scrolls.** `.first()` picks the outer, which measures
+  `clientHeight 540, scrollHeight 540` and never overflows - a `scrollTop = 0`
+  written to it does nothing. That cost 20.1's fifth capture three runs.
+- **There are two bells and only one is on screen at desktop width.** The header
+  carries a `lucide-bell` marked `md:hidden` with a zero-sized box at 1440px,
+  and a class-based locator finds it first and then cannot click it. The
+  sidebar's is a bare inline `<svg>` with no lucide class.
+- **Scroll anchoring moves the notification list as its avatars paint.**
+  `quiet20()` sets `overflow-anchor: none`, and the reset waits for images
+  first.
+- **Stubbing the Trending list's `scrollTo` is not enough.** The pixels hold
+  still and the component's `activeIndex` climbs anyway, so the Previous arrow
+  lights up on a strip sitting on card one. The fix is an init script that drops
+  timers asked for at exactly 2500ms - which appears once in the whole bundle.
+- **Clipping a Trending card that is off to the right scrolls the strip**, and
+  the list's own `onScroll` then recomputes `activeIndex`. Every 20.4 capture
+  uses a card already on screen; two and a bit fit at 1440px.
+- **A row is the full width of its container**, so `clipPad` on a notification
+  row or on the sidebar identity row reaches past it into the dimmed page or the
+  black hero banner. Three captures published grey or black bands before the pad
+  came off.
+- **`unionBox()` is new in `lib/kb.ts`**: an invisible box over several elements,
+  for one annotation. Written because outlining the Trending arrows' own row
+  drew a 2300-pixel rectangle around two 32-pixel buttons.
