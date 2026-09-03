@@ -41,7 +41,7 @@ target.
 | 18 | Chat & messaging | 4 | 27 | manager_free | published | [briefs/18.md](../briefs/18.md) | 27 screenshots. **All four published by the repo owner 2026-09-02, on their instruction, without the usual draft review. All 10 cross-references are live anchors.** **The persona default does NOT work here.** On Free an incoming message arrives as its first ten characters and an ellipsis, and replying to one or reacting to one is refused with 403 - so `kb-18-pro@` takes every capture and `kb-manager-free-18@` appears only in 18.1 where the gate is the subject. **Chat has a full REST surface** - nineteen `/chats` endpoints, now in config/api.md; personas.yaml's "seed the group chat through the UI" was wrong and is corrected. Deleting a message is NOT confirmed and cannot be undone. No read receipts exist. Five accounts: `kb-18-pro@`, `kb-manager-free-18@`, `kb-18-member@`, `kb-18-outsider@`, `kb-18-empty@` (holds no conversation, for the empty state) |
 | 19 | Comments, likes & ratings | 4 | 19 | player | published | [briefs/19.md](../briefs/19.md) | 20 screenshots. **All four published by the repo owner 2026-09-02, on their instruction, without the usual draft review. All 6 sibling cross-references are live anchors (17 in all).** **Two of the four mapped titles describe features this build does not have, and both are retitled**: 19.1 "Commenting on a team or a leaderboard" - only a team page and a leaderboard render a comment panel, though `commentType` accepts match, player and tournament too; 19.2 "Replying to and liking comments" - a comment cannot be edited or deleted, by anyone, ever. 19.1's `free_pro` flag is **dropped**: Add Media on a comment is not Pro-gated, unlike the match feed's. 19.3 is 7 shots not 6 - a rating CAN be removed, from a kebab on your own row in the reviews list, found mid-run. **`POST /tournaments/:id/referee` is what sets `isReferee`** - closes a TODO collections 09 and 21 both left open. Five accounts: `kb-player-19@`, `kb-19-owner@`, `kb-19-pro@`, `kb-referee-19@`, `kb-19-outsider@` |
 | 20 | Notifications, emails & the activity feed | 4 | 16 | player | published | [briefs/20.md](../briefs/20.md) | **12 screenshots, not 16.** All four published by the repo owner 2026-09-03, on their instruction, without the usual draft review. 14 sibling cross-references are live anchors (21 in all). **Three of the four mapped titles describe controls this build does not have, and all three are retitled**: 20.1 drops "filtering" (there is no filter control in the notification modal, the app never sends the API's `type` or `isRead`, and `isRead` answers an empty list for every value); 20.2 drops "Every" (the payment and tournament-organiser emails cannot be produced from here); 20.4 drops "how to filter it" and is named **Trending**, which is what the panel is called - the feed component takes a `query` prop and no caller passes one, across 65 chunks swept from every app route. **20.2 shipped table-only with 0 of its 4 shots**, on the owner's instruction: yopmail rate-limited this IP mid-run and answers a CAPTCHA in place of every message body. Its spec is written and unrun and its header carries the five steps to finish. **The bell badge is a running tally in Firestore, not a count, and it is not clamped** - it goes negative and stays there, so `scripts/seed-20.mjs` must run before EVERY capture and it heals and asserts the tally. **The Trending strip scrolls itself every 2.5 seconds.** The clock is deliberately NOT frozen - every stamp here is relative and freezing made every row read "3 hours ago". Four accounts: `kb-player-20@`, `kb-20-owner@`, `kb-20-mate@`, `kb-20-empty@` (holds no notifications, for the empty state). One match on a FIXED date, 1 Dec 2026; the seed refuses to run once it has passed |
-| 21 | Referees | 3 | 18 | referee | not started | - | - |
+| 21 | Referees | 3 | 18 | referee | published | [briefs/21.md](../briefs/21.md) | **19 screenshots, one over the estimate.** All three published by the run 2026-09-03, no draft review. 7 sibling cross-references are live anchors (21 in all). **There is no referee sign-up and no referee route** - `/referees` answers 404 and `POST /tournaments/:id/referee` is the only call in the product that sets `isReferee`, so an organiser is the only thing that can make one. A referee is the ordinary player profile in a **Referee / Football** role switch. **21.2 retitled** - it drops "Accepting an invitation", because there is none: no notification, no email, no accept endpoint, no pending state. **`config/api.md`'s referee role matrix was wrong on two cells** - the assigned referee DOES get the score steppers and DOES get Yellow/Red/Player of Match; it has no gear menu; and what the match page reads is `refereePlayerId`, not `isReferee`. No published article had repeated the wrong claim. **Two step-1 findings were corrected during step 2**: See All is not dead (it opens a Refereed Matches modal - hence the extra shot) and the switch says Football, not Player. **`scripts/seed-21.mjs` remakes the referee account on EVERY run** - referee stats are a lifetime count that includes cancelled matches, so 21.1's MATCHES tile drifted 1, 2, 3 across three runs. Three accounts: `kb-referee-21@`, `kb-21-organiser@`, `kb-21-newref@` (a referee with no matches, for the empty state). Two FIXED match dates, 5 and 6 Dec 2026; the seed refuses to run once either has passed |
 | 22 | Venues & club locations | 2 | 11 | manager_pro | not started | - | - |
 | 24 | Troubleshooting & policies | 4 | 13 | manager_free | not started | - | - |
 
@@ -2309,7 +2309,8 @@ dropped rather than merged - those partner-booking articles are not being writte
 Its Intercom collection `19733992` is empty and marked `retired: true`, as 03 and
 16 were. Totals are now 130 articles, 727 screenshots, 20 live collections.
 
-Next: pick from the remaining collections.
+Next: pick from the remaining collections. **Collection 21 published 2026-09-03**,
+so 22 and 24 are what is left.
 
 ---
 
@@ -3398,6 +3399,253 @@ and a ticket - not into an article that teaches a reader to work around it.
 
 No test-level flakes: the four specs passed together on the final run, and each
 has been run at least three times.
+
+---
+
+## Session 2026-09-03 - collection 21, referees
+
+Three articles LIVE, 19 screenshots, pinned to `0f2413c2f2349c1e30a1ba63e85d10403c4557fd`.
+
+| ID | Intercom | Public URL |
+|---|---|---|
+| 21.1 | 16800259 | https://help.scoryboard.com/en/articles/16800259-becoming-a-referee-and-your-referee-profile |
+| 21.2 | 16800261 | https://help.scoryboard.com/en/articles/16800261-seeing-your-assigned-matches |
+| 21.3 | 16800263 | https://help.scoryboard.com/en/articles/16800263-refereeing-a-match-what-you-can-and-cannot-do |
+
+Collection: https://help.scoryboard.com/en/collections/19733990-referees
+
+**Nothing was reviewed before it went out.** No draft stage, no gate.
+
+### A referee cannot make themselves one, and that shapes all three articles
+
+There is **no referee sign-up, no referee route and no referee screen**.
+`/referees` is an `ApiEndPoints` value, not an app route - it answers **404 from
+the server**, and none of the 36 paths in the app's own `Routes` enum is a
+referee page. The TODO that had stood in `config/api.md` - "find the real
+referee-registration call for 21.1" - is answered: there is none.
+
+Exactly one call in the product sets `isReferee`:
+**`POST /tournaments/:id/referee`**, which belongs to a tournament organiser.
+Everything a referee then sees is the **ordinary player profile in a different
+role** - a blue **Referee / Football** switch on the profile hero that swaps the
+bio for `refereeBio`, the leaderboard count for `refereeLeaderboardCount`, the
+player stat tiles for six referee ones, and the match lists from
+`/players/:id/matches` to `/referees/:id/matches`. Being added also sets
+`defaultProfile: "Referee"`, so a new referee's profile opens on the referee
+side.
+
+### 21.2 is retitled, because there is no invitation
+
+It was "Accepting an invitation and seeing your assigned matches". Four
+measurements, all in `briefs/21.md`:
+
+- `POST /tournaments/:id/referee` sends **no notification** - 0 before, 0 after;
+- **no email either** - one yopmail read returned three messages, all "Welcome
+  to Scoryboard, set your password" from the `POST /admins/users` calls that
+  made the account;
+- **none of the eighteen notification types is referee-related**;
+- **no accept endpoint and no pending state** - `refereePlayers[]` carries
+  `isRegistered`, `saveForFutureTournaments` and `canStartEndMatches` and
+  nothing else, and `GET /team-invitations` answers empty.
+
+A referee is **added**, not invited, and is live the moment the organiser saves.
+The article says so in its first line.
+
+### config/api.md's referee role matrix was wrong on two cells
+
+This is the finding that mattered most, because 21.3 is the article that would
+have published it. The old matrix said the assigned referee gets **no** score
+steppers and **no** Yellow / Red / Player of Match. Re-measured side by side
+with the Owner on the same Live match:
+
+- the stepper row is **identical** - one blue-bordered pill, four 32px buttons,
+  both minus buttons `disabled` at zero and both plus buttons enabled;
+- clicking the referee's plus fires
+  `POST /matches/:id/events {"type":"GoalAwarded"}` and answers **200**. The
+  score moved 0-0 to 1-0;
+- **Yellow Card, Red Card and Player of Match are on the referee's FEED** the
+  moment the match is Live, and each opens a Select team / Select Player dialog.
+
+**`isReferee` has nothing to do with it.** A plain account that had never been
+made a referee, named on a match with `PUT /matches/:id {refereePlayerId}`, got
+byte-for-byte the same page. **What the match page reads is `refereePlayerId`.**
+That is presumably how the wrong row came about - collections 09 and 10 both
+measured from an account that was only named on a match.
+
+Also corrected: **the referee has NO gear menu.** The Owner has three
+`button[aria-haspopup="menu"]` on a Scheduled match and the referee has two -
+Add to Calendar and the footer's language picker. This contradicts both
+`config/api.md` and `briefs/09.md`, which said the referee "gets the gear and
+can edit the note".
+
+**No published article had repeated any of it.** Every collection-10 article
+body was checked; 10.4's "You are not the Owner, an Administrator or the
+referee" is about who gets controls at all, which is right. Nothing live needed
+a fix.
+
+The real boundary, isolated on a throwaway match with the referee's own token:
+
+| Call | Answer |
+|---|---|
+| `POST /matches/:id/status` - Live, Paused, Live, Finished | **200** each |
+| `POST /matches/:id/events` - goal, card, Player of the Match | **200** |
+| `PUT /matches/:id` - `pitchNumber`, `note`, `date`, `status:"Cancelled"` | **403** `"Only match managers can update match settings"` |
+| `DELETE /matches/:id` | **403** `"Only match managers can cancel match"` |
+
+**A referee runs the match and cannot change the match.**
+
+### Two step-1 findings were corrected during step 2
+
+Both are written into `briefs/21.md` under "Amended during step 2", and both
+changed what shipped.
+
+**See All is not dead, and 21.2 gained a capture for it.** Step 1 recorded the
+REFEREED MATCHES panel's See All button as doing nothing. It opens a modal
+titled **Refereed Matches** listing every match you referee. The step-1
+measurement was wrong twice: it clicked `getByText('See All')` rather than the
+button, and it looked for a change by diffing `main`'s text - and the modal is a
+portal outside `main`. **A lesson for the next collection: never conclude a
+control is inert from a text diff of `main`.** 21.2 therefore shipped **six**
+screenshots against the map's five, and the collection 19 rather than 18.
+
+**The role switch's other side says "Football", not "Player".** Only the
+selected segment carries a label, so this was invisible until the capture came
+back. Measured in both places the control appears - the profile hero and Profile
+settings. The `<img alt>` is "Football profile" on one and "Player profile" on
+the other; the visible word is Football in both. The article says Football.
+
+### Four product defects worth a ticket
+
+1. **`POST /tournaments/:id/referee` needs `createMode`, and a call without it
+   half-succeeds.** Sent without it the call answers `400 "Referee not found"` -
+   having already written `isReferee: true` and `defaultProfile: "Referee"` to
+   the target user. That left this collection's first referee marked as a
+   referee, on no tournament and in nobody's saved list, and every later add for
+   her address failed the same way. Only `DELETE /admins/user-delete` recovered
+   it.
+2. **The Add referee dialog's Multiple referees tab cannot work.** The client
+   posts `{createMode:"multiple", refereeList, ...}` with the names joined by
+   newlines, and the server answers
+   `400 SCHEMA_VALIDATION_ERROR {"field":"name","message":"Required"}`. Not this
+   collection's article - it is the organiser's side, so 13 or 15 - and it
+   corrects `config/api.md`'s note that the tab "fires one POST per line".
+3. **The referee's Add Note is a silent no-op.** The FEED gives a referee
+   **Add Note**, the dialog opens, Save sends `PUT /matches/:id {note}`, the API
+   answers 403 - and the dialog closes with **no message on screen** and the
+   note still reads "No Note added." 21.3's "If it does not work" warns about
+   it, and its spec pins the 403 so the day it is fixed a spec fails.
+4. **TOTAL FOULS is always 0 for every referee on the platform.** The profile
+   reads `totalFouls` and `GET /referees/:playerId/stats` does not answer that
+   field. 21.1 says the tile stays at zero rather than letting a reader wonder.
+
+### The referee account is remade on EVERY seed run
+
+`GET /referees/:playerId/stats` is a **lifetime** count and **it counts
+cancelled matches**. 21.1 photographs its MATCHES tile, and the figure read 1,
+then 2, then 3 across three seed runs - the teardown cancels last run's matches
+and they keep counting. So `scripts/seed-21.mjs` tears the referee account down
+and remakes it every run, `--rebuild` or not, and asserts `totalMatches === 1`
+before it finishes. `config/personas.yaml` has the precedent: the `fresh`
+persona "must be torn down and recreated rather than reused, because its value
+is having no state".
+
+Two consequences. **Rae's user and player ids change every run** - nothing
+references them, every spec looks her up through `fixtures21()`. And
+`ensureReferees()` matches a keyed referee **by playerId, not by name**, because
+last run's tournament row still reads "Rae KB" while carrying a deleted
+account's id; matching on the name would leave the dead row and never add the
+live account.
+
+### Two FIXED match dates, and one that cannot be
+
+`MATCH_DATE` = 2026-12-05T19:00:00Z (Scheduled) and `LIVE_DATE` =
+2026-12-06T19:00:00Z (forced Live). **The seed refuses to run once either has
+passed**, and refuses if `LIVE_DATE` is not after `MATCH_DATE`. Three reasons:
+
+1. a match whose date has arrived **starts itself**, and 21.3's first half needs
+   one that has not;
+2. both sit in `scheduleType=Upcoming` and the profile panel draws **only the
+   nearest**, so the Live one being earlier would replace 21.2's first capture
+   with a match already in progress;
+3. `/schedule` opens on the current month, so the calendar capture freezes the
+   clock at 2026-12-01T09:00Z and both fixtures are in that grid.
+
+The Live match's kick-off is deliberately NOT fixed - the server stamps
+`startedAt` - so 21.3 freezes the page clock at `startedAt + 12 min`, which pins
+the timer at **48:00** every run, and at `startedAt + 60 min + 5s` for END
+MATCH. Collection 10's pattern.
+
+**The finished match's date cannot be fixed at all** - events are accepted only
+while a match is Live, so it is dated 90 seconds back and polled. Its date
+**and its time** are masked on 21.2's Past capture. The first run masked the
+date alone and published a kick-off of 9:44, which is nothing but the hour the
+seed happened to run.
+
+### config/api.md - the Referees section was rewritten
+
+Beyond the role-matrix correction above:
+
+- **`createMode` and all three modes** of `POST /tournaments/:id/referee`, with
+  the two defects.
+- **`PATCH /tournaments/:id/referee/:refereePlayerId`** - the dialog's Edit
+  referee mode. Not previously recorded.
+- **`GET /referees/:id/matches` also takes `includeIncomplete`, `startDate` and
+  `endDate`** - that is the variant `/schedule` calls, merged with the player
+  one. `GET /players/:id/matches` alone answers **0 rows** for a referee who is
+  in neither line-up, so the calendar is the only complete list in the product.
+- **`savedOnly=true` on `/team-players/search`** - a new parameter, and how the
+  Saved referees tab reads the organiser's list. `saveForFutureTournaments`
+  lives on the player record and **outlives the tournament row**.
+- **`PATCH /players/:playerId/referee-settings` answers 200 to the tournament
+  OWNER** on another player's record. The 403 this file recorded is wrong.
+- The **six referee stat tiles**, what feeds each, and the missing `totalFouls`.
+- The **profile role switch**: `?profileRole=`, `defaultProfile`, and the four
+  things the referee role swaps (teams and rankings are NOT swapped).
+- **`refereeBio`** (150 chars, 5 lines) and **`defaultProfile`** on
+  `PUT /users/:userId`, both rendered in Profile settings only when `isReferee`.
+
+### Flakes and traps, for the next session
+
+- **The shared browser was signed in as collection 20's player.** Again - it has
+  now happened to four sessions. Clearing `localStorage` on a LIVE page does not
+  work: redux-persist writes `persist:root` straight back from memory. Do
+  exploration through a Playwright context instead, which starts from the
+  config's empty `storageState`.
+- **The match page's guided tour blocks every click.** Shepherd.js opens over it
+  on an account that has never dismissed it, behind an opaque full-screen
+  overlay, and it cost the first stepper probe a 20-second timeout. The seed
+  sets `isTourCompleted: true` on all three accounts, and `openMatch21()`
+  asserts the overlay is gone. It has to ride in the same `PUT /users/:id` as
+  `refereeBio`, because that call is a full replace.
+- **`GET /tournaments` returns rows keyed `_id`, not `id`.** A lookup on `x.id`
+  finds nothing and reads like a missing tournament.
+- **`settingsSection(page, 'My Bio')` finds nothing.** My Bio is a
+  `settingsRow`, not one of Profile settings' five `h2` cards. Collection 01's
+  01.6 knew this; it cost a run here.
+- **`clipPad` on the sidebar account block publishes a white band** down the
+  right edge - the block is the full width of the sidebar. The same class of
+  fault collection 20 recorded for notification rows.
+- **Do not mask the whole sidebar on a full-page capture.** The first calendar
+  shot published a 350-pixel black slab. Mask the signed-in name only.
+- **`GET /referees/:id/matches` answers a summary** whose `homeTeam.players[]`
+  lists every team member at `Substitute-1..n` regardless of the real line-up.
+  `GET /matches/:id` carries the actual positions.
+- **A referee lands on "Join a team"** after signing in, not on the home page,
+  because a fresh referee has no teams. `signInAs` handles it by waiting for
+  `/signin` to be spent rather than for a landing screen.
+
+### Where to look hard
+
+- **21.3.** Its content is close to the opposite of what `config/api.md` said
+  before today. Everything in it was measured three ways, but a whole article
+  rests on one afternoon.
+- **Open question 5 in `briefs/21.md`** - whether the Add referee dialog's
+  *Allow referee to start and end matches* toggle gates START MATCH on a
+  **tournament** fixture. KB 21 Cup has no fixtures and giving it some would
+  turn this into a tournament collection, so it stays unmeasured. 21.3 says
+  nothing about the toggle. If it does gate the button, a referee with it off
+  will read 21.3 and find no START MATCH. `Nadia Whistle` is seeded with it off,
+  so the contrast is available without new seeding.
 
 ---
 

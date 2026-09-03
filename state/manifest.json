@@ -2315,6 +2315,64 @@
       ],
       "published_at": "2026-09-03T07:34:46.000Z",
       "status": "published"
+    },
+    "21.1": {
+      "intercom_id": "16800259",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16800259-becoming-a-referee-and-your-referee-profile",
+      "collection": "21",
+      "intercom_collection_id": "19733990",
+      "brief": "briefs/21.md",
+      "spec": "specs/21/21.1.spec.ts",
+      "commit_sha": "0f2413c2f2349c1e30a1ba63e85d10403c4557fd",
+      "screenshots": [
+        "screenshots/21/21.1/01-add-referee-dialog.7565bd90.png",
+        "screenshots/21/21.1/02-profile-referee-switch.d09eeee0.png",
+        "screenshots/21/21.1/03-profile-player-switch.8e75d0ad.png",
+        "screenshots/21/21.1/04-complete-your-profile.607cfa38.png",
+        "screenshots/21/21.1/05-referee-bio-empty.fbbaabd4.png",
+        "screenshots/21/21.1/06-referee-bio-filled.5b01533f.png",
+        "screenshots/21/21.1/07-referee-profile.e8e0b886.png"
+      ],
+      "published_at": "2026-09-03T09:10:53.000Z",
+      "status": "published"
+    },
+    "21.2": {
+      "intercom_id": "16800261",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16800261-seeing-your-assigned-matches",
+      "collection": "21",
+      "intercom_collection_id": "19733990",
+      "brief": "briefs/21.md",
+      "spec": "specs/21/21.2.spec.ts",
+      "commit_sha": "0f2413c2f2349c1e30a1ba63e85d10403c4557fd",
+      "screenshots": [
+        "screenshots/21/21.2/01-upcoming-match.187d1028.png",
+        "screenshots/21/21.2/02-see-all-matches.1ca42fd0.png",
+        "screenshots/21/21.2/03-past-match.cf4adf3c.png",
+        "screenshots/21/21.2/04-schedule-december.ae38835a.png",
+        "screenshots/21/21.2/05-tournament-referee-badge.d20659b7.png",
+        "screenshots/21/21.2/06-no-matches-yet.57275449.png"
+      ],
+      "published_at": "2026-09-03T09:10:58.000Z",
+      "status": "published"
+    },
+    "21.3": {
+      "intercom_id": "16800263",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16800263-refereeing-a-match-what-you-can-and-cannot-do",
+      "collection": "21",
+      "intercom_collection_id": "19733990",
+      "brief": "briefs/21.md",
+      "spec": "specs/21/21.3.spec.ts",
+      "commit_sha": "0f2413c2f2349c1e30a1ba63e85d10403c4557fd",
+      "screenshots": [
+        "screenshots/21/21.3/01-match-referee-top.e8572093.png",
+        "screenshots/21/21.3/02-match-detail-strip.d34a2ae3.png",
+        "screenshots/21/21.3/03-timer-pill-live.ef338dee.png",
+        "screenshots/21/21.3/04-score-steppers.2d304964.png",
+        "screenshots/21/21.3/05-feed-card-actions.52f2ba95.png",
+        "screenshots/21/21.3/06-end-match.dda8184b.png"
+      ],
+      "published_at": "2026-09-03T09:11:03.000Z",
+      "status": "published"
     }
   }
 }
