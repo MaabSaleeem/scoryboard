@@ -1450,12 +1450,147 @@ empty field.
 
 | Method | Path | For | Body / notes |
 |---|---|---|---|
-| GET | `/notifications` | List | `isRead`, `type`, `limit`, `skip` |
-| PATCH | `/notifications/mark-read` | Mark some read or unread | `ids[]`, `isRead` |
+| GET | `/notifications` | List | `limit`, `skip`, `type`; ~~`isRead`~~ - see below. Answers a **bare array**, no counters |
+| PATCH | `/notifications/mark-read` | Mark some read or unread | `ids[]`, `isRead`. Answers `{updatedCount}` |
 | PATCH | `/notifications/mark-all-read` | Mark all read | - |
 | DELETE | `/notifications/:notificationId` | Delete one | - |
 
 There are no push-notification endpoints. Do not document push.
+
+**(observed in app, 2026-09-03, by collection 20.)** Six things, and the first
+three decide what can be written about notifications at all.
+
+### There is no filter in the app
+
+Notifications are a **modal**, not a route: `/notifications` answers **404 from
+the server**, and so do `/home` and `/activities`. The bell that opens it sits
+in the sidebar identity row.
+
+The modal's own hook only ever sends `{limit: 10, skip: n}`, and the modal
+carries exactly three controls - **Mark all as read** in its header, and per row
+a **Mark as read** tick and a trash button. No chips, no dropdown, no tabs.
+Nothing in the app sends `type` and nothing sends `isRead`.
+
+**`isRead` does not work.** `?isRead=false`, `true`, `0`, `1` and `False` all
+answer an empty list on an account holding sixteen unread rows. `type` does
+work.
+
+### The full `type` enum - eighteen values, and one the app cannot render
+
+The API prints the list in its own validation error:
+
+```
+MatchLive | FriendAdded | PlayerJoinedTeam | PlayerTeamInvitation |
+MatchInvitation | MatchSummary | MatchReviewRequest | LeaderboardAdminAdded |
+TournamentUpdate | PlayerFollow | TeamFollow | LeaderboardComment |
+CommentReply | CommentLike | ChatMessageSummary | PaymentRequested |
+PaymentReceived | PaymentFailed
+```
+
+The web app's renderer has a case for seventeen of them and **none for
+`PaymentFailed`**, which therefore falls through to the default row, "You have a
+new notification."
+
+`ChatMessageSummary` and `MatchReviewRequest` were never produced: two chat
+messages were sent and a match was finished, and twenty minutes later neither
+notification existed. Both look like scheduled digests.
+
+### The badge is Firestore, and it is a running tally that drifts
+
+`GET /notifications` has no counters. The bell badge and the modal title read
+`{totalCount, unreadCount, notificationIds}` off an `onSnapshot` listener on the
+Firestore document `notifications/<firebase uid>`. It is readable over
+Firestore's REST API with the user's own ID token:
+
+```
+GET https://firestore.googleapis.com/v1/projects/scoryboard-staging
+      /databases/(default)/documents/notifications/<uid>
+Authorization: Bearer <firebase-id-token>
+```
+
+`unreadCount` is arithmetic, not a count of anything, and it is **not clamped**:
+
+- `PATCH /notifications/mark-all-read` **sets** it to 0;
+- `PATCH /notifications/mark-read {ids, isRead: false}` puts every row back to
+  unread and **leaves the tally alone**. Measured at list-unread 16 with the
+  badge absent and the modal titled plain "Notifications";
+- `DELETE /notifications/:id` on an **unread** row subtracts one, so clearing a
+  list whose tally is already 0 drives it negative. One account read
+  `{totalCount: 11, unreadCount: -21}`. A negative tally renders no badge and no
+  Mark all as read link - both are gated on `unreadCount > 0`, and the link is
+  rendered as an EMPTY button rather than removed.
+
+The sequence that heals it is mark-all-read **then** delete, which leaves the
+tally at 0 while `totalCount` falls to 0. `scripts/seed-20.mjs` does that and
+asserts the document afterwards. `notificationIds` is left holding stale ids by
+any delete; nothing in the app reads it.
+
+**Worth a ticket.** A reader who marks all read and then deletes a few unread
+rows gets a badge that will not appear again until as many new notifications
+arrive as they deleted.
+
+### What sends what
+
+| Type | Sent by | Reaches |
+|---|---|---|
+| `FriendAdded` | `POST /friends` with an email | the person added. A second POST makes a SECOND row, not a refusal |
+| `TeamFollow` | `POST /teams/:id/follow` | the team's **owner**, not its members |
+| `PlayerFollow` | `POST /players/:id/follow` | the person followed - **once per pair, for ever.** See below |
+| `PlayerTeamInvitation` | `POST /team-players` with an email | the person invited |
+| `PlayerJoinedTeam` | `POST /team-invitations/accept` | the team's Owner **and its Administrators** |
+| `LeaderboardAdminAdded` | `POST /leaderboards/:id/admin` | the new Administrator |
+| `LeaderboardComment` | `POST /comments` on a leaderboard | the owner and every Administrator, **never the commenter** |
+| `CommentReply` | `POST /comments` with a `parentCommentId` | the parent comment's author |
+| `CommentLike` | `POST /comments/:id/like` | the comment's author |
+| `MatchInvitation` | `POST /matches` | every player in either line-up |
+| `MatchLive` | `POST /matches/:id/status {"status":"Live"}` **only** | every player in either line-up |
+| `MatchSummary` | `POST /matches/:id/status {"status":"Finished"}` | every player in either line-up, and people who follow one of them |
+
+**`MatchLive` needs the explicit status POST.** The automatic start a passed
+date causes - see
+[The match lifecycle](#the-match-lifecycle---what-starts-a-match-and-what-ends-it)
+- notifies nobody. A past-dated match therefore yields MatchInvitation and
+MatchSummary and never MatchLive; a Scheduled one can be walked Scheduled ->
+Live -> Finished by hand and all three arrive.
+
+**A follow notifies once per pair of accounts, for ever.** `DELETE
+/players/:id/follow` then `POST` again answers 200 with the **same** `followId`
+and sends nothing: the record is soft-deleted and revived, the way a friend
+record is (see [Friends](#friends)). A first-ever follow from an account that
+has never followed that player does notify, with a new `followId`. A **team**
+follow is not affected where the team itself is rebuilt, because the record is
+then new.
+
+### Two team-player findings this turned up
+
+**`ONE_FRIEND_PER_TEAM` is wider than
+[Team players](#team-players-roles-and-invitations) records.** That section says
+"a friend already on one of your teams". On the Free plan, `POST /team-players`
+was refused for a registered player who was on **none** of the caller's teams -
+measured by email, by `playerId` after adding him as a friend first, and again
+after removing him from the only other team he had ever been added to. Every
+account is born owning two teams, so on Free the refusal is effectively
+unconditional for a real account. Each refusal also soft-deleted the caller's
+friend record for him, which is collection 05's finding holding again.
+
+**Worth a ticket**, and worth re-reading `briefs/05.md` against.
+
+**`PUT /team-players/:teamPlayerId` re-issues the invitation.** It requires
+`name` and `email` in its body even when all it changes is `role`, and sending
+them produces a second `PlayerTeamInvitation`. This section lists `resendInvite`
+as an option on that call; it evidently does not need to be asked for. Invite
+straight in with the role you want instead.
+
+### Every notification is emailed too
+
+Fifteen distinct subjects were collected out of four inboxes. The table is in
+`briefs/20.md` and the article is 20.2. The sender is
+`Staging Scoryboard <noreply@scoryboard.com>` - the address is production's, the
+display name is not. Mail goes through SendGrid, so every link is a
+click-tracking redirect on `url1680.scoryboard.com` and each message carries a
+1x1 open-tracking pixel.
+
+`POST /contacts` sends to support and **nothing to the sender**.
 
 ## Chat and messaging
 
@@ -2430,7 +2565,44 @@ Two partner-side URLs also appear in the collection, on
 
 | Method | Path | For |
 |---|---|---|
-| GET | `/activities` | Trending and activity feed. Filters: `referenceType` (e.g. `match`), `teamId`, `leaderboardId`, `tournamentId` |
+| GET | `/activities` | Trending and activity feed. `page`, `limit`; filters `referenceType`, `teamId`, `leaderboardId`, `tournamentId` |
+
+**(observed in app, 2026-09-03, by collection 20.)**
+
+**Paging is `page` and `limit`, not `skip`** - the strip fetches ten at a time
+and appends. `referenceType` is an eight-value enum the API names in its own
+error: `match | team | player | leaderboard | user | friend | comment |
+tournament`.
+
+**Nothing in the app sends any of the four filters.** The feed is the
+**Trending** strip, rendered by one component that takes a `query` prop which
+becomes those parameters - and no caller passes one. Swept across 65 chunks
+pulled from every route in the app's own `Routes` enum, the component is used
+twice and both times as
+`<Trending containerClassName="rounded-lg border bg-white p-3" />`: once in the
+football profile layout, once in the padel one. There is no filter control on
+any screen. `/activities` is not an app route either; it answers 404.
+
+**The feed is platform-wide.** Every team created and every match finished on
+staging is in it, other collections' fixtures and other people's accounts
+included, and there is no "mine only" parameter. A spec that photographs it has
+to narrow it - collection 02's article 02.1 and collection 20's 20.4 both route
+the request and keep only their own rows.
+
+**The strip scrolls itself every 2.5 seconds.** A `setTimeout` in the carousel
+hook calls `scrollTo` on the list, advances its own `activeIndex` and
+reschedules, and it keeps doing that under a frozen `Date.now()`. Measured:
+scrollLeft 0, 399, 797, 1196 over three intervals. `lib/kb.ts`'s
+`stopTrendingAutoAdvance()` drops timers asked for at exactly that delay; 2500
+appears once in the whole bundle.
+
+An activity type has an emoji: `MatchLive` ⚽, `MatchInvitation` 📣,
+`MatchSummary` 📊, `MatchFinished` 🏁, `MatchTeamWon` 🏆, `PlayerJoinedTeam` 🤝,
+`TeamCreated` 🆕, `TournamentCreated` 🏟️, `UserJoinedPlatform` 🚀,
+`PlayerOfMatch` ⭐, `PlayerFollow` 👤, `TeamFollow` ⭐.
+
+Feature flag: `TRENDING_FEATURE_ENABLED`, and it is **`true`**. The component
+renders `null` when it is not.
 
 ## In-app promotional campaigns
 
@@ -2454,7 +2626,7 @@ These four are the seeding surface this project depends on:
 
 | Method | Path | For | Body |
 |---|---|---|---|
-| POST | `/admins/users` | Create a persona, skipping email verification | `name`, `lastName`, `email` |
+| POST | `/admins/users` | Create a persona, skipping email verification | `name`, `lastName`, `email`. **(observed 2026-09-03)** It also creates **two teams and a leaderboard**, sends a "Welcome to Scoryboard, set your password" email, and sets `isMarketingOpted: true` and `isEmailVerified: true`. Team names gain a date suffix when they clash - `Ollie K FC 0309` |
 | POST | `/admins/generate-signin-token` | Mint a session for any user | `email` |
 | POST | `/admins/change-user-membership/:id` | Flip that user Free / Pro | `membership`: `Free` or `Pro` |
 | POST | `/admins/users/tournament-free-pro/grant` | Grant Tournament Pro, no Stripe | `email`, `plan` (`Pro`), `quantity`. **(observed 2026-08-28)** The grant is **additive, not a set** - calling it twice with `quantity: 2` leaves an allowance of 4. There is no revoke. Read `freeTournamentProAllowanceRemaining` from `GET /users/me` and only top up the shortfall |
@@ -2559,6 +2731,13 @@ fixtures are seeded over the API, not through the UI. See
   field - the score is the `+` / `-` steppers, and both `isPenalty` and
   `hasScoreEntry` are tournament-match fields. See
   [The match lifecycle](#the-match-lifecycle---what-starts-a-match-and-what-ends-it).
+- ~~**Notification filters and the unread badge** (collection 20)~~ - answered
+  2026-09-03. `type` works, `isRead` does not, nothing in the app sends either,
+  and the badge is a Firestore document rather than an endpoint. All of it is
+  under [Notifications](#notifications). **Still missing:** nothing produces
+  `ChatMessageSummary` or `MatchReviewRequest` on demand - both look like
+  scheduled digests - and `TournamentUpdate` needs a tournament phase ended with
+  the "notify followers" option, which is collections 13 and 15.
 - **Referee registration and availability** (21.1, 21.4).
 - **Global search** across players and teams (02.2). Only `/team-players/search`
   and the per-resource searches exist.

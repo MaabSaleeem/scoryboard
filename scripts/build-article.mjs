@@ -42,7 +42,21 @@ if (!collectionId) throw new Error(`No Intercom id for collection ${collection}`
 
 const REPO = process.env.GITHUB_REPO;
 const dir = path.join('screenshots', collection, articleId);
-const files = fs.readdirSync(dir).filter((f) => f.endsWith('.png')).sort();
+
+// An article with no screenshots is legitimate, so a missing directory is zero
+// files rather than a crash. Before this, readdirSync threw ENOENT and a
+// text-only article could not be built at all - found on 2026-09-03 when 20.2
+// shipped as a reference table with its four email captures blocked by a
+// yopmail throttle. The deferred collection 25 is described in
+// config/articles.yaml as "text only, no screenshots possible", so this will
+// come up again.
+//
+// Nothing else is relaxed. A `{{shot:nn}}` placeholder with no file behind it
+// still throws, which is what catches an article whose captures went missing
+// rather than an article that never had any.
+const files = fs.existsSync(dir)
+  ? fs.readdirSync(dir).filter((f) => f.endsWith('.png')).sort()
+  : [];
 
 const byNumber = new Map();
 for (const f of files) {

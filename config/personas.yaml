@@ -133,6 +133,22 @@ personas:
       Statistics update asynchronously after a match finishes (see article 11.3).
       Seed the match, then poll GET /players/:playerId/stats before capturing.
 
+      ADDED 2026-09-03, by collection 20. "Has notifications to read" is not a
+      state that survives a capture run, and collection 20 is the one that
+      photographs them. The bell badge and the modal title do not come from
+      GET /notifications - that answers a bare array with no counters. They come
+      from a Firestore document, notifications/<firebase uid>, and the number in
+      it is a running tally rather than a count: mark-all-read SETS it to 0,
+      marking rows unread again does NOT put it back, and deleting an unread row
+      SUBTRACTS one, so it goes negative and stays there. Article 20.1
+      photographs the badge and then presses Mark all as read, which spends it.
+
+      So scripts/seed-20.mjs deletes and remakes Pia's notifications on every
+      run - the only thing that raises the tally is a new notification - and it
+      has to mark them read BEFORE deleting them, which is what heals a
+      negative tally. Run it before every capture of collection 20, not once.
+      See briefs/20.md, "Two defects that shape the whole run".
+
   manager_free:
     email_pattern: "kb-manager-free-<collection>@yopmail.com"
     name: Marc

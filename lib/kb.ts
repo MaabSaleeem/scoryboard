@@ -7,7 +7,7 @@
 // tempted to add something that does, it belongs in the spec as a seeded fixture
 // instead.
 
-import { expect, type Page, type Locator, type Browser } from '@playwright/test';
+import { expect, type Page, type Locator, type Browser, type BrowserContext } from '@playwright/test';
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -6260,4 +6260,800 @@ export function matchStamp19(page: Page) {
  */
 export function reviewsButton(page: Page, label: string) {
   return page.getByRole('button', { name: label, exact: true }).locator('visible=true').first();
+}
+
+// --- collection 20: notifications, emails & the activity feed ---------------
+//
+// Read the header of lib/fixtures-20.mjs first. The short version, because it
+// shapes every helper below:
+//
+//   - **Notifications are a modal, not a route.** `/notifications` answers 404
+//     from the server. The bell in the sidebar identity row opens a dialog
+//     titled `Notifications (n)`, ten rows to a page.
+//   - **There is no filter, anywhere.** Not on the notification modal and not
+//     on the activity feed. Both articles are retitled for it.
+//   - **The badge is Firestore, not REST**, and it is a running tally that can
+//     go negative. `scripts/seed-20.mjs` heals it and asserts it; run the seed
+//     before every capture.
+//   - **The activity feed is the Trending strip on the home page**, it is
+//     global, and it scrolls itself every 2.5 seconds.
+//
+// @ts-ignore - plain JS module, no types
+import * as F20 from './fixtures-20.mjs';
+
+export const KB20 = F20.ACCOUNTS as Record<'player' | 'owner' | 'mate' | 'empty', string>;
+export const KB20_NAMES = F20.FULL_NAMES as Record<string, string>;
+export const KB20_TEAMS = F20.TEAMS as { home: string; away: string; pia: string };
+export const KB20_LEADERBOARD: string = F20.LEADERBOARD;
+export const KB20_VENUE = F20.VENUE as { name: string; location: string };
+export const KB20_MATCH = F20.MATCH as {
+  date: string; duration: string; teamSize: string; tag: string;
+  shownDate: string; shownTime: string; homeGoals: number; awayGoals: number;
+};
+export const KB20_NOTIFICATIONS = F20.NOTIFICATIONS as { type: string; from: string; shows: string }[];
+export const KB20_COUNT: number = F20.NOTIFICATION_COUNT;
+export const KB20_PAGE_SIZE: number = F20.PAGE_SIZE;
+export const KB20_EMAILS = F20.EMAILS as {
+  key: string; subject: string; cause: string; to: string; note?: string; shot?: string;
+}[];
+export const KB20_EMAIL_SHOTS = F20.EMAIL_SHOTS as {
+  n: string; box: 'player' | 'owner' | 'mate' | 'empty'; match: RegExp; name: string; mask: string;
+}[];
+export const KB20_MARKETING: string = F20.MARKETING_OPT_IN;
+export const KB20_SENDER: string = F20.SENDER_ADDRESS;
+export const KB20_TRENDING = F20.TRENDING as {
+  title: string; empty: string; prev: string; next: string; autoAdvanceMs: number;
+};
+export const KB20_OURS: RegExp = F20.OURS;
+export const FROZEN_NOW_20 = new Date(F20.FROZEN_NOW);
+
+/** One planned notification, by its type. Throws rather than returning undefined. */
+export function kb20Notification(type: string) {
+  const row = KB20_NOTIFICATIONS.find((n) => n.type === type);
+  if (!row) throw new Error(`kb20Notification(): no planned notification of type ${type}`);
+  return row;
+}
+
+/**
+ * Everything collection 20's specs need from the API, looked up by NAME.
+ *
+ * `scripts/seed-20.mjs` rebuilds the three teams, the leaderboard, the match
+ * and every notification on every run, so their ids change every time. Nothing
+ * here may be hardcoded in a spec - that is the mistake that stopped six of
+ * collection 12's specs running.
+ *
+ * It also asserts the notification set, because every one of 20.1's captures
+ * depends on it and an unseeded account fails a screenshot rather than a
+ * locator. The message says what to run.
+ */
+export async function fixtures20() {
+  const sessions: Record<string, {
+    email: string; token: string; id: string; playerId: string; uid: string; membership: string;
+  }> = {};
+  for (const [key, email] of Object.entries(KB20)) {
+    const s = await mintSession(email);
+    const me = (await asUser(s.idToken, '/users/me')).body?.data;
+    if (!me) throw new Error(`No Scoryboard user for ${email}. Run: node scripts/seed-20.mjs`);
+    sessions[key] = {
+      email, token: s.idToken, id: me.id, playerId: me.playerId, uid: me.uid, membership: me.membership,
+    };
+  }
+
+  const owner = sessions.owner;
+  const teams = (await asUser(owner.token, '/teams?all=true')).body?.data ?? [];
+  const pick = (name: string) => {
+    const hit = teams.find((t: any) => t.name === name);
+    if (!hit) throw new Error(`No team "${name}". Run: node scripts/seed-20.mjs`);
+    return hit.teamId as string;
+  };
+  const piaTeams = (await asUser(sessions.player.token, '/teams?all=true')).body?.data ?? [];
+  const piaTeam = piaTeams.find((t: any) => t.name === KB20_TEAMS.pia);
+  if (!piaTeam) throw new Error(`No team "${KB20_TEAMS.pia}". Run: node scripts/seed-20.mjs`);
+
+  const boards = (await asUser(owner.token, '/leaderboards')).body?.data ?? [];
+  const board = boards.find((b: any) => b.name === KB20_LEADERBOARD);
+  if (!board) throw new Error(`No leaderboard "${KB20_LEADERBOARD}". Run: node scripts/seed-20.mjs`);
+
+  const planned = KB20_NOTIFICATIONS.map((n) => n.type).reverse();
+  const held = ((await asUser(sessions.player.token, '/notifications?limit=50&skip=0')).body?.data ?? [])
+    .map((n: any) => n.type);
+  if (held.length !== planned.length || held.some((t: string, i: number) => t !== planned[i])) {
+    throw new Error(
+      'Pia\'s notifications are not what briefs/20.md plans. Run: node scripts/seed-20.mjs'
+      + `\n  want: ${planned.join(', ')}\n  got:  ${held.join(', ') || '(none)'}`,
+    );
+  }
+
+  return {
+    sessions,
+    homeTeamId: pick(KB20_TEAMS.home),
+    awayTeamId: pick(KB20_TEAMS.away),
+    piaTeamId: piaTeam.teamId as string,
+    leaderboardId: board.id as string,
+  };
+}
+
+export type Fx20 = Awaited<ReturnType<typeof fixtures20>>;
+
+/**
+ * **Collection 20 does NOT freeze the clock, and that is a decision.**
+ *
+ * docs/style-guide.md says to freeze the clock "where the screen shows a date
+ * or a countdown". Every screen this collection photographs shows a *relative*
+ * stamp instead - "2 minutes ago" on a notification row, "4 minutes ago" on a
+ * Trending card - computed as `dayjs(createdAt).fromNow()` against
+ * `Date.now()`. Freezing `Date.now()` does not stabilise those. It corrupts
+ * them:
+ *
+ *   - the fixtures are made when the seed runs, minutes before the capture, and
+ *     the frozen instant is a constant. Measured with a 09:00 UTC freeze
+ *     against a 06:05 UTC seed, every row read **"3 hours ago"**;
+ *   - and a seed that ran after the frozen instant would render the same rows
+ *     as "in 3 hours", which is not a state the product has.
+ *
+ * So the real clock stands, the stamps read what a reader's would, and they
+ * differ a little between runs - which docs/style-guide.md explicitly allows:
+ * "two runs may differ by a pixel or an antialiased edge, and that is fine ...
+ * If it is merely different, ship it." No article's prose or alt text quotes a
+ * stamp.
+ *
+ * They are not masked either. Collection 19 masked a comment footer because it
+ * carries a full absolute `03:33 PM • Sep 02, 2026`; a relative "2 minutes
+ * ago" is collection 18's case, where bare stamps were left alone. The whole
+ * content of a Trending card is a short sentence and that stamp, and painting
+ * three black bars across a three-card strip destroys the thing 20.4 describes.
+ *
+ * The one ABSOLUTE date in the collection is the match date the three match
+ * notification rows print - `01 Dec 2026, 07:00 PM`. That comes from
+ * lib/fixtures-20.mjs, not from a clock, and it is constant because the context
+ * is pinned to Europe/London: December is GMT there, so 19:00 UTC renders as
+ * 07:00 PM. A spec run on another timezone would read a different sentence,
+ * which is why 20.1 asserts it.
+ *
+ * FROZEN_NOW_20 is kept in lib/fixtures-20.mjs so a later session that finds a
+ * reason to freeze has a value to freeze to. Nothing uses it.
+ */
+export const NO_CLOCK_FREEZE_20 = FROZEN_NOW_20;
+
+/**
+ * Everything that must be off-screen before a collection 20 capture.
+ *
+ * `keepBellBadge` is the one option, and it is not a convenience.
+ * docs/style-guide.md says mask notification badges - and in 20.1 the bell
+ * badge IS the article's subject, and the same file says do not mask the thing
+ * the article is about. So 20.1 passes `true` and 20.3 and 20.4 do not.
+ *
+ * The Chat badge in the sidebar is hidden either way: it counts messages
+ * collection 18's fixtures left behind and it is nobody's subject here.
+ * Hidden rather than masked, because a painted block on a nav item reads as a
+ * defect rather than as redaction (collection 19's note).
+ */
+export async function quiet20(page: Page, { keepBellBadge = false } = {}) {
+  await quiet(page);
+  const hideBell = keepBellBadge ? '' : `
+      div[class*="-top-2"][class*="-right-2"][class*="bg-red-500"] {
+        visibility: hidden !important;
+      }`;
+  await page.addStyleTag({
+    content: `
+      /* The sidebar Chat badge. Pinned to that one badge and never to
+         bg-red-* generally: collection 18 found that a loose match takes the
+         offline presence dot off every avatar with it. */
+      span[class*="pointer-events-none"][class*="right-3"][class*="bg-red-500"] {
+        visibility: hidden !important;
+      }
+      /* Turn Chrome's scroll anchoring off.
+         The notification modal's rows grow as their avatars paint, and
+         anchoring then moves scrollTop to keep the anchored row where it was -
+         so a list put back to its top scrolls itself away again a moment
+         later. 20.1's fifth capture published a modal starting on its fourth
+         row twice because of it: once with the scroll left where shots 03 and
+         04 had put it, and once after an explicit reset that anchoring undid. */
+      * { overflow-anchor: none !important; }
+      ${hideBell}
+    `,
+  });
+}
+
+/**
+ * Stop the Trending carousel advancing itself, before the page loads.
+ *
+ * The carousel schedules its own tick with `window.setTimeout(fn, 2500)` and
+ * reschedules on every advance. This drops timers asked for at exactly that
+ * delay and passes every other one through.
+ *
+ * **2500 appears exactly once in the whole bundle**, in that hook - checked
+ * across the 65 chunks swept from every route in the app's own `Routes` enum.
+ * The next most common delays are 100, 300, 400 and 500, and this leaves all of
+ * them alone, so Firebase's session refresh, the app's debounces and
+ * Playwright's own machinery are untouched.
+ *
+ * An init script rather than an `evaluate`, because the strip mounts as the
+ * home page loads and a stub applied afterwards is a stub applied too late.
+ * `page.clock.install()` would also stop it and is not used: it fakes Date for
+ * the whole page, and freezeClock()'s note records why a fake clock is
+ * dangerous here - Firebase refreshes its session on a timer.
+ *
+ * A returned handle of 0 is safe: `clearTimeout(0)` is a no-op, which is what
+ * the hook's cleanup does with it.
+ *
+ * If a later build changes the interval this silently stops working - so
+ * parkTrending20() asserts the strip is still on its first card, and 20.4
+ * asserts it again after the last capture.
+ */
+export async function stopTrendingAutoAdvance(page: Page) {
+  await page.addInitScript((ms) => {
+    const real = window.setTimeout;
+    (window as unknown as { setTimeout: unknown }).setTimeout = function patched(
+      fn: TimerHandler, delay?: number, ...rest: unknown[]
+    ) {
+      if (delay === ms) return 0;
+      return (real as (...a: unknown[]) => number).call(window, fn, delay, ...rest);
+    };
+  }, KB20_TRENDING.autoAdvanceMs);
+}
+
+/**
+ * Narrow the global activity feed to this collection's own rows.
+ *
+ * `GET /activities` is platform-wide and has no "mine only" parameter, so the
+ * raw Trending strip shows other collections' fixtures and other people's
+ * accounts. docs/style-guide.md forbids a capture carrying another persona's
+ * data. Collection 02 solved this on article 02.1 the same way and the
+ * reasoning is its: this is the real endpoint's real payload, filtered, written
+ * into the spec so a re-run reproduces it - nothing is fabricated, and 20.4's
+ * prose still tells the reader that Trending is activity from across
+ * Scoryboard.
+ *
+ * Applied on every collection 20 page, not only the ones that photograph the
+ * strip: the home page renders it below the fold on 20.1's captures too.
+ *
+ * `serviceWorkers: 'block'` in playwright.config.ts is what makes page.route()
+ * work at all here - a request a service worker makes never reaches the
+ * handler, and every interception written before 2026-08-29 in this repo was
+ * silently doing nothing.
+ */
+export async function onlyOurActivities20(page: Page) {
+  await page.route('**/activities*', async (route) => {
+    const res = await route.fetch();
+    let json: any;
+    try { json = await res.json(); } catch { await route.fulfill({ response: res }); return; }
+    const rows = Array.isArray(json?.data) ? json.data : [];
+    json.data = rows.filter((a: any) => KB20_OURS.test(JSON.stringify(a)));
+    await route.fulfill({ response: res, json });
+  });
+}
+
+/**
+ * A browser context of its own, signed in, on `to`.
+ *
+ * One context per persona, closed before the next opens. The app persists a
+ * Redux store per origin, so signing a second account in on the same page
+ * leaves the first one's state behind - collection 17 hit that on the Teams
+ * page and collection 08 found the External badge is computed off that same
+ * persisted slice.
+ *
+ * The activity route is installed BEFORE the first navigation, because the home
+ * page fetches `/activities` as it mounts.
+ *
+ * Caller closes it.
+ */
+export async function context20(
+  browser: Browser,
+  email: string,
+  to: string,
+  { keepBellBadge = false } = {},
+) {
+  const ctx = await browser.newContext({
+    baseURL: process.env.SCORYBOARD_APP_BASE,
+    viewport: { width: 1440, height: 900 },
+    deviceScaleFactor: 2,
+    timezoneId: 'Europe/London',
+    locale: 'en-GB',
+    reducedMotion: 'reduce',
+    serviceWorkers: 'block',
+  });
+  const page = await ctx.newPage();
+  await stopTrendingAutoAdvance(page);
+  // Both routes go on BEFORE the first navigation: the home page fetches
+  // `/activities` and `/promo-campaigns/active?screen=Home` as it mounts, and
+  // a route added after a fetch has gone out does nothing.
+  //
+  // The promo banner is blocked, not dismissed. It is a live campaign -
+  // "Summer competition" today, something else next month - it renders as a
+  // full-width band that pushes the page down, and it is nobody's subject
+  // here. It showed through the dimmed background of 20.1's second capture on
+  // the first run. Dismissing it would write the dismissal to the account and
+  // make the next run differ from this one; collection 02 settled that.
+  await blockPromos(page);
+  await onlyOurActivities20(page);
+  await signInAs(page, email, to);
+  // No clock freeze. See NO_CLOCK_FREEZE_20 above - freezing it makes every
+  // relative stamp in this collection wrong rather than stable.
+  await quiet20(page, { keepBellBadge });
+  return { ctx, page };
+}
+
+/**
+ * An invisible box covering the union of several elements, for one annotation.
+ *
+ * `annotate()` outlines a single element, and sometimes the thing a step points
+ * at is two elements with no wrapper of their own. The Trending carousel's
+ * arrows are the case this was written for: they sit in a
+ * `justify-center` row that is the full width of the panel, so outlining that
+ * row drew a 2300-pixel red rectangle around two 32-pixel buttons.
+ *
+ * The box is appended to the page in document coordinates, exactly the way
+ * annotate() paints its outline, and it is `pointer-events: none` and fully
+ * transparent - it changes nothing about the layout or about what is on screen.
+ * Callers pass it to `annotate` (or to `clip`), then call clearUnionBox() when
+ * they are done.
+ *
+ * A single element with no wrapper does not need this. Two that genuinely
+ * belong to one step do.
+ */
+export async function unionBox(page: Page, targets: Locator[], pad = 0) {
+  const boxes = [];
+  for (const t of targets) {
+    const box = await t.boundingBox();
+    if (!box) throw new Error('unionBox(): a target has no bounding box');
+    boxes.push(box);
+  }
+  await page.evaluate(({ rects, p }) => {
+    document.getElementById('kb-union-box')?.remove();
+    const left = Math.min(...rects.map((r) => r.x)) - p;
+    const top = Math.min(...rects.map((r) => r.y)) - p;
+    const right = Math.max(...rects.map((r) => r.x + r.width)) + p;
+    const bottom = Math.max(...rects.map((r) => r.y + r.height)) + p;
+    const el = document.createElement('div');
+    el.id = 'kb-union-box';
+    Object.assign(el.style, {
+      position: 'absolute',
+      left: `${left + window.scrollX}px`,
+      top: `${top + window.scrollY}px`,
+      width: `${right - left}px`,
+      height: `${bottom - top}px`,
+      pointerEvents: 'none',
+      background: 'transparent',
+      zIndex: '1',
+    });
+    document.body.appendChild(el);
+  }, { rects: boxes, p: pad });
+  return page.locator('#kb-union-box');
+}
+
+export async function clearUnionBox(page: Page) {
+  await page.evaluate(() => document.getElementById('kb-union-box')?.remove());
+}
+
+// --- the bell, and the notification modal ----------------------------------
+
+/**
+ * The bell in the sidebar identity row - the wrapper, which is what opens the
+ * modal.
+ *
+ * **There are two bells and only one of them is on screen at desktop width.**
+ * The header carries a `lucide-bell` marked `md:hidden`, which is in the DOM
+ * with a zero-sized box at 1440px and is what a `[class*="lucide-bell"]`
+ * locator finds first - and then cannot click, because it is not visible. The
+ * sidebar's is a bare inline `<svg>` with no lucide class at all, identified
+ * here by its own path data.
+ *
+ * The clickable element is the `div.relative` that wraps the svg and the badge,
+ * not the svg.
+ */
+export function bell20(page: Page) {
+  return page.locator('svg:has(path[d^="M18 8A6 6 0 1 0 6 8"])')
+    .locator('xpath=ancestor::div[contains(@class,"relative")][1]');
+}
+
+/** The bell's unread badge. 20.1 shot 01's subject; hidden everywhere else. */
+export function bellBadge20(page: Page) {
+  return page.locator('div[class*="-top-2"][class*="-right-2"][class*="bg-red-500"]');
+}
+
+/**
+ * The sidebar identity row: avatar, name and the bell with its badge.
+ *
+ * Taken as the nearest ancestor of the name that also holds the bell, rather
+ * than by class, so it survives a class change. It is 20.1 shot 01's clip.
+ */
+export function identityRow20(page: Page) {
+  return page.locator('div')
+    .filter({ has: page.locator('svg:has(path[d^="M18 8A6 6 0 1 0 6 8"])') })
+    .filter({ has: page.getByText(KB20_NAMES.player, { exact: true }) })
+    .last();
+}
+
+/**
+ * Open the notification modal and wait for it to have finished loading.
+ *
+ * Three gates, and each one has a reason:
+ *
+ *   - the dialog exists;
+ *   - no `.animate-pulse` inside it. The modal paints ten skeleton rows while
+ *     its first fetch is out, and `shot()`'s own backstop would throw on them -
+ *     this waits instead, because they are expected here;
+ *   - the exact row count. That is an assertion as much as a gate: it fails
+ *     loudly when scripts/seed-20.mjs has not run, rather than photographing
+ *     somebody else's notifications.
+ *
+ * `count` is what the modal should be showing, which is at most a page.
+ */
+export async function openNotifications20(page: Page, count = Math.min(KB20_COUNT, KB20_PAGE_SIZE)) {
+  await bell20(page).first().click();
+  const dialog = page.getByRole('dialog').last();
+  await expect(dialog).toBeVisible({ timeout: 15_000 });
+  await page.waitForFunction(
+    () => document.querySelectorAll('[role="dialog"] .animate-pulse').length === 0,
+    undefined, { timeout: 20_000, polling: 250 },
+  );
+  await expect(notificationRows20(page)).toHaveCount(count, { timeout: 15_000 });
+  await imagesPainted(page);
+  return dialog;
+}
+
+/**
+ * Every notification row in the open modal.
+ *
+ * A row is a `div` with `border-b` inside the dialog - and so is the modal's
+ * own header, which is why this narrows to the rows that carry a `Mark as
+ * read` button. The rows have no test id and no role; that button, whose
+ * accessible name comes from a `title` attribute, is the only stable thing
+ * about them.
+ */
+export function notificationRows20(page: Page) {
+  return page.locator('[role="dialog"] div.border-b')
+    .filter({ has: page.getByRole('button', { name: 'Mark as read' }) });
+}
+
+/**
+ * One notification row, by the text it shows.
+ *
+ * `shows` in lib/fixtures-20.mjs is the sentence each row renders. The row
+ * text is split across several elements - a team name is its own button - so
+ * this matches on a distinctive fragment rather than the whole sentence.
+ */
+export function notificationRow20(page: Page, fragment: string) {
+  return notificationRows20(page).filter({ hasText: fragment }).first();
+}
+
+/** The tick that marks one row read. Its accessible name is a `title`. */
+export function markReadButton20(row: Locator) {
+  return row.getByRole('button', { name: 'Mark as read' });
+}
+
+/**
+ * The trash button on one row.
+ *
+ * It has no accessible name at all - no title, no aria-label, no text - so it
+ * is found as the row's second button. **It is never clicked.** `DELETE
+ * /notifications/:id` is a hard delete, there is no confirmation, and a deleted
+ * notification cannot be put back at the timestamp it had. 20.1 photographs
+ * this control and stops there.
+ */
+export function deleteButton20(row: Locator) {
+  return row.locator('button').nth(1);
+}
+
+/** 'unread' or 'read', read off the row's own background class. */
+export async function readState20(row: Locator): Promise<'unread' | 'read'> {
+  const cls = (await row.getAttribute('class')) ?? '';
+  return cls.includes('bg-blue-50') ? 'unread' : 'read';
+}
+
+/**
+ * The modal's "Mark all as read" link.
+ *
+ * It is rendered even when there is nothing to mark - as an EMPTY button, with
+ * `children: unreadCount > 0 ? "Mark all as read" : ""` - so a locator on the
+ * name finds it only while the Firestore counter is above zero. That is the
+ * same counter scripts/seed-20.mjs heals and asserts; if this locator finds
+ * nothing, the seed has not run since the last Mark all as read.
+ */
+export function markAllRead20(page: Page) {
+  return page.getByRole('dialog').last().getByRole('button', { name: 'Mark all as read' });
+}
+
+/**
+ * Load the modal's second page, the way a reader does.
+ *
+ * The rows sit in an `.overflow-y-auto` whose handler fires `loadMore` when the
+ * scroll reaches the bottom, ten at a time. A programmatic `scrollTop` write
+ * does not fire React's `onScroll` reliably; a real wheel over the list does,
+ * and that is what a reader produces. Waits for the row count rather than for
+ * a duration.
+ */
+export async function loadMoreNotifications20(page: Page, upTo = KB20_COUNT) {
+  const scroller = notificationScroller20(page);
+  const box = await scroller.boundingBox();
+  if (!box) throw new Error('loadMoreNotifications20(): the modal has no scroller');
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  for (let i = 0; i < 12 && (await notificationRows20(page).count()) < upTo; i += 1) {
+    await page.mouse.wheel(0, 400);
+    await page.waitForFunction(
+      (want) => document.querySelectorAll('[role="dialog"] button[title="Mark as read"]').length >= want,
+      upTo, { timeout: 3_000, polling: 200 },
+    ).catch(() => undefined);
+  }
+  await expect(notificationRows20(page)).toHaveCount(upTo, { timeout: 15_000 });
+  await imagesPainted(page);
+}
+
+/**
+ * The element the notification list actually scrolls in.
+ *
+ * **There are two `.overflow-y-auto` divs in this dialog and only the inner one
+ * scrolls.** The outer, `min-h-0 flex-1 overflow-y-auto`, measures
+ * `clientHeight 540, scrollHeight 540` - it never overflows. The inner,
+ * `flex flex-1 flex-col overflow-y-auto`, measures `540 / 871` with eleven rows
+ * in it.
+ *
+ * `.first()` picks the outer one, and a `scrollTop = 0` written to it does
+ * nothing at all. That cost 20.1's fifth capture three runs: it kept coming out
+ * starting on the fourth row, and the reset that was supposed to fix it was
+ * being applied to an element that had nothing to reset.
+ *
+ * Both contain the rows - one is the other's ancestor - so the content filter
+ * matches both and `.last()` takes the inner. Semantic rather than pinned to a
+ * class list, so a Tailwind reshuffle does not silently pick the wrong one
+ * again.
+ */
+export function notificationScroller20(page: Page) {
+  return page.getByRole('dialog').last().locator('.overflow-y-auto')
+    .filter({ has: page.getByRole('button', { name: 'Mark as read' }) })
+    .last();
+}
+
+/**
+ * Put the notification list back to its first row, and prove it stayed there.
+ *
+ * Images first. Every row carries an avatar fetched as a blob and painted
+ * late, each one grows its row when it lands, and Chrome's scroll anchoring
+ * answers by moving `scrollTop` - so a list reset before its avatars have
+ * painted drifts away from the top again. quiet20() turns anchoring off as
+ * well; this waits for the images regardless, because the reset is only
+ * meaningful once the list has stopped changing height.
+ */
+export async function scrollNotificationsToTop20(page: Page) {
+  await imagesPainted(page);
+  const scroller = notificationScroller20(page);
+  await scroller.evaluate((el) => { el.scrollTop = 0; });
+  await expect(async () => {
+    expect(await scroller.evaluate((el) => el.scrollTop)).toBe(0);
+  }).toPass({ timeout: 8_000 });
+}
+
+/** Close the notification modal and prove it has gone. */
+export async function closeNotifications20(page: Page) {
+  await page.getByRole('dialog').last().getByRole('button', { name: 'Close' }).click();
+  await expect(page.getByRole('dialog')).toHaveCount(0, { timeout: 10_000 });
+}
+
+/**
+ * Put every one of Pia's notifications back to unread.
+ *
+ * 20.1 marks one row read and then marks them all read, and both are
+ * reversible in the LIST: `PATCH /notifications/mark-read {ids, isRead: false}`
+ * restores every row. **It does not restore the badge.** The Firestore counter
+ * is a running tally that mark-all-read sets to 0 and nothing raises but a new
+ * notification, so a spec run always leaves the badge spent.
+ *
+ * This is therefore a courtesy, not a reset: it means the next reader of the
+ * fixture sees the list the brief describes. `scripts/seed-20.mjs` is the
+ * actual reset and has to be run before the next capture either way.
+ */
+export async function restoreUnread20(token: string) {
+  const list = (await asUser(token, '/notifications?limit=50&skip=0')).body?.data ?? [];
+  if (!list.length) return;
+  await asUser(token, '/notifications/mark-read', {
+    method: 'PATCH',
+    body: { ids: list.map((n: any) => n.id), isRead: false },
+  });
+}
+
+// --- Trending, the activity feed -------------------------------------------
+
+/**
+ * The whole Trending panel: its heading, its cards and its two arrows.
+ *
+ * Taken as the nearest `rounded-lg` ancestor of the heading that also holds a
+ * card, because the panel is two nested `rounded-lg` divs - the component's own
+ * shell and the `containerClassName` its caller passes - and only the outer one
+ * has the heading in it.
+ */
+export function trendingPanel20(page: Page) {
+  return page.getByRole('heading', { name: KB20_TRENDING.title })
+    .locator('xpath=ancestor::div[contains(@class,"rounded-lg")][.//div[@data-trending-card]][1]');
+}
+
+/** Every card in the strip. `data-trending-card` is the app's own attribute. */
+export function trendingCards20(page: Page) {
+  return page.locator('[data-trending-card]');
+}
+
+/** One card, by a fragment of the sentence it shows. */
+export function trendingCard20(page: Page, fragment: string) {
+  return trendingCards20(page).filter({ hasText: fragment }).first();
+}
+
+/**
+ * The blue label and the relative time on one card, as one row.
+ *
+ * The label is the `referenceType` mapped to a word - Match, Team, Player,
+ * Leaderboard, Tournament - printed uppercase by CSS, so its text content is
+ * title case and its appearance is not. 20.4's second shot annotates this row,
+ * and it is the one capture in the collection where the relative time is the
+ * subject rather than noise.
+ */
+export function trendingCardMeta20(card: Locator) {
+  return card.locator('span.uppercase').locator('xpath=..');
+}
+
+/** The two carousel arrows, by the accessible names the app gives them. */
+export function trendingArrows20(page: Page) {
+  const panel = trendingPanel20(page);
+  return {
+    prev: panel.getByRole('button', { name: KB20_TRENDING.prev }),
+    next: panel.getByRole('button', { name: KB20_TRENDING.next }),
+    row: panel.getByRole('button', { name: KB20_TRENDING.next })
+      .locator('xpath=ancestor::div[contains(@class,"justify-center")][1]'),
+  };
+}
+
+/**
+ * Prove the Trending strip is where a reader's would be, and holding still.
+ *
+ * **The carousel scrolls itself every 2.5 seconds.** A `setTimeout` in its hook
+ * calls `scrollTo` on the list, advances its own `activeIndex`, and
+ * reschedules - and it keeps doing that under a frozen `Date.now()`, because
+ * `page.clock.setFixedTime` leaves timers alone. Measured: scrollLeft went 0,
+ * 399, 797, 1196 over three intervals. docs/style-guide.md forbids "a scrollbar
+ * mid-scroll".
+ *
+ * What stops it is stopTrendingAutoAdvance(), an init script installed by
+ * context20() before the page loads. This function is the CHECK, not the fix:
+ * scrollLeft at 0 and the Previous arrow disabled together mean the strip is on
+ * its first card in the DOM *and* in the component's own state.
+ *
+ * Both halves matter. The first version of this stubbed the list's `scrollTo`
+ * after the fact, which held the pixels still and did nothing about the state -
+ * so `activeIndex` climbed anyway, the Previous arrow lit up, and 20.4's third
+ * capture would have shown a live Previous arrow on a strip sitting on card one.
+ */
+export async function parkTrending20(page: Page) {
+  // Prove the stub is in the page at all. Asserting only that the strip has
+  // not moved YET proves nothing at t=0, and a later build that changes the
+  // interval would leave every capture drifting with no failure to explain it.
+  expect(
+    await page.evaluate(() => window.setTimeout.name),
+    'stopTrendingAutoAdvance() is not installed - the strip will drift mid-capture',
+  ).toBe('patched');
+
+  const list = trendingCards20(page).first().locator('xpath=..');
+  await expect(list).toBeVisible();
+  await expect(async () => {
+    expect(await list.evaluate((el) => (el as HTMLElement).scrollLeft)).toBe(0);
+  }).toPass({ timeout: 8_000 });
+  await expect(trendingArrows20(page).prev).toBeDisabled();
+}
+
+/**
+ * Wait for the Trending strip to be loaded, and prove what is in it.
+ *
+ * The strip paints three `animate-pulse` placeholders while its fetch is out,
+ * so `shot()`'s backstop would throw; this waits for real cards instead. The
+ * count is the NARROWED count - see onlyOurActivities20() - and asserting it
+ * fails loudly when the filter has matched nothing, rather than photographing
+ * an empty panel under the heading.
+ */
+export async function trendingReady20(page: Page, atLeast = 3) {
+  await expect(page.getByRole('heading', { name: KB20_TRENDING.title })).toBeVisible({ timeout: 20_000 });
+  await expect(async () => {
+    expect(await trendingCards20(page).count()).toBeGreaterThanOrEqual(atLeast);
+  }).toPass({ timeout: 20_000 });
+  await parkTrending20(page);
+  await imagesPainted(page);
+}
+
+// --- profile settings, for 20.3 --------------------------------------------
+
+/**
+ * The Email field on Profile settings. **It is disabled**, and that is 20.3's
+ * point: the address Scoryboard sends to cannot be changed in the app.
+ */
+export function emailField20(page: Page) {
+  return page.locator('input[name="email"]');
+}
+
+/** The Email field with its own label, which is what the capture is clipped to. */
+export function emailGroup20(page: Page) {
+  return emailField20(page).locator('xpath=ancestor::div[contains(@class,"relative")][1]');
+}
+
+/**
+ * The marketing opt-in row: the tick box and the sentence beside it.
+ *
+ * A Radix checkbox, so the control is a `button[role="checkbox"]` carrying
+ * `aria-checked` and the real input is hidden behind it. The row is found by
+ * the sentence rather than by class.
+ */
+export function marketingRow20(page: Page) {
+  return page.getByText(KB20_MARKETING, { exact: true })
+    .locator('xpath=ancestor::div[.//button[@role="checkbox"]][1]');
+}
+
+export function marketingCheckbox20(page: Page) {
+  return marketingRow20(page).getByRole('checkbox');
+}
+
+/** Wait for Profile settings to have its own values in it, not empty fields. */
+export async function settings20Ready(page: Page) {
+  await expect(emailField20(page)).toHaveValue(KB20.player, { timeout: 20_000 });
+  await expect(emailField20(page)).toBeDisabled();
+  await expect(marketingCheckbox20(page)).toHaveAttribute('aria-checked', 'true');
+  await imagesPainted(page);
+}
+
+/** The signed-in name in the sidebar. Masked in 20.3 and 20.4. */
+export function sidebarIdentity20(page: Page, persona: keyof typeof KB20_NAMES = 'player') {
+  return page.getByText(KB20_NAMES[persona], { exact: true }).locator('visible=true').first();
+}
+
+/**
+ * Read Scoryboard emails out of a yopmail inbox and render them as emails.
+ *
+ * lib/mail.mjs holds the reasoning. The short version: yopmail strips every
+ * `src` attribute out of its HTML view and its own "Show pictures" control
+ * cannot put them back, so a screenshot taken there is an email with a broken
+ * logo in it. Its **Source** view hands back the raw MIME with the attributes
+ * intact, and openEmailsFrom() renders that in a blank page at a mail-client
+ * width. One inbox visit per box, because yopmail throttles by IP and answers
+ * with a CAPTCHA - which nothing here ever tries to solve.
+ */
+// @ts-ignore - plain JS module, no types
+import { openEmailsFrom as openEmailsFromJs, inbox as inboxJs } from './mail.mjs';
+
+/** One inbox visit, several messages, each rendered in a page of its own. */
+export const openEmailsFrom = openEmailsFromJs as (
+  context: BrowserContext,
+  email: string,
+  patterns: RegExp[],
+  opts?: { width?: number },
+) => Promise<{
+  emails: { page: Page; subject: string; html: string }[];
+  subjects: string[];
+}>;
+
+/** Every message in a yopmail inbox: row id, sender, subject and time. */
+export const inbox = inboxJs as (
+  page: Page,
+  email: string,
+) => Promise<{ id: string; from: string; subject: string; time: string }[]>;
+
+/**
+ * The six-digit verification code inside the rendered verification email.
+ *
+ * Masked in 20.2's third capture. docs/style-guide.md: mask "IDs, share codes,
+ * invite codes" - a live verification code is exactly that, and this one is
+ * real and was really sent. The pill it sits in is what gets painted over, not
+ * the digits alone, because a black bar the width of six characters inside a
+ * blue button reads as damage.
+ */
+export function verificationCodePill20(page: Page) {
+  return page.getByText(/^\s*\d{6}\s*$/).first();
+}
+
+/**
+ * The kick-off line inside the rendered match-invitation email.
+ *
+ * "@KB Notify Astro, on Mon, 01 Dec 2026, 19:00 UTC". The venue and the date
+ * are the fixture's own and do not move, but the email prints the instant in
+ * **UTC** rather than in the reader's timezone, and it re-prints it every time
+ * the seed re-sends. Masked, because 20.2's first capture is about what a
+ * Scoryboard email looks like, not about when that match is - and the article
+ * that owns the fixture's date is 20.1.
+ */
+export function emailKickOffLine20(page: Page) {
+  return page.getByText(/UTC/).first();
 }
