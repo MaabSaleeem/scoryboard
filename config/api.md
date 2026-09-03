@@ -941,7 +941,7 @@ The heading is the role tell:
 |---|---|---|---|---|
 | Owner | Match Settings | Add to Calendar, Show Tour, gear | Configure appearance / Edit / Cancel Match | yes |
 | team Administrator | Match Settings | same | same | yes |
-| assigned referee | *(no heading)* | same | same | yes. No PAYMENT tab |
+| assigned referee | *(no heading)* | Add to Calendar, Show Tour, **no gear** | **none - there is no gear** | yes. No PAYMENT tab |
 | anybody else | **Match Preview (View Only)** | none | none | no |
 
 Two things about that header. **Add to Calendar and Show Tour appear only once the
@@ -1160,11 +1160,53 @@ jumps to it. All six panels are in the DOM at once; the tabs scroll to anchors
 |---|---|---|---|---|---|---|---|
 | Owner | Match Settings | yes | yes | yes | yes | yes | yes, with Request Payment |
 | team Administrator | Match Settings | yes | yes | yes | yes | yes | yes, no Request Payment |
-| **assigned referee** | *(none)* | yes | **no** | **no** | yes | yes | **no tab at all** |
+| **assigned referee** | *(none)* | yes | **yes** | **yes** | yes | yes | **no tab at all** |
 | a team player | Match Preview (View Only), `display:none` at desktop width | no | no | no | yes | no | yes |
 | anybody else | Match Preview (View Only), visible | no | no | no | yes | no | no |
 
-So the referee may start, pause and end a match and may not score it.
+**CORRECTED 2026-09-03, by collection 21.** The referee row said **no** to score
+steppers and **no** to the card buttons, and both were wrong. Re-measured three
+ways on the same Live match, side by side with the Owner:
+
+- the stepper row is **identical** for the two of them - one blue-bordered pill
+  holding four 32px buttons, both minus buttons `disabled` at zero and both plus
+  buttons enabled;
+- clicking the referee's plus fires `POST /matches/:id/events
+  {"type":"GoalAwarded"}` and it answers **200**. The score moved 0-0 to 1-0;
+- **Yellow Card, Red Card and Player of Match are on the referee's FEED** the
+  moment the match is Live, exactly as they are on the Owner's.
+
+`isReferee` has nothing to do with any of it. A plain account that has never been
+made a referee, named on the match with `PUT /matches/:id {refereePlayerId}`, gets
+byte-for-byte the same page: five tabs, no heading, the steppers, the card
+buttons, Show Tour and the timer. **What the match page reads is
+`refereePlayerId`, not the referee flag.** That is presumably how the old row came
+about - collections 09 and 10 both used an account that was only named on a match.
+
+**The referee has NO gear menu.** Also corrected: the row under
+[Match app routes](#match-app-routes-and-what-the-match-page-shows-whom) says the
+referee's gear menu is the same as the Owner's, and `briefs/09.md` says the
+referee "gets the gear and can edit the note". Measured on a Scheduled match, the
+Owner has three `button[aria-haspopup="menu"]` and the referee has **two** - Add
+to Calendar and the footer's language picker. There is no
+Configure appearance / Edit / Cancel Match for a referee.
+
+What the referee's own token may do, isolated on a throwaway match:
+
+| Call | Answer |
+|---|---|
+| `POST /matches/:id/status` - `Live`, `Paused`, `Live`, `Finished` | **200** each |
+| `POST /matches/:id/events` - goal, card, Player of the Match | **200** |
+| `PUT /matches/:id` - `pitchNumber`, `note`, `date`, `status:"Cancelled"` | **403** `"Only match managers can update match settings"` |
+| `DELETE /matches/:id` | **403** `"Only match managers can cancel match"` |
+
+So the boundary is: **a referee runs the match and cannot change the match.**
+
+**Worth a ticket: the referee's Add Note is a silent no-op.** The FEED panel gives
+a referee **Add Note**, the dialog opens ("Add Note", a 250-character box, Save and
+Close), Save sends `PUT /matches/:id {note}`, the API answers the 403 above - and
+the dialog closes with **no message on screen** and the note still reads "No Note
+added." Article 21.3 warns about it.
 
 The gear menu offers **Configure appearance / Edit / Cancel Match** on a Live match
 exactly as on a Scheduled one - but Edit's save is refused by the 403 above.
@@ -1410,13 +1452,165 @@ So the header search reaches players, teams, leaderboards and tournaments.
 
 | Method | Path | For |
 |---|---|---|
-| GET | `/referees/:id/matches?scheduleType=` | Matches assigned to a referee |
+| GET | `/referees/:id/matches?scheduleType=` | Matches assigned to a referee. `Upcoming` \| `Past` |
+| GET | `/referees/:id/matches?includeIncomplete=&startDate=&endDate=` | the same list by date range. **(observed in app, 2026-09-03)** what `/schedule` calls |
 | GET | `/referees/:playerId/stats` | Referee statistics |
 | GET | `/referees/:refereePlayerId/stats/leaderboards` | Per-league referee stats (`page`, `limit`) |
 
-The collection's "Create" referee request has an empty URL. The only API trace of
-becoming a referee is `defaultProfile: "Referee"` on `POST /users`. TODO: find the
-real referee-registration call for 21.1.
+**(observed in app, 2026-09-03, by collection 21.)** Everything below was read off
+the wire and off the live API. The TODO that stood here - "find the real
+referee-registration call for 21.1" - is answered: **there is none.**
+
+### There is no referee route and no referee sign-up
+
+`/referees` is an `ApiEndPoints` value, not an app route. The app's own `Routes`
+enum holds 36 paths and none of them is a referee screen; `/referees` answers
+**404 from the server**. Everything a referee sees is the ordinary player profile
+in a different role - see below.
+
+### `POST /tournaments/:id/referee` - the whole shape, and `createMode`
+
+The row under [Tournaments](#tournaments) was incomplete in a way that makes the
+call fail. **`createMode` is required**, and it selects one of the dialog's three
+tabs:
+
+| `createMode` | Body | Tab |
+|---|---|---|
+| `single` | `name` (required), `lastName`, `email`, `avatarToken`, `saveForFutureTournaments`, `canStartEndMatches` | **Single referee** |
+| `global` | `playerId`, `canStartEndMatches` | **Saved referees** |
+| `multiple` | `refereeList` (newline-separated names), `saveForFutureTournaments`, `canStartEndMatches` | **Multiple referees** |
+
+Three things follow, and the first two are defects.
+
+**Sent without `createMode` the call answers `400 "Referee not found"` - after it
+has already flipped the target user.** `isReferee: true` and
+`defaultProfile: "Referee"` are written to the user before the request is
+validated. So a malformed add leaves an account marked as a referee, on no
+tournament and in nobody's saved list. Worth a ticket.
+
+**`createMode: "multiple"` cannot work as the app sends it.** The client posts
+`{createMode, refereeList, saveForFutureTournaments, canStartEndMatches}` and the
+server answers `400 SCHEMA_VALIDATION_ERROR, {"field":"name","message":"Required"}`.
+The **Multiple referees** tab is therefore broken. Worth a ticket. This also
+corrects the note under [Tournaments](#tournaments) that said the tab "fires one
+POST per line": it fires one POST with the lines joined by `\n`.
+
+**`createMode: "single"` with an `email` that belongs to an existing account is
+the only path that produces a referee a reader can be.** It answers with that
+user's whole record showing `isReferee: true` and `defaultProfile: "Referee"`.
+With a `name` and no `email` it creates a bare **unregistered** player record
+(`isRegistered: false`, `isReferee: true`) that nobody can ever sign in to.
+An account that is already a referee **can** be added to a second tournament by
+email; that answers 200.
+
+`PATCH /tournaments/:id/referee/:refereePlayerId` edits a referee row - the
+dialog's **Edit referee** mode. Not previously recorded.
+
+### The saved-referee list is separate from the tournament
+
+`saveForFutureTournaments` lives on the **player** record and outlives the
+tournament row. `DELETE /tournaments/:id/referee/:playerId` takes somebody off the
+tournament and leaves them in the organiser's saved list.
+
+- `GET /team-players/search?searchType=referee&savedOnly=true` reads that list.
+  **`savedOnly` is a new parameter** - not on the `/team-players/search` row above.
+  It and `tournamentSelectionOnly` both answer only the caller's own saved
+  referees; with neither, the search returns every referee on the platform.
+- `PATCH /players/:playerId/referee-settings {saveForFutureTournaments:false}` is
+  what removes one, and it is the dialog's "Remove from saved list".
+  **CORRECTED: it answers 200 to the tournament OWNER**, on another player's
+  record. The 2026-08-31 note below saying it is 403 to anybody but that player is
+  wrong.
+
+### `GET /referees/:playerId/stats` - and the tile that can never move
+
+```json
+{"totalMatches":1,"totalGoals":0,"totalAssists":0,
+ "totalRedCards":0,"totalYellowCards":0,"totalPlayerOfTheMatch":0}
+```
+
+**There is no `totalFouls`, and the profile draws a TOTAL FOULS tile from it.**
+So that tile reads 0 for every referee on the platform. Worth a ticket.
+
+The other five are the referee's own **player** figures, and a referee is not in
+the line-up she officiates, so only `totalMatches` ever moves. It is calculated
+asynchronously after the match finishes, like player statistics - zero
+immediately after `POST /status {"status":"Finished"}` and 1 within a minute.
+
+`GET /referees/:id/stats/leaderboards` answers one row per leaderboard:
+`{leaderboardId, leaderboardName, totalMatches, goals, assists, redCards,
+yellowCards, playerOfMatchCount}`.
+
+### Being added as a referee notifies nobody
+
+`POST /tournaments/:id/referee` sends **no notification and no email**. Measured
+on an account holding zero notifications before and zero after. None of the
+eighteen notification types is referee-related, there is no accept endpoint for a
+referee anywhere in the bundle, and `refereePlayers[]` carries no pending or
+accepted state - only `isRegistered`, `saveForFutureTournaments` and
+`canStartEndMatches`. **A referee is added, never invited.** That is why article
+21.2 is not called "Accepting an invitation".
+
+The tournament does appear in the referee's own `GET /tournaments`, with
+`isReferee: true` and `canRefereeStartEndMatches` set from the dialog's toggle -
+so the Tournaments list is where a referee finds out.
+
+### Where a referee's assigned matches are on screen
+
+Three places, and the first one is smaller than it looks.
+
+1. **The player profile in the Referee role.** `GET /players/:playerId` and the
+   profile's match lists switch endpoint by role: the component sends
+   `slug: profileRole === TeamRole.Referee ? "referees" : "players"`. So the
+   REFEREED MATCHES panel is `GET /referees/:playerId/matches?scheduleType=`.
+   **The panel renders only the nearest row of each tab** - one Upcoming card and
+   one Past card - and its **See All button does nothing at all**: clicking it
+   changes no URL, fires no request and adds no card. Worth a ticket. Empty, the
+   panel reads "No matches yet, stay tuned!" and the See All button is absent.
+2. **`/schedule`, the calendar.** It calls
+   `GET /players/:playerId/matches?includeIncomplete=true&startDate=&endDate=`
+   **and** `GET /referees/:playerId/matches` with the same parameters, and merges
+   them. This is the only complete list of a referee's assignments in the product.
+3. **The match page** itself, whose detail strip prints the referee's name first.
+
+`GET /players/:playerId/matches` on its own returns **0 rows** for a referee who
+is in neither line-up, so a referee's matches are not on the player endpoint.
+
+Note the shape difference: `GET /referees/:id/matches` answers a **summary** whose
+`homeTeam.players[]` lists every team member at `Substitute-1..n` regardless of
+the real line-up. `GET /matches/:id` carries the actual positions.
+
+### The referee profile: a role switch, a second bio, and a default
+
+`isReferee` adds a blue pill switch to the top right of the player profile - a
+radix toggle group, `role="radiogroup"`, holding `role="radio"` buttons in the
+order **Referee, Player, Padel** (Padel only when the account plays padel; the
+label renders only on the selected one, so the reliable handle is the
+`<img alt="Referee profile">` / `alt="Football profile"` inside). In the Referee
+role the profile swaps four things:
+
+| Player role | Referee role |
+|---|---|
+| `bio` | `refereeBio` |
+| `leaderboardCount` | `refereeLeaderboardCount` |
+| player stats: Matches, Won, Lost, Drawn, Goals, Assists, cards, PotM | **MATCHES, RED CARD, YELLOW CARD, TOTAL FOULS, NO. OF LEAGUES, AVERAGE RATING** |
+| `GET /players/:id/matches` and `/stats/leaderboards` | `GET /referees/:id/matches` and `/referees/:id/stats/leaderboards` |
+
+Teams and rankings are **not** switched - both roles show the player's teams.
+
+`profileRole` comes from the `?profileRole=` search parameter and defaults to the
+account's `defaultProfile`. `POST /tournaments/:id/referee` sets that to
+`"Referee"`, so **a new referee's profile opens on the referee side.**
+
+`PUT /users/:userId` takes `refereeBio` (150 characters, 5 lines, same schema as
+`bio`) and `defaultProfile` (`Player` | `Referee` | `Padel`). Profile settings
+renders the **Referee Bio** box at `#referee-bio` and a **"Select your default
+profile"** toggle, both only when `isReferee` is true, and counts a missing
+referee bio in the sidebar's "Complete your profile (n)".
+
+The collection's "Create" referee request has an empty URL, and
+`defaultProfile: "Referee"` on `POST /users` sets the default only - it does not
+make a referee.
 
 **(observed in app, 2026-08-31, by collection 09.)** Narrowed, but not solved.
 `isReferee` is a field on the **player** record, and nothing a user can reach sets
@@ -1427,8 +1621,12 @@ it:
   leaves `isReferee` `false`.
 - `PATCH /players/:playerId/referee-settings` (the app's own
   `updatePlayerRefereeSettings`) requires `saveForFutureTournaments`, answers 200
-  to the player themselves and 403 "user does not have permission" to anybody
-  else - and still leaves `isReferee` `false`.
+  to the player themselves and ~~403 "user does not have permission" to anybody
+  else~~ - and still leaves `isReferee` `false`.
+  **The 403 half is wrong; corrected 2026-09-03.** It answers **200** to the
+  tournament owner on another player's record, which is how the Add referee
+  dialog's "Remove from saved list" works. See
+  [The saved-referee list](#the-saved-referee-list-is-separate-from-the-tournament).
 
 The only call in the whole bundle that *creates* a referee is
 `POST /tournaments/:id/referee`, which is where the app's own "Referee added" toast
@@ -1966,8 +2164,9 @@ it `PUT`s the tournament itself. Read the table below in preference to the two
 | DELETE | `/tournaments/:id` | Delete a tournament | Answers `{"message":"Tournament deleted successfully"}` |
 | POST | `/tournaments/:id/admin` | Add a tournament admin | `email` |
 | DELETE | `/tournaments/:id/admin` | Remove a tournament admin | `email` |
-| POST | `/tournaments/:id/referee` | Add one referee | `name`, `canStartEndMatches`; the dialog's "Save for future tournaments" toggle maps to `saveForFutureTournaments`. The **Multiple referees** tab fires one POST per line, not a bulk call |
-| DELETE | `/tournaments/:id/referee/:playerId` | Remove a referee | - |
+| POST | `/tournaments/:id/referee` | Add one referee | **`createMode` is REQUIRED** - `single` \| `global` \| `multiple`. Then `name`, `lastName`, `email`, `avatarToken`, `playerId`, `refereeList`, `saveForFutureTournaments`, `canStartEndMatches` depending on the mode. ~~The Multiple referees tab fires one POST per line~~ - it fires one POST with the lines joined, and the server refuses it. See [Referees](#referees) for the whole shape and two defects |
+| PATCH | `/tournaments/:id/referee/:refereePlayerId` | Edit a referee row | the dialog's **Edit referee** mode. **(observed in app, 2026-09-03)** |
+| DELETE | `/tournaments/:id/referee/:playerId` | Remove a referee | leaves `saveForFutureTournaments` alone - see [Referees](#referees) |
 | GET | `/tournaments/:id/follow` | Am I following this tournament | - |
 | GET | `/tournaments/:id/chat/settings` | Tournament chat settings | - |
 | GET | `/tournament-phases?tournamentId=&includeCompletion=false` | Phases | - |

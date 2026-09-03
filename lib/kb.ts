@@ -7057,3 +7057,494 @@ export function verificationCodePill20(page: Page) {
 export function emailKickOffLine20(page: Page) {
   return page.getByText(/UTC/).first();
 }
+
+// --- collection 21: Referees ------------------------------------------------
+//
+// Read `briefs/21.md` alongside this. Three things shape every helper below.
+//
+// 1. **There is no referee screen.** A referee is the ordinary player profile in
+//    a different role, chosen by a blue toggle group on the profile hero. The
+//    labels animate in and out - only the SELECTED segment carries text - so
+//    every locator here goes at the `<img alt="Referee profile">` /
+//    `alt="Football profile"` inside the button instead.
+// 2. **A referee's assigned matches are in three places and one of them is
+//    broken.** The profile panel draws only the nearest row of each tab and its
+//    See All button does nothing at all; `/schedule` is the complete list.
+// 3. **No spec here performs a one-way action.** START MATCH, END MATCH, a score
+//    stepper, a card button and the Add Note dialog's Save are all photographed
+//    and never pressed. The three seeded matches ARE the after states.
+
+// @ts-ignore - plain JS module, no types
+import {
+  ACCOUNTS as KB21, FULL_NAMES as KB21_NAMES, TEAMS as KB21_TEAMS,
+  LEADERBOARD as KB21_LEADERBOARD, VENUE as KB21_VENUE, TOURNAMENT as KB21_TOURNAMENT,
+  MATCH_DATE as KB21_MATCH_DATE, MATCH_DATE_SHOWN as KB21_MATCH_SHOWN,
+  LIVE_DATE as KB21_LIVE_DATE, CALENDAR_MONTH as KB21_CALENDAR,
+  PLAYED_SCORE as KB21_PLAYED_SCORE, REFEREE_BIO as KB21_BIO,
+  BIO_LIMIT as KB21_BIO_LIMIT, LIVE_FREEZE_MINUTES as KB21_FREEZE_MINUTES,
+  LIVE_TIMER_SHOWN as KB21_TIMER_SHOWN, REFEREE_STAT_TILES as KB21_TILES,
+} from './fixtures-21.mjs';
+
+export {
+  KB21, KB21_NAMES, KB21_TEAMS, KB21_LEADERBOARD, KB21_VENUE, KB21_TOURNAMENT,
+  KB21_MATCH_DATE, KB21_MATCH_SHOWN, KB21_LIVE_DATE, KB21_CALENDAR,
+  KB21_PLAYED_SCORE, KB21_BIO, KB21_BIO_LIMIT, KB21_FREEZE_MINUTES,
+  KB21_TIMER_SHOWN, KB21_TILES,
+};
+
+/**
+ * Look collection 21's fixtures up over the API, by name and by status.
+ *
+ * `scripts/seed-21.mjs` rebuilds both teams, the leaderboard and all three
+ * matches on every run, so their ids change every run and **no spec may hardcode
+ * one**. The accounts and the tournament are reconciled and stable, and are
+ * still looked up here so a spec has one source for all of it.
+ *
+ * The three matches are identified by STATUS rather than by id or by date:
+ * Scheduled, Live and Finished. That is what the seed guarantees and what each
+ * article needs.
+ */
+export async function fixtures21() {
+  const session = await mintSession(KB21.referee);
+  const token: string = session.idToken;
+  const me = (await asUser(token, '/users/me')).body?.data;
+  if (!me?.isReferee) {
+    throw new Error(`${KB21.referee} is not a referee. Run: node scripts/seed-21.mjs`);
+  }
+
+  const list = async (scheduleType: 'Upcoming' | 'Past') =>
+    (await asUser(token, `/referees/${me.playerId}/matches?scheduleType=${scheduleType}&limit=50&skip=0`))
+      .body?.data?.result ?? [];
+  const rows = [...(await list('Upcoming')), ...(await list('Past'))];
+  const byStatus = (status: string) => {
+    const hit = rows.filter((m: { status: string }) => m.status === status);
+    if (hit.length !== 1) {
+      throw new Error(
+        `expected exactly one ${status} match refereed by ${KB21.referee}, found ${hit.length}. `
+        + 'Run: node scripts/seed-21.mjs',
+      );
+    }
+    return hit[0];
+  };
+  const scheduled = byStatus('Scheduled');
+  const live = byStatus('Live');
+  const played = byStatus('Finished');
+
+  // The Live match's startedAt is what every clock freeze here is computed from.
+  // The summary shape carries it; read it off the full object anyway, so a
+  // change in that shape fails here rather than inside a capture.
+  const liveFull = (await asUser(token, `/matches/${live.id}`)).body?.data;
+  if (!liveFull?.startedAt) throw new Error(`the Live match ${live.id} has no startedAt`);
+
+  const newSession = await mintSession(KB21.newref);
+  const newref = (await asUser(newSession.idToken, '/users/me')).body?.data;
+
+  return {
+    token,
+    referee: me,
+    newref,
+    scheduled,
+    live,
+    played,
+    startedAt: liveFull.startedAt as string,
+    duration: Number(String(liveFull.duration).replace(/\D/g, '')),
+  };
+}
+
+export type Fx21 = Awaited<ReturnType<typeof fixtures21>>;
+
+/**
+ * Freeze the page clock at `startedAt + minutes` of the Live match.
+ *
+ * The seed forces the match Live and the SERVER stamps `startedAt`, so the
+ * instant differs on every run and cannot be a constant. The timer counts down
+ * from the duration against that stamp, so freezing at a fixed OFFSET from it
+ * pins the pill to the same figure every run - 48:00 at twelve minutes on a
+ * 60-minute match - without any date being hardcoded. Collection 10's pattern.
+ *
+ * setFixedTime rather than install: it pins Date.now() without replacing the
+ * timers Firebase uses to refresh the session. Call it after signing in.
+ */
+export async function freezeAfterKickOff21(page: Page, fx: Fx21, minutes: number) {
+  await page.clock.setFixedTime(new Date(Date.parse(fx.startedAt) + minutes * 60_000));
+}
+
+/** Freeze the clock so the calendar opens on the month both fixtures are in. */
+export async function freezeCalendarMonth21(page: Page) {
+  await page.clock.setFixedTime(new Date(KB21_CALENDAR.frozenAt));
+}
+
+/**
+ * Everything that must be off-screen before a collection 21 capture.
+ *
+ * quiet() covers the messenger and the animations. This adds the two badges that
+ * count whatever the platform happened to accumulate - the sidebar Chat badge,
+ * which read 15 on the organiser during step 1, and the notification bell's disc.
+ * Both are pinned to their own class shapes rather than to `bg-red-*` generally,
+ * because collection 18 found that a loose match takes the offline presence dot
+ * off every avatar with it.
+ */
+export async function quiet21(page: Page) {
+  await quiet(page);
+  await page.addStyleTag({
+    content: `
+      span[class*="pointer-events-none"][class*="right-3"][class*="bg-red-500"],
+      div[class*="-top-2"][class*="-right-2"][class*="bg-red-500"] {
+        visibility: hidden !important;
+      }
+      /* The profile role switch is a framer-motion layout spring: the selected
+         segment grows to flex 1.6 and its label fades in. animations:'disabled'
+         freezes the compositor but not a spring that is still settling, so the
+         transforms are pinned outright here. */
+      div[role="radiogroup"], div[role="radiogroup"] * {
+        transition: none !important;
+        animation: none !important;
+      }
+    `,
+  });
+}
+
+/** A signed-in context with this collection's capture settings applied. */
+export async function context21(browser: Browser, email: string, to: string) {
+  const ctx = await browser.newContext({
+    baseURL: process.env.SCORYBOARD_APP_BASE,
+    viewport: { width: 1440, height: 900 },
+    deviceScaleFactor: 2,
+    timezoneId: 'Europe/London',
+    locale: 'en-GB',
+    reducedMotion: 'reduce',
+    serviceWorkers: 'block',
+  });
+  const page = await ctx.newPage();
+  // Before the first navigation: the profile and the home page both fetch
+  // /promo-campaigns/active as they mount, and a route added after the fetch has
+  // gone out does nothing.
+  await blockPromos(page);
+  await signInAs(page, email, to);
+  await quiet21(page);
+  return { ctx, page };
+}
+
+/**
+ * The blue Referee / Player switch on the profile hero.
+ *
+ * A radix ToggleGroup rendered as `role="radiogroup"`. It is there only when the
+ * profile's own account has `isReferee` true, which is the whole subject of
+ * 21.1's second capture.
+ */
+export function profileRoleSwitch(page: Page) {
+  return onScreen(page.locator('div[role="radiogroup"]')).first();
+}
+
+/**
+ * One segment of that switch, found by the image inside it.
+ *
+ * The text label is rendered ONLY on the selected segment - an AnimatePresence
+ * around a `motion.p` - so `getByRole('radio', {name})` finds the Referee one and
+ * cannot find the Player one at all. The `img` alt is on both, always, and the
+ * Player segment's alt is **"Football profile"** on the profile page. (It is
+ * "Player profile" on Profile settings, which is a different control.)
+ */
+export function roleOption21(
+  page: Page,
+  alt: 'Referee profile' | 'Football profile' | 'Padel profile',
+) {
+  return profileRoleSwitch(page)
+    .locator('button[role="radio"]')
+    .filter({ has: page.locator(`img[alt="${alt}"]`) })
+    .first();
+}
+
+export function refereeRoleOption(page: Page) {
+  return roleOption21(page, 'Referee profile');
+}
+
+export function playerRoleOption(page: Page) {
+  return roleOption21(page, 'Football profile');
+}
+
+/** Open a referee's own profile and wait for the role switch to be there. */
+export async function openRefereeProfile21(page: Page, playerId: string) {
+  await page.goto(`/player/${playerId}`);
+  await expect(profileRoleSwitch(page)).toBeVisible();
+  await expect(refereeRoleOption(page)).toHaveAttribute('aria-checked', 'true');
+}
+
+/** Switch the profile to one role and prove it took. */
+export async function selectRole21(page: Page, which: 'referee' | 'player') {
+  const option = which === 'referee' ? refereeRoleOption(page) : playerRoleOption(page);
+  await option.click();
+  await expect(option).toHaveAttribute('aria-checked', 'true');
+  // The panels below re-fetch on the switch. Gate on the bio heading, which is
+  // "MY BIO" in both roles but is re-rendered, rather than on a spinner going.
+  await expect(onScreen(page.getByText('MY BIO', { exact: true })).first()).toBeVisible();
+}
+
+/**
+ * The black hero card at the top of a profile - avatar, name, rating, counters
+ * and the role switch.
+ *
+ * Found by the banner background, which only this element carries. Walking up
+ * from the switch is worse: the switch sits in two nested flex wrappers that are
+ * narrower than the hero, so clipping to either publishes a narrow strip.
+ */
+export async function profileHero21(page: Page) {
+  const hero = page.locator('div[class*="bg-black"][style*="banner.png"]').first();
+  await expect(hero).toBeVisible();
+  await expect(profileRoleSwitch(page)).toBeVisible();
+  return hero;
+}
+
+/** The REFEREED MATCHES panel. */
+export async function refereedMatchesPanel(page: Page) {
+  return panel(page, 'REFEREED MATCHES');
+}
+
+/** One of its two tabs. */
+export function refereedMatchTab(page: Page, label: 'Past Matches' | 'Upcoming Matches') {
+  return page.getByRole('tab', { name: label, exact: true });
+}
+
+/**
+ * Switch the panel's tab and wait for the card the other tab does not have.
+ *
+ * Both tabpanels are in the DOM, so a wait on the tab's own `data-state` proves
+ * nothing about the card underneath. Gate on the score, which only the finished
+ * match has, or on Add to Calendar, which only an upcoming one has.
+ */
+export async function openRefereedTab21(page: Page, label: 'Past Matches' | 'Upcoming Matches') {
+  const tab = refereedMatchTab(page, label);
+  await tab.click();
+  await expect(tab).toHaveAttribute('data-state', 'active');
+  const marker = label === 'Past Matches'
+    ? onScreen(page.getByText(`${KB21_PLAYED_SCORE.home} - ${KB21_PLAYED_SCORE.away}`, { exact: true })).first()
+    : onScreen(page.getByRole('button', { name: /Add to Calendar/i })).first();
+  await expect(marker).toBeVisible();
+}
+
+/**
+ * The panel shows ONE fixture per tab. This asserts that and returns the panel.
+ *
+ * `GET /referees/:id/matches` answers two Upcoming rows and the panel draws a
+ * single card - the nearest one. The count is asserted through "Add to
+ * Calendar", which every upcoming card carries exactly one of, so a build that
+ * starts drawing the whole list fails the spec rather than being cropped.
+ *
+ * A card locator is deliberately NOT returned. The card's markup is nested
+ * `<div>`s with no handle of their own, and both an inner row and the outer
+ * card match "contains both team names" - the innermost is the crests row and
+ * carries no date, which cost 21.2's first run its date assertion. Everything
+ * the specs need is unique inside the panel, so they scope to the panel.
+ */
+export async function refereedPanelWithOneCard21(page: Page) {
+  const p = await refereedMatchesPanel(page);
+  await expect(p.getByText(KB21_TEAMS.home, { exact: true })).toHaveCount(1);
+  await expect(p.getByText(KB21_TEAMS.away, { exact: true })).toHaveCount(1);
+  return p;
+}
+
+/**
+ * The **See All** modal, titled "Refereed Matches".
+ *
+ * **CORRECTED during step 2.** Step 1 recorded this button as doing nothing,
+ * measured by clicking `getByText('See All')` and diffing `main`'s text. Both
+ * halves of that were wrong: the modal is a portal outside `main`, so the diff
+ * could not see it. Clicked properly it fires
+ * `GET /referees/:id/matches?scheduleType=Upcoming&includeIncomplete=true` and
+ * opens a dialog listing EVERY refereed match, with the same Past / Upcoming
+ * tabs as the panel. briefs/21.md carries the correction and 21.2 gained a
+ * capture because of it.
+ */
+export async function openSeeAllRefereed21(page: Page) {
+  const p = await refereedMatchesPanel(page);
+  await p.getByRole('button', { name: /^See All$/i }).first().click();
+  const dialog = page.locator('[role="dialog"]').first();
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByText('Refereed Matches', { exact: true })).toBeVisible();
+  return dialog;
+}
+
+/**
+ * The date AND time cells on a fixture card, for masking.
+ *
+ * Both, together. The finished match is dated 90 seconds before the seed runs -
+ * it has to be, because events are accepted only while a match is Live - so its
+ * date and its kick-off time BOTH move on every run. 21.2's first capture of the
+ * Past card masked the date alone and published a time of 9:44, which is nothing
+ * but the hour the seed happened to run.
+ *
+ * The upcoming fixtures are not masked anywhere: their date and time come from
+ * `MATCH_DATE` and `LIVE_DATE` and do not move.
+ */
+export function matchCardStamps21(scope: Locator) {
+  return [
+    scope.getByText(/^\d\d \w{3,4} \d{4}$/).first(),
+    scope.getByText(/^\d?\d:\d\d$/).first(),
+  ];
+}
+
+/** The referee's name cell on a fixture card, or on the match detail strip. */
+export function refereeCell21(scope: Locator) {
+  return scope.getByText('Rae', { exact: true }).first();
+}
+
+/**
+ * The grid of six referee stat tiles.
+ *
+ * MATCHES, RED CARD, YELLOW CARD, TOTAL FOULS, NO. OF LEAGUES, AVERAGE RATING -
+ * not the player set. Framed from the first tile's grid ancestor, and every
+ * label is asserted, so a changed tile set fails the spec rather than being
+ * silently cropped.
+ */
+export async function refereeStatTiles21(page: Page) {
+  const first = onScreen(page.getByText(/^MATCHES$/i)).first();
+  await expect(first).toBeVisible();
+  const grid = first.locator('xpath=ancestor::div[contains(@class,"grid")][1]');
+  for (const label of KB21_TILES as string[]) {
+    await expect(onScreen(grid.getByText(new RegExp(`^${label}$`, 'i'))).first()).toBeVisible();
+  }
+  return grid;
+}
+
+/** The MY BIO panel, which carries `refereeBio` in the referee role. */
+export async function myBioPanel21(page: Page) {
+  return panel(page, 'MY BIO');
+}
+
+/**
+ * The Referee Bio block on Profile settings.
+ *
+ * `<div id="referee-bio">`, present only when `isReferee` is true. The id is the
+ * app's own - the sidebar's "Complete your profile" line navigates to
+ * `/profile-settings#referee-bio` when it is the outstanding field - so it is a
+ * stable handle and not a class guess.
+ */
+export async function refereeBioBlock21(page: Page) {
+  const block = page.locator('#referee-bio');
+  await expect(block).toBeVisible();
+  await expect(block.getByText('Referee Bio', { exact: true })).toBeVisible();
+  return block;
+}
+
+export function refereeBioBox21(page: Page) {
+  return page.locator('#referee-bio textarea').first();
+}
+
+/** The "Select your default profile" row on Profile settings. */
+export async function defaultProfileRow21(page: Page) {
+  const label = onScreen(page.getByText('Select your default profile', { exact: true })).first();
+  await expect(label).toBeVisible();
+  const row = label.locator('xpath=ancestor::div[contains(@class,"flex")][1]');
+  await expect(row.locator('button[role="radio"]').first()).toBeVisible();
+  return row;
+}
+
+/**
+ * Write `refereeBio` over the API, as the referee themselves.
+ *
+ * `PUT /users/:userId` is a full REPLACE that clears every optional field it
+ * leaves out, and answers 400 unless the required ones are present
+ * (config/api.md, "Users"), so this sends the whole profile every time -
+ * including `isTourCompleted`, which the seed set and which every match capture
+ * depends on.
+ *
+ * 21.1 photographs the box empty and then filled, so its spec clears the bio,
+ * captures, and puts it back with this. docs/style-guide.md: a spec that mutates
+ * a fixture puts it back itself.
+ */
+export async function setRefereeBio21(fx: Fx21, bio: string) {
+  const details = (await asUser(fx.token, `/players/${fx.referee.playerId}?all=true`)).body?.data ?? {};
+  const r = await asUser(fx.token, `/users/${fx.referee.id}`, {
+    method: 'PUT',
+    body: {
+      name: fx.referee.name,
+      lastName: fx.referee.lastName,
+      gender: details.playerGender ?? 'Female',
+      dateOfBirth: (details.playerDateOfBirth ?? '1992-04-17T00:00:00.000Z').slice(0, 10),
+      sports: details.sports?.length ? details.sports : ['Football'],
+      isMarketingOpted: fx.referee.isMarketingOpted ?? true,
+      isTourCompleted: true,
+      refereeBio: bio || undefined,
+      defaultProfile: 'Referee',
+    },
+  });
+  if (!r.ok) throw new Error(`setRefereeBio21: ${r.status} ${JSON.stringify(r.body).slice(0, 300)}`);
+}
+
+/** Wait for the calendar to have drawn the month and both fixtures. */
+export async function calendarReady21(page: Page) {
+  await expect(onScreen(page.getByText(KB21_CALENDAR.heading)).first()).toBeVisible();
+  const entries = page.getByText(`${KB21_TEAMS.home} vs ${KB21_TEAMS.away}`);
+  await expect(entries.first()).toBeVisible();
+  await expect(entries).toHaveCount(2);
+}
+
+/** The tournament card in the referee's own Tournaments list. */
+export async function tournamentCard21(page: Page) {
+  const title = onScreen(page.getByText(KB21_TOURNAMENT, { exact: true })).first();
+  await expect(title).toBeVisible();
+  const card = title.locator(
+    'xpath=ancestor::div[contains(@class,"rounded") and contains(@class,"border")][1]',
+  );
+  await expect(card.getByText('Referee', { exact: true }).first()).toBeVisible();
+  return card;
+}
+
+/** The "Referee" badge on that card. */
+export function refereeBadge21(card: Locator) {
+  return card.getByText('Referee', { exact: true }).first();
+}
+
+/**
+ * Open the organiser's Add referee dialog on the Single referee tab.
+ *
+ * The one capture in this collection taken from the organiser's board, and the
+ * only screen in the product that explains how somebody becomes a referee.
+ *
+ * The dialog opens on **Saved referees**, because the tournament board passes
+ * `allowMultiple`. Single referee is the tab the article documents: it is the
+ * only mode that can turn an existing account into a referee - Saved referees
+ * needs a playerId already in the organiser's list, and Multiple referees is
+ * refused by the server (briefs/21.md).
+ */
+export async function openAddRefereeDialog21(page: Page, tournamentId: string) {
+  await page.goto(`/tournaments/${tournamentId}/participants`);
+  await page.getByRole('button', { name: 'Referees', exact: true }).click();
+  await expect(onScreen(page.getByText(/^List of all Referees/)).first()).toBeVisible();
+  await page.getByRole('button', { name: /^Add Referee$/i }).first().click();
+  const dialog = page.locator('[role="dialog"]').first();
+  await expect(dialog).toBeVisible();
+  await dialog.getByRole('button', { name: 'Single referee', exact: true }).click();
+  await expect(dialog.getByPlaceholder('Enter email address')).toBeVisible();
+  return dialog;
+}
+
+/**
+ * Warm the store, freeze the clock, open a match page and settle it.
+ *
+ * `warm10()` is not optional and it is not tidiness. Rae owns neither team, and
+ * `config/api.md` records that a match opened cold renders "Add Away Team",
+ * "Location not set" and "Not set" for the leaderboard and the referee over data
+ * the API returns perfectly - the store slice is empty until `/teams` has been
+ * loaded once in the session. Every 21.3 capture is of exactly those cells.
+ */
+export async function openMatch21(page: Page, id: string, when: Date) {
+  await warm10(page);
+  await page.clock.setFixedTime(when);
+  await page.goto(`/matches/${id}`);
+  await quiet21(page);
+  await settled10(page);
+  // The guided tour is dismissed by the seed (`isTourCompleted`), not here.
+  // Assert it, because its overlay swallows clicks and sits in every capture,
+  // and an account the seed has not touched would fail silently in a screenshot
+  // rather than loudly here.
+  await expect(page.locator('.shepherd-modal-overlay-container, .shepherd-element')).toHaveCount(0);
+}
+
+/** The tournament this collection's referees were added through. */
+export async function tournament21(token: string) {
+  const rows = (await asUser(token, '/tournaments')).body?.data ?? [];
+  const hit = rows.find((t: { title: string }) => t.title === KB21_TOURNAMENT);
+  if (!hit) throw new Error(`${KB21_TOURNAMENT} not found. Run: node scripts/seed-21.mjs`);
+  return hit._id as string;
+}
