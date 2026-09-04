@@ -1985,12 +1985,27 @@ Club Logo, Club name, Location, optional Save for future tournaments, Continue).
 | Create Tournament, **Create or Select Clubs** | `/tournaments` | saved only | the **+** in the Location Club popover -> "Add new club location" **with** the Save box | - | - |
 | Tournament settings, **LOCATION** | `/tournaments/:id/settings` | `?tournamentId=` - every venue on it, Owner's and Admins' | **+ Location** -> "Add Location / Add a club location for this tournament", with the Save box | row kebab -> **Edit** -> "Edit Location" (creator only) | **none** - a venue cannot be taken off a tournament from the UI |
 | Fixture dialog (collection 14) | tournament schedule | `?tournamentId=` | "Create Club Location / Add a club location for this tournament group" | - | - |
+| Tournament **public Info tab** | `/tournaments/:id/info` | **NO. OF LOCATIONS** and one named LOCATION row per venue, whoever added them | - | - | - |
 | Onboarding **Step 4** | `/selectClubLocation` | `?query=mil` on open (a hard-coded search) | **Add your club location** | - | - |
 
 The logo control opens the same round cropper as a profile photo ("Edit Your
 Avatar", zoom slider, Cancel, Apply); Apply puts the crop in the form and
 Continue saves it with `PUT {avatarToken}`. The `/selectClubLocation` route is
 reachable by URL only (collection 01, open question 1) and is not documented.
+
+**(observed in app, 2026-09-04.)** `/tournaments/:id/settings` for a signed-in
+account with **no role** on the tournament redirects to
+**`/tournaments/:id/info`** - the tournament's own public tab - not to `/`.
+Measured by removing a tournament admin, loading the page as them, and putting
+the admin row straight back. `briefs/12.md` (open question 5) and
+`briefs/24.md`'s route table both record a silent redirect **to `/`** for
+`/tournament/:id/settings`, the **singular** route; that one was not re-tested
+here, so treat the two spellings as two different findings rather than
+correcting either.
+
+Worth knowing with it: that Info tab shows **NO. OF LOCATIONS** and names every
+venue on the tournament, whoever created it. A tournament's venues are public
+even though its settings page is not.
 
 **(observed in app, 2026-08-28.)** Two things the table above does not say.
 

@@ -42,7 +42,7 @@ target.
 | 19 | Comments, likes & ratings | 4 | 19 | player | published | [briefs/19.md](../briefs/19.md) | 20 screenshots. **All four published by the repo owner 2026-09-02, on their instruction, without the usual draft review. All 6 sibling cross-references are live anchors (17 in all).** **Two of the four mapped titles describe features this build does not have, and both are retitled**: 19.1 "Commenting on a team or a leaderboard" - only a team page and a leaderboard render a comment panel, though `commentType` accepts match, player and tournament too; 19.2 "Replying to and liking comments" - a comment cannot be edited or deleted, by anyone, ever. 19.1's `free_pro` flag is **dropped**: Add Media on a comment is not Pro-gated, unlike the match feed's. 19.3 is 7 shots not 6 - a rating CAN be removed, from a kebab on your own row in the reviews list, found mid-run. **`POST /tournaments/:id/referee` is what sets `isReferee`** - closes a TODO collections 09 and 21 both left open. Five accounts: `kb-player-19@`, `kb-19-owner@`, `kb-19-pro@`, `kb-referee-19@`, `kb-19-outsider@` |
 | 20 | Notifications, emails & the activity feed | 4 | 16 | player | published | [briefs/20.md](../briefs/20.md) | **12 screenshots, not 16.** All four published by the repo owner 2026-09-03, on their instruction, without the usual draft review. 14 sibling cross-references are live anchors (21 in all). **Three of the four mapped titles describe controls this build does not have, and all three are retitled**: 20.1 drops "filtering" (there is no filter control in the notification modal, the app never sends the API's `type` or `isRead`, and `isRead` answers an empty list for every value); 20.2 drops "Every" (the payment and tournament-organiser emails cannot be produced from here); 20.4 drops "how to filter it" and is named **Trending**, which is what the panel is called - the feed component takes a `query` prop and no caller passes one, across 65 chunks swept from every app route. **20.2 shipped table-only with 0 of its 4 shots**, on the owner's instruction: yopmail rate-limited this IP mid-run and answers a CAPTCHA in place of every message body. Its spec is written and unrun and its header carries the five steps to finish. **The bell badge is a running tally in Firestore, not a count, and it is not clamped** - it goes negative and stays there, so `scripts/seed-20.mjs` must run before EVERY capture and it heals and asserts the tally. **The Trending strip scrolls itself every 2.5 seconds.** The clock is deliberately NOT frozen - every stamp here is relative and freezing made every row read "3 hours ago". Four accounts: `kb-player-20@`, `kb-20-owner@`, `kb-20-mate@`, `kb-20-empty@` (holds no notifications, for the empty state). One match on a FIXED date, 1 Dec 2026; the seed refuses to run once it has passed |
 | 21 | Referees | 3 | 18 | referee | published | [briefs/21.md](../briefs/21.md) | **19 screenshots, one over the estimate.** All three published by the run 2026-09-03, no draft review. 7 sibling cross-references are live anchors (21 in all). **There is no referee sign-up and no referee route** - `/referees` answers 404 and `POST /tournaments/:id/referee` is the only call in the product that sets `isReferee`, so an organiser is the only thing that can make one. A referee is the ordinary player profile in a **Referee / Football** role switch. **21.2 retitled** - it drops "Accepting an invitation", because there is none: no notification, no email, no accept endpoint, no pending state. **`config/api.md`'s referee role matrix was wrong on two cells** - the assigned referee DOES get the score steppers and DOES get Yellow/Red/Player of Match; it has no gear menu; and what the match page reads is `refereePlayerId`, not `isReferee`. No published article had repeated the wrong claim. **Two step-1 findings were corrected during step 2**: See All is not dead (it opens a Refereed Matches modal - hence the extra shot) and the switch says Football, not Player. **`scripts/seed-21.mjs` remakes the referee account on EVERY run** - referee stats are a lifetime count that includes cancelled matches, so 21.1's MATCHES tile drifted 1, 2, 3 across three runs. Three accounts: `kb-referee-21@`, `kb-21-organiser@`, `kb-21-newref@` (a referee with no matches, for the empty state). Two FIXED match dates, 5 and 6 Dec 2026; the seed refuses to run once either has passed |
-| 22 | Venues & club locations | 2 | 11 | manager_pro | not started | - | - |
+| 22 | Venues & club locations | 2 | 11 | manager_pro | published | [briefs/22.md](../briefs/22.md) | 11 screenshots, pinned to `37e38f874b7c675a67515fc47b9303532a032d43`. **Both published LIVE by the run on 2026-09-04, nothing reviewed first.** 12 cross-references are live anchors. **A venue belongs to its creator and only the creator may edit or delete it** - `403 "Club location can only be modified by its creator"` - and that holds inside a tournament, so a tournament Owner cannot edit a venue its Admin added. **Venue lists are per account**, which corrects collection 09's "covers every venue on the platform"; the only shared rows are 14 ownerless **Powerleague** venues that every account finds by a 3-letter search. **Two kinds of venue that never meet**: ordinary (match forms) and tournament (`isTournament`), and a tournament venue is offered to the next tournament only when `saveForFutureTournaments` is also true - otherwise it is **tournament-only** and invisible everywhere but that tournament. `POST /club-locations` **upserts by name**, so adding the same name twice yields one venue; a logo can be replaced but never removed; a deleted venue leaves matches at it untouched, still showing its name. **`/tournaments/:id/settings` with no role redirects to `/tournaments/:id/info`**, not to `/` - measured here, and it differs from the singular-route finding in 12 and 24. Accounts: `kb-manager-pro-22@` (Mo, Pro, holds all the venues), `kb-22-admin@` (Ana, Free, Admin of KB 22 Cup, holds none). The seed **sweeps** every non-fixture venue and tournament off both accounts. One FIXED tournament date, 19 Dec 2026; the seed refuses to run once it has passed |
 | 24 | Troubleshooting & policies | 4 | 13 | manager_free | published | [briefs/24.md](../briefs/24.md) | 14 screenshots, pinned to `c71b85aa63f09b2d0347dbb29a34422966f2edde`. **All four published LIVE by the run on 2026-09-04, nothing reviewed first.** 24.2 has four captures, not three: the server refuses a comment photo at 2MB while the page promises 3MB. Accounts: `kb-manager-free-24@` (Free reader), `kb-24-owner@` (Pro). `KB 24 Comments FC` is remade on every seed run |
 
 Totals: 130 articles, 727 screenshots estimated across 20 live collections
@@ -3960,3 +3960,157 @@ No flakes: every failure was deterministic and fixed in the spec.
 - **24.1's fourth screen, Match Preview (View Only).** Measured on a Scheduled
   match. Collection 09 recorded the same heading; what a spectator sees on a
   Live match was not re-measured here.
+
+---
+
+## Session 2026-09-04 - collection 22, venues & club locations
+
+Two articles LIVE, 11 screenshots, pinned to `37e38f874b7c675a67515fc47b9303532a032d43`.
+
+| ID | Intercom | Public URL |
+|---|---|---|
+| 22.1 | 16815861 | https://help.scoryboard.com/en/articles/16815861-venues-adding-finding-editing-and-logos |
+| 22.2 | 16815863 | https://help.scoryboard.com/en/articles/16815863-tournament-only-venues-and-saving-venues-for-reuse |
+
+Collection: https://help.scoryboard.com/en/collections/19733991-venues-and-club-locations
+
+**Nothing was reviewed before it went out.** No draft stage, no gate. The brief
+was written and executed in one run; the human reads this afterwards.
+
+### What differed from the map
+
+Nothing. Two articles, both titles as mapped, 11 screenshots against the map's
+11 - 7 for 22.1 and 4 for 22.2. Two changes were made to an article's content
+mid-run and both are in `briefs/22.md`, "Amended during step 2"; one of them is
+finding 6 below, and it was a wrong sentence caught before it was published.
+
+### The findings that shaped the collection
+
+1. **A venue belongs to its creator, and only the creator can change it.**
+   `PUT` and `DELETE` from any other account answer
+   `403 "Club location can only be modified by its creator"`, and the app
+   prints that sentence under the Location field. It holds **inside a
+   tournament**: the Owner cannot edit a venue an Admin added, nor the reverse.
+   Both directions were measured. That is what 22.2's `role` flag turned out to
+   mean, and it is its fourth capture.
+2. **Venue lists are per account.** A fresh account searching `Ast` gets `[]`
+   although a dozen `KB nn Astro` venues exist on other collections' accounts.
+   `briefs/09.md` says the search "covers every venue on the platform" - it
+   covers *yours*, plus the partner rows. Corrected in `config/api.md`. This is
+   also why collection 22 cannot break a sibling collection through this
+   surface, or be broken by one.
+3. **Powerleague venues are global and read-only.** Fourteen ownerless rows
+   with `source: "Powerleague"` come back to every account from a three-letter
+   search, and nobody can edit them. 22.1 names them in a sentence and
+   photographs none: the list is the partner's and can change under us.
+4. **Two kinds of venue, and they never meet.** Ordinary (`isTournament: false`)
+   is what match forms list. Tournament (`isTournament: true`) is what the
+   Create Tournament picker lists - but only with `saveForFutureTournaments`
+   also true. With it false the venue is **tournament-only**: it answers to
+   `?tournamentId=` and nothing else, so it is invisible in Profile settings, on
+   match forms, and to the next tournament. Profile settings shows the union of
+   the ordinary and saved lists and badges the saved ones **Saved**.
+5. **Profile settings is the venue management page**, and the map's four verbs
+   all live in one block - Leaderboards, Teams and Locations -> **Locations**.
+   Add Location, and Edit / Remove on each row's kebab. **Remove deletes on the
+   click, with no confirmation and no undo.** No other screen edits or removes a
+   venue. The route sweep found no `/venues` page: `/club-locations` and
+   `/selectClubLocation` are the only venue literals in the app's route enum.
+6. **`/tournaments/:id/settings` with no role redirects to
+   `/tournaments/:id/info`, not to `/`.** The draft of 22.2 said "sends you back
+   to the home page", taken from `briefs/12.md` (open question 5) and
+   `briefs/24.md`'s route table. Both of those recorded the redirect on
+   `/tournament/:id/settings` - the **singular** route. Measured here on the
+   plural route by demoting Ana, loading the page and restoring her admin row:
+   it lands on the tournament's own public tab. The article was corrected before
+   publishing. **The singular route was not re-tested**, so 12 and 24 are left
+   alone - treat the two spellings as two findings.
+7. **A tournament's venues are public.** That Info tab shows **NO. OF
+   LOCATIONS** and names every venue on the tournament, whoever created it.
+   Found while checking finding 6, and it is the thing a reader actually wants
+   to know, so it is a paragraph in 22.2. No new capture - 12.6 already
+   photographs that tab, and adding one would have been a screenshot the brief
+   did not list.
+8. **Three smaller ones, all in `config/api.md`.** `POST /club-locations`
+   **upserts by name** (case-insensitively, within owner + `isTournament`), so
+   adding the same name twice yields one venue and the second address is
+   discarded. **A logo can be replaced but never removed** - `PUT` without
+   `avatarToken` keeps it, `null` answers 400 and `""` answers 400. **Deleting a
+   venue does not touch matches at it**: a Scheduled match keeps the id and
+   still prints the name, measured on a match page before and after the DELETE.
+   Also: `PUT` is the update verb, not the `POST` the Postman export implied,
+   and `PATCH` answers 404.
+
+### Fixtures and the seed
+
+Two accounts, both this collection's: Mo `kb-manager-pro-22@yopmail.com` (Pro,
+the reader, holds every venue) and Ana `kb-22-admin@yopmail.com` (Free, Admin of
+KB 22 Cup, holds none of her own so her Locations list shows the empty state).
+Mo holds exactly three venues - KB 22 Astro and KB 22 Park (ordinary), KB 22 Cup
+Ground (tournament + saved) - and one tournament, KB 22 Cup, starting
+**2026-12-19**, with two tournament-only venues on it: KB 22 Overflow Pitch
+(Mo's) and KB 22 Admin Pitch (Ana's).
+
+- **The seed SWEEPS.** Any venue on either account that is not in
+  `lib/fixtures-22.mjs`, and any tournament of Mo's that is not KB 22 Cup, is
+  deleted. Both articles photograph lists that show everything the account
+  holds, so one stray venue changes a capture. Step 1's probes left twelve
+  venues and a tournament behind; the first seed run cleared them, 18 writes.
+  The second run made **0 writes**.
+- **`scripts/seed-22.mjs` refuses to run once the tournament date has passed**,
+  the way collections 09, 10, 20, 21 and 24 do with their match dates.
+- **22.1 creates and destroys its own venue.** KB 22 Scratch Pitch is added
+  through the form, given a logo, edited and removed inside the spec, with an
+  `afterAll` that deletes it by name however the run ended. The logo goes on the
+  scratch venue precisely because a logo cannot be removed - putting one on a
+  fixture would be permanent.
+- **The logo is drawn, not committed as an opaque binary.**
+  `scripts/make-assets-22.mjs` writes `assets/22/scratch-pitch-logo.png` from
+  SVG, the way collections 07, 15 and 19 do.
+
+### Flakes and traps, for the next session
+
+No flakes. Both specs passed on their first full run, and every failure during
+exploration was deterministic.
+
+- **The Locations list paints three `.animate-pulse` skeleton rows** until both
+  venue fetches land. `shot()` refuses to photograph a skeleton, so the spec
+  gates on a known venue name *and* on the skeletons being gone.
+- **Closing a row menu leaves focus on the kebab**, which paints a pale focus
+  ring. It was published into 22.2's third capture on the first run and
+  re-captured. The spec now blurs the active element first. Worth copying
+  anywhere a menu is opened only to prove what is in it.
+- **The Create Tournament venue picker's "+" has no accessible name** and a real
+  mouse click dismisses the popover before its handler runs. `dispatchEvent` is
+  the only thing that works - collection 12 found this and it is unchanged, so
+  `lib/kb.ts` now has one helper (`openPickerAddForm22`) rather than a third
+  copy of the trick.
+- **A single-article `GET /articles/:id` returns `parent_ids` (an array), not
+  `parent_id`.** A verification reading `parent_id` reports `undefined` for
+  every article including known-good ones, which looks like every article has
+  fallen out of its collection. It has not.
+- **`GET /club-locations?query=` needs three characters.** Two answers
+  `400 SCHEMA_VALIDATION_ERROR`, "String must contain at least 3 character(s)".
+- **A scratch script outside the repo cannot import `dotenv`**, and running one
+  from the scratchpad directory finds no `.env` at all. Run exploration scripts
+  with the repo as cwd, and import `dotenv/config` by absolute file URL.
+
+### Where to look hard
+
+- **22.2's claim that a venue cannot be taken off a tournament.** Measured in
+  the UI only: the row menu offers Edit and no Remove. Over the API,
+  `PUT /tournaments/:id {clubLocationIds}` was used to *attach* and never tested
+  with a **shorter** list to detach. The article is scoped to the app ("the app
+  has no way to"), which is what a reader can act on, but the API may well allow
+  it. `briefs/22.md`, open question 3.
+- **22.1's "another manager's venue never appears, even if you type its exact
+  name".** True for the two accounts here and consistent with the API being
+  per-account. It rests on my own accounts only; no third account was tried.
+- **Finding 6, and the two routes.** `/tournaments/:id/settings` (plural)
+  redirects to the tournament's Info tab; `/tournament/:id/settings` (singular)
+  was recorded by collections 12 and 24 as redirecting to `/`. I did not
+  re-test the singular one. If they are in fact the same screen, one of the
+  three records is wrong, and 22.2 is the one that is live.
+- **Powerleague venues.** 22.1 tells readers a search finds them. That list is
+  a partner import on staging; if production has a different set, or none, the
+  sentence is still true in shape but the reader may see nothing.

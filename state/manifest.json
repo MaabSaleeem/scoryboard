@@ -2439,6 +2439,43 @@
       ],
       "published_at": "2026-09-04T06:48:09.000Z",
       "status": "published"
+    },
+    "22.1": {
+      "intercom_id": "16815861",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16815861-venues-adding-finding-editing-and-logos",
+      "collection": "22",
+      "intercom_collection_id": "19733991",
+      "brief": "briefs/22.md",
+      "spec": "specs/22/22.1.spec.ts",
+      "commit_sha": "37e38f874b7c675a67515fc47b9303532a032d43",
+      "screenshots": [
+        "screenshots/22/22.1/01-profile-settings-locations.19112993.png",
+        "screenshots/22/22.1/02-add-club-location-blank.4d68b90b.png",
+        "screenshots/22/22.1/03-add-club-location-filled.46c1eea9.png",
+        "screenshots/22/22.1/04-match-form-location-club-list.09f7d154.png",
+        "screenshots/22/22.1/05-location-menu-edit-remove.72c8abaa.png",
+        "screenshots/22/22.1/06-edit-club-location-logo-cropper.c37c5bf5.png",
+        "screenshots/22/22.1/07-location-edited-with-logo.f64ea53a.png"
+      ],
+      "published_at": "2026-09-04T07:38:36.000Z",
+      "status": "published"
+    },
+    "22.2": {
+      "intercom_id": "16815863",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16815863-tournament-only-venues-and-saving-venues-for-reuse",
+      "collection": "22",
+      "intercom_collection_id": "19733991",
+      "brief": "briefs/22.md",
+      "spec": "specs/22/22.2.spec.ts",
+      "commit_sha": "37e38f874b7c675a67515fc47b9303532a032d43",
+      "screenshots": [
+        "screenshots/22/22.2/01-create-tournament-saved-venues.deadecbe.png",
+        "screenshots/22/22.2/02-add-club-location-save-for-future.604d3f86.png",
+        "screenshots/22/22.2/03-tournament-settings-locations.33379670.png",
+        "screenshots/22/22.2/04-admin-cannot-edit-owners-venue.91c1d365.png"
+      ],
+      "published_at": "2026-09-04T07:38:42.000Z",
+      "status": "published"
     }
   }
 }
