@@ -2853,6 +2853,106 @@ Migrations and backfills - **destructive and tenant-wide. Never run these**:
 `POST /admin/backfill-chat-summary-is-hidden` (note the singular `/admin`, as in
 the collection).
 
+## Troubleshooting and policies
+
+**(observed in app, 2026-09-04, by collection 24.)** Everything here was read off
+the wire and off the screen. Nothing is new endpoints; it is what the existing
+ones do at their edges.
+
+### Language filtering - a server-side mask
+
+There is no word filter in the browser: the bundle swept from every route holds
+no word list and no filter library. The API does it, and it **masks rather than
+refuses**. Every write below answered `200` and stored the word as asterisks, one
+per letter, and every read returns the masked form:
+
+| Write | Sent | Stored |
+|---|---|---|
+| `POST /comments` | `This is fucking shit, you bastard` | `This is ****ing ****, you *******` |
+| `PUT /teams/:id {name}` | `Shit FC` | `**** FC` |
+| `PUT /teams/:id {bio}` | `fuck off wankers` | `**** off ****ers` |
+| `PUT /users/:id {bio}` | `shit fuck damn` | `**** **** damn` |
+| `POST /friends {name}` | `Fucker McShit` | `****er Mc****` |
+| `POST /chats/conversations/:id/messages {text}` | `you fucking shit` | `you ****ing ****` |
+
+"damn" and "bloody hell" pass. The list is the server's and is not published.
+The UI shows the stored form as soon as the write answers, so a reader who types
+a swear word into a comment sees the asterisks come back on Comment.
+
+### Upload limits - the server's, measured
+
+The page caption reads "JPG, GIF or PNG. 3MB max." under every picture control,
+the cropper re-encodes to WebP and checks 3MB, and the server has its own limit
+that the caption does not know about. Bisected with incompressible lossless
+WebPs on Marc's account:
+
+| Endpoint | Largest accepted | Smallest refused | Limit |
+|---|---|---|---|
+| `POST /players/avatar`, `POST /teams/avatar` | 66KB | 117KB | **~100KB** |
+| `POST /players/:id/banner`, `POST /teams/:id/banner` | 2.98MB | 3.10MB | **3MB** |
+| `POST /comments/media` | 1.92MB | 2.02MB | **2MB** |
+
+The refusal is `413 {"error":"File too large"}`. `POST /comments/media` with an
+8MB file answers `500 "Internal Server Error"` instead - worth a ticket. A PNG on
+`/players/avatar` is still `415 "Unsupported file type"` (WebP only, as recorded
+under Players); `/comments/media` takes PNG.
+
+The browser's own checks, read off the bundle and confirmed on screen:
+
+- **The comment composer** (team and leaderboard pages, `accept="image/*"`,
+  multiple) and **the match feed's Add comment window** (`accept="image/*,video/*"`,
+  multiple, Pro only) share one uploader. It divides the size by 1048576 and
+  refuses at **3 for an image and 200 for a video**, before any request, with
+  `File exceeds 3 MB: <name>` / `File exceeds 200 MB: <name>`. Whether a file is
+  a video is decided from its MIME type or its extension (`m4v mov mp4 qt webm`).
+  A file that passes is POSTed, and a server refusal is printed as the server's
+  own words: **"File too large"**, **"Unsupported file type"**. So on a comment a
+  **2.5MB photo passes the browser and fails the server** - a gap a reader hits
+  with an ordinary phone photo.
+- **The crest and banner croppers** (`getCroppedImg` to `image/webp`, banners at
+  1728 x 613 or 1728 x 672) check the WebP they produce against 3MB and say
+  "Image size must be less than 3MB". The avatar crop normally comes out far
+  under the server's 100KB, which is why that limit is rarely seen.
+- **The match banner's cropper checks 3MB and says "Image size must be less than
+  1MB."** A copy defect; the real limit is 3MB on both sides.
+- **`uploadImageFile`** in the bundle refuses 1MB for anything whose field is
+  not `banner`. Every live caller - tournament banner, sponsor banner, match
+  banner - uploads a banner, so the 1MB branch is dead code. It is where the
+  map's "1MB avatars and logos" came from; the number is not enforced anywhere
+  a reader can reach.
+- The presentation slideshow's background (collection 15) has its own check:
+  "Please upload a JPG, PNG, WEBP, or GIF image." / "Image size must be less
+  than 3MB."
+
+### The screens a refusal produces
+
+| Where | What renders | Underneath |
+|---|---|---|
+| `/teams/:id/settings`, not Owner or Administrator | **Access Denied** / "You are not allowed to edit this team." / "Only team owners and administrators can access team settings." Inside the normal frame, no redirect | no write; the app decides from `GET /teams/:id` (`isTeamManager: false`) |
+| `/teams/:id`, a dummy team you do not own | **DUMMY TEAM** / "This team is dummy, and you don't have permission to view it." / Back to Teams. Replaces the whole team page; the name is not shown | `GET /teams/:id` answers 200 with `isPrivate: true` |
+| `/teams/:id/settings` as an Administrator | the whole Edit Team page, **Delete Team `disabled`** | `DELETE /teams/:id` -> `403 "Only team Owner can delete team"` |
+| `/matches/:id`, on neither team's staff | headed **Match Preview (View Only)**; no START MATCH, Add Note, Request Payment or PAYMENT tab. The list-card button reads **Match Preview** | reads only |
+| `/leaderboards/:id/settings`, no role | **the error boundary** - "This page couldn't load" (U+2019) / "Reload to try again, or go back." / Reload / Back, on a bare page (`html#__next_error__`, no sidebar, no footer) | `GET /leaderboards/:id/teams` -> `403 "Only leaderboard administrators can view teams in this leaderboard"`, unhandled |
+| a route the app does not have | **Page not found** / "The page you are looking for does not exist." / Go back to the homepage. Header and footer, no sidebar | the `notFound` catalogue entry |
+| `/teams/:id`, `/leaderboards/:id`, `/tournament/:id`, `/player/:id` with an id nothing has | **Team / Leaderboard / Tournament / Player Not Found**, "The <thing> you are looking for does not exist.", a Back button, inside the normal frame | the entity GET answers 404 (`/tournaments/:id/follow` also answers **500**) |
+| `/matches/:id` with an id nothing has | **nothing** - the match shell with its tab strip and empty cards. No Not Found state. Worth a ticket | `GET /matches/:id` -> 404, unhandled |
+| `/tournament/:id/settings`, no role | silent redirect to `/` (briefs/12.md) | - |
+
+The error boundary's other string, "A server error occurred. Reload to try
+again.", is rendered when the boundary catches a server component error; it was
+not produced on staging.
+
+### The legal links
+
+`scoryboardLegalInfo` in the bundle: `privacyPolicy: https://scoryboard.com/privacy-policy/`,
+`tandc: https://scoryboard.com/terms/`, `faq: https://scoryboard.com/faq/`. All
+three answer 200. The footer of every page, signed in or out, links the first two
+as **Privacy Policy** and **Terms of Service**; the `/personalInfo` sign-up step
+links them as "Scoryboard Terms of Conditions" and "Privacy Policy." under its
+consent tick box ("You must accept the Terms and Conditions and Privacy Policy."
+when left unticked). `GET /users/me` carries `isTNCAccepted`, `true` on every
+admin-created account.
+
 ## Misc
 
 | Method | Path | For | Body / notes |
@@ -2941,4 +3041,6 @@ fixtures are seeded over the API, not through the UI. See
 - **Global search** across players and teams (02.2). Only `/team-players/search`
   and the per-resource searches exist.
 - **Embeddable trending-matches widget** (02.6).
-- **Upload limits** (24.2) - enforced server-side; no endpoint states them.
+- ~~**Upload limits** (24.2) - enforced server-side; no endpoint states them.~~
+  Measured 2026-09-04 by bisection. See
+  [Troubleshooting and policies](#troubleshooting-and-policies).

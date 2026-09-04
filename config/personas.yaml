@@ -197,6 +197,14 @@ personas:
       the subject; kb-18-pro@yopmail.com takes every other capture. See
       briefs/18.md, "Personas used".
 
+      ADDED 2026-09-04, by collection 24. In that collection Marc is the reader
+      who lacks a role rather than an owner at the Free limits: he is an
+      Administrator on a Pro account's team (Free cannot add Administrators, so
+      the second actor kb-24-owner@yopmail.com is Pro), and a stranger to that
+      account's other teams, its leaderboard and its match. His own KB 24
+      Comments FC is deleted and remade on every seed run because a comment
+      cannot be deleted. See briefs/24.md, "Personas used".
+
   manager_pro:
     email_pattern: "kb-manager-pro-<collection>@yopmail.com"
     name: Mo

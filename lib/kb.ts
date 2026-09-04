@@ -7548,3 +7548,268 @@ export async function tournament21(token: string) {
   if (!hit) throw new Error(`${KB21_TOURNAMENT} not found. Run: node scripts/seed-21.mjs`);
   return hit._id as string;
 }
+
+// =============================================================================
+// Collection 24 - Troubleshooting & policies
+// =============================================================================
+//
+// Read with briefs/24.md and lib/fixtures-24.mjs. Two accounts: Marc, the
+// reader, on Free; and Owen, Pro, who owns everything Marc bumps into. Nothing
+// here is a flow the reader performs on purpose - these helpers put Marc on the
+// wrong page and photograph what the app says.
+
+// @ts-ignore - plain JS module, no types
+import * as F24 from './fixtures-24.mjs';
+import sharp from 'sharp';
+
+export const KB24 = F24.ACCOUNTS as { reader: string; owner: string };
+export const KB24_NAMES = F24.FULL_NAMES as { reader: string; owner: string };
+export const KB24_TEAMS = F24.TEAMS as { united: string; dummy: string; home: string; away: string };
+export const KB24_COMMENTS_TEAM = F24.COMMENTS_TEAM as string;
+export const KB24_LEADERBOARD = F24.LEADERBOARD as string;
+export const KB24_MATCH_DATE = F24.MATCH_DATE as string;
+export const KB24_MATCH_SHOWN = F24.MATCH_DATE_SHOWN as { short: string; time: string };
+export const KB24_FILTERED = F24.FILTERED_COMMENT as { typed: string; shown: string };
+export const KB24_LIMITS = F24.LIMITS as {
+  caption: string; composerImageMb: number; composerVideoMb: number;
+  serverCommentMediaMb: number; serverBannerMb: number; serverAvatarKb: number;
+};
+
+export type Fx24 = {
+  reader: { token: string; id: string; playerId: string };
+  owner: { token: string; id: string; playerId: string };
+  united: string;
+  dummy: string;
+  home: string;
+  away: string;
+  commentsTeam: string;
+  league: string;
+  match: string;
+};
+
+/**
+ * Look every collection 24 fixture up by name. Specs never hardcode an id:
+ * KB 24 Comments FC is remade on every seed run, and the rest can be.
+ */
+export async function fixtures24(): Promise<Fx24> {
+  const need = (v: string | undefined, what: string): string => {
+    if (!v) throw new Error(`${what} is missing. Run: node scripts/seed-24.mjs`);
+    return v;
+  };
+  const who = async (email: string) => {
+    const s = await mintSession(email);
+    const me = (await asUser(s.idToken, '/users/me')).body?.data;
+    if (!me?.playerId) throw new Error(`${email} is not seeded. Run: node scripts/seed-24.mjs`);
+    return { token: s.idToken as string, id: me.id as string, playerId: me.playerId as string };
+  };
+  const reader = await who(KB24.reader);
+  const owner = await who(KB24.owner);
+  const teamsOf = async (token: string) => (await asUser(token, '/teams?all=true')).body?.data ?? [];
+  const ownerTeams = await teamsOf(owner.token);
+  const readerTeams = await teamsOf(reader.token);
+  const byName = (rows: any[], name: string) => rows.find((t) => t.name === name)?.teamId as string | undefined;
+  const home = need(byName(ownerTeams, KB24_TEAMS.home), KB24_TEAMS.home);
+  const away = need(byName(ownerTeams, KB24_TEAMS.away), KB24_TEAMS.away);
+  const boards = (await asUser(owner.token, '/leaderboards')).body?.data ?? [];
+  const league = need(boards.find((b: any) => b.name === KB24_LEADERBOARD)?.id, KB24_LEADERBOARD);
+  const list = (await asUser(owner.token,
+    `/teams/${home}/matches?scheduleType=Upcoming&includeIncomplete=true&limit=50&skip=0`)).body?.data?.result ?? [];
+  const match = need(
+    list.find((m: any) => Date.parse(m.date) === Date.parse(KB24_MATCH_DATE) && m.status === 'Scheduled')?.id,
+    `the Scheduled match on ${KB24_MATCH_DATE}`,
+  );
+  return {
+    reader, owner,
+    united: need(byName(ownerTeams, KB24_TEAMS.united), KB24_TEAMS.united),
+    dummy: need(byName(ownerTeams, KB24_TEAMS.dummy), KB24_TEAMS.dummy),
+    home, away,
+    commentsTeam: need(byName(readerTeams, KB24_COMMENTS_TEAM), KB24_COMMENTS_TEAM),
+    league, match,
+  };
+}
+
+/**
+ * quiet() plus the two badges this collection never photographs on purpose:
+ * the sidebar Chat badge and the bell badge. Both count what other collections
+ * left behind and both move between runs. Pinned to those two elements, never
+ * to bg-red-* generally - a loose match takes the presence dot off every
+ * avatar with it (collection 18).
+ */
+export async function quiet24(page: Page) {
+  await quiet(page);
+  await page.addStyleTag({
+    content: `
+      span[class*="pointer-events-none"][class*="right-3"][class*="bg-red-500"],
+      div[class*="-top-2"][class*="-right-2"][class*="bg-red-500"] {
+        visibility: hidden !important;
+      }
+    `,
+  });
+}
+
+/**
+ * A signed-in context with this collection's capture settings applied.
+ *
+ * Signs in on /teams, which always has a sidebar to prove the session on, and
+ * leaves the spec to navigate to the page it wants - several of this
+ * collection's pages have no sidebar at all, so signInAs() could not prove the
+ * session on them.
+ */
+export async function context24(browser: Browser, email: string) {
+  const ctx = await browser.newContext({
+    baseURL: process.env.SCORYBOARD_APP_BASE,
+    viewport: { width: 1440, height: 900 },
+    deviceScaleFactor: 2,
+    timezoneId: 'Europe/London',
+    locale: 'en-GB',
+    reducedMotion: 'reduce',
+    serviceWorkers: 'block',
+  });
+  const page = await ctx.newPage();
+  // Before the first navigation: the team page and the match page both fetch
+  // /promo-campaigns/active as they mount, and a route added after the fetch
+  // has gone out does nothing.
+  await blockPromos(page);
+  await signInAs(page, email, '/teams');
+  await quiet24(page);
+  return { ctx, page };
+}
+
+/**
+ * Open a page and wait for `marker` rather than for the network.
+ *
+ * Never `waitUntil: 'networkidle'` in this app: the Realtime Database presence
+ * connection keeps the network busy for ever and every navigation times out at
+ * 30 seconds. Every route in this collection was measured doing exactly that.
+ */
+export async function open24(page: Page, to: string, marker: Locator) {
+  await page.goto(to, { waitUntil: 'domcontentloaded' });
+  await quiet24(page);
+  await expect(marker).toBeVisible({ timeout: 30_000 });
+  await settled10(page);
+}
+
+/**
+ * The `main` column - everything right of the sidebar.
+ *
+ * The permission and Not Found screens paint one centred notice in an
+ * otherwise empty grey main column, and the sidebar next to it carries the
+ * signed-in name. Clipping main is what keeps the name out of the capture
+ * without a mask.
+ */
+export function mainColumn(page: Page) {
+  return page.locator('main').first();
+}
+
+/**
+ * One of the white section cards on Edit Team or Profile settings, by the text
+ * of something inside it.
+ *
+ * Both screens are stacks of `rounded-lg bg-white` cards, each headed by an
+ * upper-cased `h2`. The match is on any text inside the card, because the
+ * Profile appearance card's heading is an image and its only stable text is
+ * the "JPG, GIF or PNG. 3MB max." caption.
+ */
+export function cardHolding(page: Page, text: string | RegExp) {
+  return onScreen(page.getByText(text, { exact: typeof text === 'string' }))
+    .first()
+    .locator('xpath=ancestor::div[contains(@class,"rounded-lg") and contains(@class,"bg-white")][1]');
+}
+
+/**
+ * The hero of the match page: the coloured band carrying the page's `h1` -
+ * "Match Preview (View Only)" for a spectator, "Match Settings" for a manager.
+ */
+export function matchHero24(page: Page) {
+  return onScreen(page.locator('h1')).first().locator('xpath=..');
+}
+
+/** The comments panel on a team page: composer at the top, the list below. */
+export function commentsContainer(page: Page) {
+  return page.locator('#comments-container');
+}
+
+/** The comment composer alone: the box, Add Media, Comment and any message. */
+export function commentComposer(page: Page) {
+  return page.getByPlaceholder('Write your comment...')
+    .locator('xpath=ancestor::div[contains(@class,"bg-neutral-50")][1]');
+}
+
+/**
+ * Open a team page's COMMENTS tab and wait for the panel.
+ *
+ * The tab strip scrolls to the panel rather than routing, so the URL does not
+ * change and the panel is the only proof the click landed.
+ */
+export async function openTeamComments24(page: Page, teamId: string) {
+  // The tab reads COMMENTS on screen and "Comments" in the DOM - CSS upper-cases
+  // it, the same text-transform trap as GROUP A and DELETE ACCOUNT. An exact
+  // match on the upper-case form finds nothing.
+  const tab = page.getByRole('button', { name: /^comments$/i });
+  await open24(page, `/teams/${teamId}`, tab);
+  await tab.click();
+  await expect(commentsContainer(page)).toBeVisible();
+  await expect(page.getByPlaceholder('Write your comment...')).toBeVisible();
+}
+
+/**
+ * The match feed's **Add comment** window, opened from the FEED card's Comment
+ * button. Its file input takes `image/*,video/*` and checks the size in the
+ * browser - 3MB for an image, 200MB for a video - before it uploads anything.
+ */
+export async function openFeedAddComment24(page: Page) {
+  await page.locator('#feed').getByRole('button', { name: 'Comment', exact: true }).click();
+  const dlg = page.locator('[role="dialog"]').filter({ hasText: 'Add comment' }).first();
+  await expect(dlg).toBeVisible({ timeout: 30_000 });
+  return dlg;
+}
+
+/**
+ * The files 24.2 hands to the file inputs, written on demand into
+ * `test-results/24-fixtures/` (gitignored). Deterministic: a fixed-seed
+ * xorshift fills the pixels, so the bytes are identical on every run, and the
+ * video is 201MB of zeros. Nothing this size is committed.
+ *
+ * PNG at compression level 0 is what keeps the noise at its raw size: a 1100 x
+ * 1100 RGB image is 3.47MB, comfortably over the composer's 3MB check, and 930
+ * x 930 is 2.48MB - under that check and over the server's 2MB limit, which is
+ * the trap 24.2's third capture documents.
+ */
+export async function oversizeFiles24() {
+  const dir = path.resolve(F24.OVERSIZE_DIR as string);
+  fs.mkdirSync(dir, { recursive: true });
+  const spec = F24.OVERSIZE_FILES as {
+    photo3mb: { name: string; side: number };
+    photo2mb: { name: string; side: number };
+    video: { name: string; bytes: number };
+  };
+  const noisePng = async (side: number, file: string) => {
+    if (fs.existsSync(file)) return;
+    const raw = Buffer.alloc(side * side * 3);
+    let x = 0x9e3779b9 | 0;
+    for (let i = 0; i < raw.length; i += 1) {
+      x ^= x << 13; x ^= x >>> 17; x ^= x << 5;
+      raw[i] = x & 255;
+    }
+    await sharp(raw, { raw: { width: side, height: side, channels: 3 } })
+      .png({ compressionLevel: 0 })
+      .toFile(file);
+  };
+  const photo3mb = path.join(dir, spec.photo3mb.name);
+  const photo2mb = path.join(dir, spec.photo2mb.name);
+  const video = path.join(dir, spec.video.name);
+  await noisePng(spec.photo3mb.side, photo3mb);
+  await noisePng(spec.photo2mb.side, photo2mb);
+  if (!fs.existsSync(video) || fs.statSync(video).size !== spec.video.bytes) {
+    const fd = fs.openSync(video, 'w');
+    fs.ftruncateSync(fd, spec.video.bytes);
+    fs.closeSync(fd);
+  }
+  const mb = (f: string) => fs.statSync(f).size / 1048576;
+  if (!(mb(photo3mb) > 3 && mb(photo3mb) < 4)) throw new Error(`${photo3mb} is ${mb(photo3mb).toFixed(2)}MB, expected 3-4`);
+  if (!(mb(photo2mb) > 2 && mb(photo2mb) < 3)) throw new Error(`${photo2mb} is ${mb(photo2mb).toFixed(2)}MB, expected 2-3`);
+  return {
+    photo3mb, photo2mb, video,
+    names: { photo3mb: spec.photo3mb.name, photo2mb: spec.photo2mb.name, video: spec.video.name },
+  };
+}
