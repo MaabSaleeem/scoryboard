@@ -2373,6 +2373,72 @@
       ],
       "published_at": "2026-09-03T09:21:55.000Z",
       "status": "published"
+    },
+    "24.1": {
+      "intercom_id": "16815566",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16815566-you-do-not-have-permission-to-do-that",
+      "collection": "24",
+      "intercom_collection_id": "19733993",
+      "brief": "briefs/24.md",
+      "spec": "specs/24/24.1.spec.ts",
+      "commit_sha": "c71b85aa63f09b2d0347dbb29a34422966f2edde",
+      "screenshots": [
+        "screenshots/24/24.1/01-access-denied-team-settings.dcb7445f.png",
+        "screenshots/24/24.1/02-dummy-team-no-permission.ea58b461.png",
+        "screenshots/24/24.1/03-delete-team-disabled-admin.4496c91f.png",
+        "screenshots/24/24.1/04-match-preview-view-only.bff6a9cd.png"
+      ],
+      "published_at": "2026-09-04T06:47:56.000Z",
+      "status": "published"
+    },
+    "24.2": {
+      "intercom_id": "16815572",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16815572-photo-and-file-upload-limits",
+      "collection": "24",
+      "intercom_collection_id": "19733993",
+      "brief": "briefs/24.md",
+      "spec": "specs/24/24.2.spec.ts",
+      "commit_sha": "c71b85aa63f09b2d0347dbb29a34422966f2edde",
+      "screenshots": [
+        "screenshots/24/24.2/01-profile-photo-format-caption.78b08319.png",
+        "screenshots/24/24.2/02-comment-file-exceeds-3mb.a0171517.png",
+        "screenshots/24/24.2/03-comment-file-too-large-server.21193c1f.png",
+        "screenshots/24/24.2/04-match-feed-video-exceeds-200mb.5c717b4f.png"
+      ],
+      "published_at": "2026-09-04T06:48:00.000Z",
+      "status": "published"
+    },
+    "24.3": {
+      "intercom_id": "16815576",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16815576-something-went-wrong-and-page-not-found",
+      "collection": "24",
+      "intercom_collection_id": "19733993",
+      "brief": "briefs/24.md",
+      "spec": "specs/24/24.3.spec.ts",
+      "commit_sha": "c71b85aa63f09b2d0347dbb29a34422966f2edde",
+      "screenshots": [
+        "screenshots/24/24.3/01-page-not-found.a0c849ed.png",
+        "screenshots/24/24.3/02-team-not-found.7e35e3aa.png",
+        "screenshots/24/24.3/03-page-could-not-load.771009fb.png"
+      ],
+      "published_at": "2026-09-04T06:48:04.000Z",
+      "status": "published"
+    },
+    "24.4": {
+      "intercom_id": "16815581",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16815581-language-filtering-terms-privacy-and-what-we-store",
+      "collection": "24",
+      "intercom_collection_id": "19733993",
+      "brief": "briefs/24.md",
+      "spec": "specs/24/24.4.spec.ts",
+      "commit_sha": "c71b85aa63f09b2d0347dbb29a34422966f2edde",
+      "screenshots": [
+        "screenshots/24/24.4/01-comment-language-filtered.3ed91d96.png",
+        "screenshots/24/24.4/02-footer-privacy-terms.ff70b062.png",
+        "screenshots/24/24.4/03-profile-personal-details.935a7afc.png"
+      ],
+      "published_at": "2026-09-04T06:48:09.000Z",
+      "status": "published"
     }
   }
 }

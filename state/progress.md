@@ -43,7 +43,7 @@ target.
 | 20 | Notifications, emails & the activity feed | 4 | 16 | player | published | [briefs/20.md](../briefs/20.md) | **12 screenshots, not 16.** All four published by the repo owner 2026-09-03, on their instruction, without the usual draft review. 14 sibling cross-references are live anchors (21 in all). **Three of the four mapped titles describe controls this build does not have, and all three are retitled**: 20.1 drops "filtering" (there is no filter control in the notification modal, the app never sends the API's `type` or `isRead`, and `isRead` answers an empty list for every value); 20.2 drops "Every" (the payment and tournament-organiser emails cannot be produced from here); 20.4 drops "how to filter it" and is named **Trending**, which is what the panel is called - the feed component takes a `query` prop and no caller passes one, across 65 chunks swept from every app route. **20.2 shipped table-only with 0 of its 4 shots**, on the owner's instruction: yopmail rate-limited this IP mid-run and answers a CAPTCHA in place of every message body. Its spec is written and unrun and its header carries the five steps to finish. **The bell badge is a running tally in Firestore, not a count, and it is not clamped** - it goes negative and stays there, so `scripts/seed-20.mjs` must run before EVERY capture and it heals and asserts the tally. **The Trending strip scrolls itself every 2.5 seconds.** The clock is deliberately NOT frozen - every stamp here is relative and freezing made every row read "3 hours ago". Four accounts: `kb-player-20@`, `kb-20-owner@`, `kb-20-mate@`, `kb-20-empty@` (holds no notifications, for the empty state). One match on a FIXED date, 1 Dec 2026; the seed refuses to run once it has passed |
 | 21 | Referees | 3 | 18 | referee | published | [briefs/21.md](../briefs/21.md) | **19 screenshots, one over the estimate.** All three published by the run 2026-09-03, no draft review. 7 sibling cross-references are live anchors (21 in all). **There is no referee sign-up and no referee route** - `/referees` answers 404 and `POST /tournaments/:id/referee` is the only call in the product that sets `isReferee`, so an organiser is the only thing that can make one. A referee is the ordinary player profile in a **Referee / Football** role switch. **21.2 retitled** - it drops "Accepting an invitation", because there is none: no notification, no email, no accept endpoint, no pending state. **`config/api.md`'s referee role matrix was wrong on two cells** - the assigned referee DOES get the score steppers and DOES get Yellow/Red/Player of Match; it has no gear menu; and what the match page reads is `refereePlayerId`, not `isReferee`. No published article had repeated the wrong claim. **Two step-1 findings were corrected during step 2**: See All is not dead (it opens a Refereed Matches modal - hence the extra shot) and the switch says Football, not Player. **`scripts/seed-21.mjs` remakes the referee account on EVERY run** - referee stats are a lifetime count that includes cancelled matches, so 21.1's MATCHES tile drifted 1, 2, 3 across three runs. Three accounts: `kb-referee-21@`, `kb-21-organiser@`, `kb-21-newref@` (a referee with no matches, for the empty state). Two FIXED match dates, 5 and 6 Dec 2026; the seed refuses to run once either has passed |
 | 22 | Venues & club locations | 2 | 11 | manager_pro | not started | - | - |
-| 24 | Troubleshooting & policies | 4 | 13 | manager_free | not started | - | - |
+| 24 | Troubleshooting & policies | 4 | 13 | manager_free | published | [briefs/24.md](../briefs/24.md) | 14 screenshots, pinned to `c71b85aa63f09b2d0347dbb29a34422966f2edde`. **All four published LIVE by the run on 2026-09-04, nothing reviewed first.** 24.2 has four captures, not three: the server refuses a comment photo at 2MB while the page promises 3MB. Accounts: `kb-manager-free-24@` (Free reader), `kb-24-owner@` (Pro). `KB 24 Comments FC` is remade on every seed run |
 
 Totals: 130 articles, 727 screenshots estimated across 20 live collections
 (03, 06, 16 and 23 are retired). Collection
@@ -3822,3 +3822,141 @@ passed.**
 - **`unionBox()` is new in `lib/kb.ts`**: an invisible box over several elements,
   for one annotation. Written because outlining the Trending arrows' own row
   drew a 2300-pixel rectangle around two 32-pixel buttons.
+
+---
+
+## Session 2026-09-04 - collection 24, troubleshooting & policies
+
+Four articles LIVE, 14 screenshots, pinned to `c71b85aa63f09b2d0347dbb29a34422966f2edde`.
+
+| ID | Intercom | Public URL |
+|---|---|---|
+| 24.1 | 16815566 | https://help.scoryboard.com/en/articles/16815566-you-do-not-have-permission-to-do-that |
+| 24.2 | 16815572 | https://help.scoryboard.com/en/articles/16815572-photo-and-file-upload-limits |
+| 24.3 | 16815576 | https://help.scoryboard.com/en/articles/16815576-something-went-wrong-and-page-not-found |
+| 24.4 | 16815581 | https://help.scoryboard.com/en/articles/16815581-language-filtering-terms-privacy-and-what-we-store |
+
+Collection: https://help.scoryboard.com/en/collections/19733993-troubleshooting-and-policies
+
+**Nothing was reviewed before it went out.** No draft stage, no gate. The brief
+was written and executed in one run; the human reads this afterwards.
+
+### What differed from the map
+
+- **24.2 has four captures, not three.** The map's three were the caption, a
+  browser refusal and the video figure. Step 1 measured the server refusing a
+  comment attachment at **2MB** while the composer's own check is **3 MB**, so a
+  2.5MB phone photo passes the page and comes back "File too large". That gap
+  is the fourth capture, and it is the thing a reader will actually hit.
+- **The map's "1MB avatars and logos" is not a limit anybody meets.** It is a
+  branch of `uploadImageFile` in the bundle that no live caller reaches - all
+  three callers upload banners. The measured server limit for a crest or
+  avatar is about **100KB** (66KB accepted, 117KB refused), which the cropper's
+  WebP output normally stays under. 24.2 says "about 100 KB" for a photo that
+  is refused after cropping and quotes the page's 3MB as what you may choose.
+- Nothing else changed. Titles are the map's. Five framing changes to captures
+  are in `briefs/24.md`, "Amended during step 2"; none altered an article's
+  content.
+
+### The findings that shaped the collection
+
+1. **The word filter is on the server and it masks, not refuses.**
+   `POST /comments`, `PUT /teams/:id` (name and bio), `PUT /users/:id` (bio),
+   `POST /friends` (name) and `POST /chats/.../messages` all answer 200 and
+   store the word as asterisks, one per letter. The bundle carries no word list.
+   "damn" and "bloody hell" pass. 24.4 photographs a comment posted through the
+   UI; only the asterisked form is in the capture, the typed sentence is in
+   `lib/fixtures-24.mjs`.
+2. **Upload limits are three numbers.** Page caption 3MB; browser check 3 MB
+   for an image and 200 MB for a video on the comment composer and the match
+   feed, before any request; server 100KB / 3MB / 2MB for avatar / banner /
+   comment media, measured by bisection with incompressible WebPs. All in
+   `config/api.md`, "Troubleshooting and policies". Also there: the match
+   banner cropper checks 3MB and **says** "Image size must be less than 1MB"
+   (copy defect), and `POST /comments/media` with 8MB answers **500**.
+3. **A team's settings page has a literal Access Denied screen** for a
+   non-manager, inside the normal frame, with no write and no redirect. It is
+   the only permission screen in the app that says so; the tournament
+   equivalent is a silent redirect (briefs/12.md) and the leaderboard
+   equivalent is the error boundary (briefs/08.md). 24.1 leads with it.
+4. **A permission problem can look like a crash.** `/leaderboards/:id/settings`
+   with no role fetches the team list, gets 403, and falls to "This page
+   couldn't load". 24.3 photographs it as the "Something went wrong" screen
+   because it is the one that can be produced on demand, and tells the reader
+   what it means on that page. 24.1 cross-links.
+5. **`/matches/<bad id>` has no Not Found state.** The match shell renders with
+   empty tabs. Teams, leaderboards, tournaments and players all get a proper
+   "<Thing> Not Found" notice. 24.3 warns; worth a ticket.
+
+### Fixtures and the seed
+
+Two accounts, both this collection's: Marc `kb-manager-free-24@yopmail.com`
+(Free, the reader) and Owen `kb-24-owner@yopmail.com` (**Pro**, because Free
+cannot add an Administrator and 24.1 needs Marc to be one). Owen owns KB 24
+United (Marc Administrator), KB 24 Dummy (`isPrivate`), KB 24 Rovers and KB 24
+Town with five players each, venue KB 24 Astro, league KB 24 League, and one
+Scheduled match Rovers v Town on **2026-12-12T15:00Z**. `scripts/seed-24.mjs`
+refuses to run once that date has passed.
+
+- **Marc's KB 24 Comments FC is deleted and remade on every seed run.** 24.4
+  posts a comment on it and comments cannot be deleted (401 to the author).
+  The spec asserts the panel is empty before it posts, so a run without a
+  fresh seed fails rather than photographing two comments.
+- **A match with no `leaderboardId` stays Incomplete.** The first seed run
+  proved it - the match came back `Incomplete` - and the seed now creates the
+  league, adds both teams, and completes a stray Incomplete match with `PUT`.
+- **`isTourCompleted: true` is set on both accounts** in the same full-replace
+  `PUT /users/:id` that clears Marc's bio (step 1's profanity probe had written
+  a masked bio to it). Both accounts open the match page.
+- **The oversize files are generated, not committed.** `oversizeFiles24()` in
+  `lib/kb.ts` writes a 3.47MB PNG, a 2.48MB PNG and a 201MB sparse .mp4 into
+  `test-results/24-fixtures/` from a fixed-seed xorshift. Their names are
+  printed on screen, so they are fixtures.
+
+### Flakes and traps, for the next session
+
+No flakes: every failure was deterministic and fixed in the spec.
+
+- **The team page's tab labels are upper-cased by CSS.** `getByRole('button',
+  {name: 'COMMENTS', exact: true})` finds nothing; the DOM says "Comments". Use
+  `/^comments$/i`. Cost three captures one run.
+- **The match page's tab strip is `role="tab"`, not buttons.** A button locator
+  never finds MATCH DETAILS or KEYS. Cost one capture two runs. Playwright's
+  `error-context.md` accessibility snapshot is the fastest way to see this.
+- **Never `waitUntil: 'networkidle'`.** The presence connection keeps the
+  network busy and every navigation times out at 30s. `open24()` waits for a
+  marker element instead.
+- **The Access Denied, DUMMY TEAM and Not Found notices sit in an empty
+  1184 x 832 column.** Clipping `main` publishes a grey field with three lines in
+  it. Clip a `unionBox` around the notice with a 120-150px margin.
+- **A `unionBox` margin on the match hero reaches into the sidebar.** The hero
+  starts at the main column's left edge; a 12px pad published a sliver of
+  sidebar text. Pad 0 there.
+- **The Profile settings email is an input value.** `getByText` cannot see it;
+  read `input` values.
+- **Windows Git Bash rewrites `/route` arguments as paths** when passed to a
+  node script - `/teams/...` became `C:/Program Files/Git/teams/...`. Set
+  `MSYS_NO_PATHCONV=1` for exploration scripts that take routes.
+- **A scratch script outside the repo cannot import `@playwright/test`.** Use
+  `createRequire('file:///.../scoryboard/package.json')`.
+- **Noise generators degenerate in doubles.** An LCG written with `*` in JS
+  lost precision and its "incompressible" WebPs compressed to 30KB, which made
+  a whole round of server-limit measurements meaningless. Use xorshift with
+  `^`, `<<` and `>>>`.
+
+### Where to look hard
+
+- **24.2's table row for the match feed.** The browser's figures (3 MB image,
+  200 MB video) are what it enforces; the feed's **server** limit was not
+  measured, because `POST /matches/:id/events/media` is accepted only on a
+  Live match. If the server is stricter there too, the row understates the
+  problem. `briefs/24.md`, open question 2.
+- **24.2's "about 100 KB" for a photo refused after cropping.** Bisected to
+  between 66KB and 117KB; the exact figure is not known and no reader-facing
+  message says it - the cropper prints "Upload failed: File too large".
+- **24.4's word-filter paragraphs.** Measured over the API and through the UI
+  on a comment. The claim that names and bios are masked rests on the API
+  alone, and the list of words is the server's. The article gives no list.
+- **24.1's fourth screen, Match Preview (View Only).** Measured on a Scheduled
+  match. Collection 09 recorded the same heading; what a spectator sees on a
+  Live match was not re-measured here.
