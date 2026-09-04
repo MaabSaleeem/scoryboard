@@ -7813,3 +7813,209 @@ export async function oversizeFiles24() {
     names: { photo3mb: spec.photo3mb.name, photo2mb: spec.photo2mb.name, video: spec.video.name },
   };
 }
+
+// =============================================================================
+// Collection 22 - Venues & club locations
+// =============================================================================
+//
+// Read with briefs/22.md and lib/fixtures-22.mjs. Two accounts: Mo, the reader
+// (manager_pro, Pro), who holds the venues; and Ana, the Admin of Mo's
+// tournament, who added one venue to it and may edit nothing of Mo's.
+
+// @ts-ignore - plain JS module, no types
+import * as F22 from './fixtures-22.mjs';
+
+export const KB22 = F22.ACCOUNTS as { owner: string; admin: string };
+export const KB22_NAMES = F22.FULL_NAMES as { owner: string; admin: string };
+export const KB22_VENUES = F22.VENUES as Record<'astro' | 'park', { name: string; location: string }>;
+export const KB22_SAVED_VENUE = F22.SAVED_VENUE as { name: string; location: string };
+export const KB22_ONE_OFF = F22.ONE_OFF_VENUES as Record<'owner' | 'admin', { name: string; location: string }>;
+export const KB22_SCRATCH = F22.SCRATCH_VENUE as { name: string; location: string; editedLocation: string };
+export const KB22_LOGO = F22.LOGO_ASSET as string;
+export const KB22_TOURNAMENT = F22.TOURNAMENT as { title: string; startDate: string };
+export const KB22_TOURNAMENT_DATE_SHOWN = F22.TOURNAMENT_DATE_SHOWN as string;
+export const KB22_CREATOR_ONLY = F22.CREATOR_ONLY_MESSAGE as string;
+
+export type Fx22 = {
+  owner: { token: string; id: string; playerId: string };
+  admin: { token: string; id: string; playerId: string };
+  astro: string;
+  park: string;
+  savedVenue: string;
+  overflow: string;
+  adminPitch: string;
+  tournament: string;
+};
+
+/**
+ * Look every collection 22 fixture up by name. Specs never hardcode an id: the
+ * seed can legitimately recreate any of these.
+ */
+export async function fixtures22(): Promise<Fx22> {
+  const need = (v: string | undefined, what: string): string => {
+    if (!v) throw new Error(`${what} is missing. Run: node scripts/seed-22.mjs`);
+    return v;
+  };
+  const who = async (email: string) => {
+    const s = await mintSession(email);
+    const me = (await asUser(s.idToken, '/users/me')).body?.data;
+    if (!me?.playerId) throw new Error(`${email} is not seeded. Run: node scripts/seed-22.mjs`);
+    return { token: s.idToken as string, id: me.id as string, playerId: me.playerId as string };
+  };
+  const owner = await who(KB22.owner);
+  const admin = await who(KB22.admin);
+  const venues = async (qs: string) => (await asUser(owner.token, `/club-locations${qs}`)).body?.data ?? [];
+  const byName = (rows: any[], name: string) => rows.find((v) => v.name === name)?.id as string | undefined;
+  const plain = await venues('');
+  const saved = await venues('?tournamentSelectionOnly=true');
+  const tournaments = (await asUser(owner.token, '/tournaments')).body?.data ?? [];
+  const t = tournaments.find((x: any) => x.isOwner && x.title === KB22_TOURNAMENT.title);
+  const tournament = need(t?._id ?? t?.id, KB22_TOURNAMENT.title);
+  const onIt = await venues(`?tournamentId=${tournament}`);
+  return {
+    owner, admin,
+    astro: need(byName(plain, KB22_VENUES.astro.name), KB22_VENUES.astro.name),
+    park: need(byName(plain, KB22_VENUES.park.name), KB22_VENUES.park.name),
+    savedVenue: need(byName(saved, KB22_SAVED_VENUE.name), KB22_SAVED_VENUE.name),
+    overflow: need(byName(onIt, KB22_ONE_OFF.owner.name), KB22_ONE_OFF.owner.name),
+    adminPitch: need(byName(onIt, KB22_ONE_OFF.admin.name), KB22_ONE_OFF.admin.name),
+    tournament,
+  };
+}
+
+/**
+ * Remove 22.1's scratch venue wherever it ended up, so a run that died halfway
+ * does not leave it in the next run's list. Deleting by name from both personal
+ * lists: the spec may have flipped nothing, but the seed's sweep is the
+ * backstop and this is the spec's own tidy-up.
+ */
+export async function dropScratch22(token: string) {
+  for (const qs of ['', '?tournamentSelectionOnly=true']) {
+    const rows = (await asUser(token, `/club-locations${qs}`)).body?.data ?? [];
+    for (const v of rows.filter((x: any) => x.name === KB22_SCRATCH.name)) {
+      await asUser(token, `/club-locations/${v.id}`, { method: 'DELETE' });
+    }
+  }
+}
+
+/** quiet() plus the sidebar Chat badge and the bell badge, which count what other runs left. */
+export async function quiet22(page: Page) {
+  await quiet24(page);
+}
+
+/**
+ * A signed-in context with this collection's capture settings applied. Signs
+ * in on /teams, which always has a sidebar to prove the session on.
+ */
+export async function context22(browser: Browser, email: string) {
+  const ctx = await browser.newContext({
+    baseURL: process.env.SCORYBOARD_APP_BASE,
+    viewport: { width: 1440, height: 900 },
+    deviceScaleFactor: 2,
+    timezoneId: 'Europe/London',
+    locale: 'en-GB',
+    reducedMotion: 'reduce',
+    serviceWorkers: 'block',
+  });
+  const page = await ctx.newPage();
+  await blockPromos(page);
+  await signInAs(page, email, '/teams');
+  await quiet22(page);
+  return { ctx, page };
+}
+
+/** Open a page and wait for `marker` rather than for the network (see open24). */
+export async function open22(page: Page, to: string, marker: Locator) {
+  await page.goto(to, { waitUntil: 'domcontentloaded' });
+  await quiet22(page);
+  await expect(marker).toBeVisible({ timeout: 30_000 });
+  await settled10(page);
+}
+
+/**
+ * The Locations row of Profile settings: the "Locations" h3 on the left and
+ * the list with its Add Location link on the right. One `flex` row inside the
+ * "Leaderboards, Teams and Locations" card.
+ */
+export function locationsRow22(page: Page) {
+  return page.getByRole('heading', { name: 'Locations', exact: true })
+    .locator('xpath=ancestor::div[contains(@class,"lg:flex-row")][1]');
+}
+
+/** The Add Location link at the top of the Locations list. */
+export function addLocation22(page: Page) {
+  return page.getByRole('button', { name: 'Add Location', exact: true });
+}
+
+/**
+ * One venue row in a Locations list, by its name - on Profile settings or on a
+ * tournament's settings page. The row is the `justify-between` flex that holds
+ * the avatar, the name, the address and the kebab.
+ */
+export function venueRow22(page: Page, name: string) {
+  return onScreen(page.getByText(name, { exact: true })).first()
+    .locator('xpath=ancestor::div[contains(@class,"justify-between")][1]');
+}
+
+/** The kebab (ellipsis-vertical) on a venue row. Opens Edit / Remove. */
+export function venueRowMenu22(page: Page, name: string) {
+  return venueRow22(page, name).getByRole('button');
+}
+
+/**
+ * The club-location form, whether it is titled "Add new club location", "Edit
+ * club location", "Add Location" or "Edit Location". Matched by a field it
+ * owns rather than its accessible name: inside the Create Tournament modal it is
+ * portalled behind the picker popover, and aria-hidden makes getByRole
+ * unreliable there (collection 12).
+ */
+export function clubForm22(page: Page) {
+  return page.locator('div[role="dialog"]:has(input[name="clubName"])').last();
+}
+
+/** The round cropper that opens when a logo file is chosen: "Edit Your Avatar". */
+export function cropper22(page: Page) {
+  return page.getByRole('heading', { name: 'Edit Your Avatar', exact: true })
+    .locator('xpath=ancestor::div[contains(@class,"rounded")][1]');
+}
+
+/** The LOCATION card on a tournament's settings page. */
+export function tournamentLocationCard22(page: Page) {
+  return page.getByText('All locations for the tournament', { exact: true })
+    .locator('xpath=ancestor::div[contains(@class,"rounded-lg") and contains(@class,"bg-white")][1]');
+}
+
+/** The "+ Location" button in that card's header. */
+export function addTournamentLocation22(page: Page) {
+  return tournamentLocationCard22(page).getByRole('button', { name: 'Location', exact: true });
+}
+
+/**
+ * Open the Create Tournament modal's venue picker. Returns the modal and the
+ * picker popover (a dialog titled "Location Club" listing the saved venues).
+ */
+export async function openTournamentClubPicker22(page: Page) {
+  await page.getByRole('button', { name: 'New Tournament' }).first().click();
+  const modal = page.getByRole('dialog').filter({ hasText: 'Create Tournament' });
+  await expect(modal).toBeVisible();
+  // The club field's label flips from "Create club location" to "Create or
+  // Select Clubs" once the saved-venue list arrives (collection 12).
+  await expect(modal.getByText(/create or select clubs/i)).toBeVisible();
+  await modal.getByText('Select your club').click();
+  const picker = page.getByRole('dialog').filter({ hasText: 'Location Club' });
+  await expect(picker).toBeVisible();
+  return { modal, picker };
+}
+
+/**
+ * The "+" in the picker's header. An icon-only div with no accessible name; the
+ * one place these specs lean on a styling class, and a real mouse click there
+ * dismisses the popover before its handler runs - dispatch the event instead
+ * (collection 12, open question 5).
+ */
+export async function openPickerAddForm22(picker: Locator, page: Page) {
+  await picker.locator('div.rounded-full.cursor-pointer').dispatchEvent('click');
+  const form = clubForm22(page);
+  await expect(form.locator('input[name="clubName"]')).toBeVisible();
+  return form;
+}

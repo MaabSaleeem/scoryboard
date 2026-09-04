@@ -231,6 +231,16 @@ personas:
       Collection 17 needs a real Stripe Connect onboarding (17.2 is the hardest
       capture in the project). Stripe test mode only. Do not enter real details.
 
+      ADDED 2026-09-04, by collection 22. In that collection Mo holds no team
+      fixtures at all: exactly THREE venues (two ordinary, one saved for
+      tournaments) and one tournament, KB 22 Cup, with kb-22-admin@yopmail.com
+      as its Admin. The seed SWEEPS every other venue and tournament off both
+      accounts, because 22.1 photographs the Locations list on Profile settings
+      and the match form's venue list, and both show everything the account
+      holds. Venues belong to their creator - `GET /club-locations` is per
+      account - so nothing another collection seeds can leak into these lists,
+      and nothing seeded here leaks into another collection's. See briefs/22.md.
+
   organiser:
     email_pattern: "kb-organiser-<collection>@yopmail.com"
     # Collection 12 is the one exception: kb-organiser@yopmail.com, unsuffixed,

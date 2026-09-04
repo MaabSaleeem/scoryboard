@@ -1917,12 +1917,80 @@ characters; leaving it blank names the group after its first two members.
 
 | Method | Path | For | Body / notes |
 |---|---|---|---|
-| POST | `/club-locations` | Create a venue | `name`, `location`; optional `avatarToken` |
-| POST | `/club-locations` | Update a venue - the collection reuses POST | same fields. TODO: confirm whether update is POST or PUT |
-| DELETE | `/club-locations/:id` | Delete a venue | - |
-| GET | `/club-locations?query=` | Search venues | `tournamentSelectionOnly=true` returns the venues offered during tournament setup |
-| POST | `/club-locations/avatar` | Upload a venue logo, returns `avatarToken` | multipart, field `avatar` |
-| GET | `/club-locations/:clubLocationId/avatar?v=` | Fetch the logo | - |
+| POST | `/club-locations` | Create a venue | `name`, `location`; optional `avatarToken`, `isTournament`, `saveForFutureTournaments`, `tournamentId` (attaches the new venue to that tournament on creation). **Upserts by name** - see below |
+| ~~POST~~ **PUT** | `/club-locations/:id` | Update a venue | same fields. **(observed in app, 2026-09-04)** The app's edit form sends `PUT /club-locations/:id`; `PATCH` answers 404. The Postman row saying update reuses POST was wrong - POST with an existing name answers the existing row and changes nothing |
+| GET | `/club-locations/:id` | One venue. **Answers `data: null`, not 404, for a deleted one** | - |
+| DELETE | `/club-locations/:id` | Delete a venue. Soft: `isDeleted`. A second DELETE answers 404 "Club location not found" | - |
+| GET | `/club-locations` | **Your** ordinary venues (`isTournament` false). What the match form's Location Club list shows before you type | - |
+| GET | `/club-locations?query=` | Search: your ordinary venues **plus the partner venues**, matched on name or address. `query` must be **3 characters or more** - shorter answers 400 SCHEMA_VALIDATION_ERROR | `tournamentSelectionOnly=true` returns your venues with `isTournament` AND `saveForFutureTournaments` both true - the Create Tournament picker |
+| GET | `/club-locations?tournamentId=` | The venues on one tournament, whoever added them | **(observed in app, 2026-09-04)** the tournament settings page and the fixture dialog |
+| POST | `/club-locations/avatar` | Upload a venue logo, returns the token as a bare string in `data` | multipart, field `avatar`, WebP. Then `PUT /club-locations/:id {avatarToken}`; the row gains `avatarVersion` |
+| GET | `/club-locations/:clubLocationId/avatar?v=` | Fetch the logo. **Public** - answers 200 `image/webp` with no token | - |
+
+**(observed in app and measured over the API, 2026-09-04, by collection 22.)**
+The venue model, in full:
+
+- **A venue belongs to the account that created it**, and only that account may
+  change it: `PUT` and `DELETE` from anybody else answer
+  `403 "Club location can only be modified by its creator"`. That holds inside a
+  tournament too - the tournament's Owner cannot edit a venue its Admin added,
+  nor the Admin the Owner's. The app's Edit form prints the message under the
+  Location field. Any signed-in account can `GET` any venue by id.
+- **The lists are per account and disjoint by flag.** A fresh account's
+  `GET /club-locations?query=Ast` answers `[]` although a dozen `KB 09 Astro`-style
+  venues exist on other accounts. Collection 09's brief said the search "covers
+  every venue on the platform"; it covers *yours* plus the partner rows below.
+- **Partner venues are ownerless and global.** Rows with `source: "Powerleague"`
+  and a `sourceId` (14 of them on staging - Powerleague Battersea, Mill Hill,
+  Milton Keynes ...) come back to every account from `?query=`, and nobody can edit
+  them (403 as above). They are the only venues a search finds that you did not
+  make.
+- **A tournament-only venue** is `isTournament: true, saveForFutureTournaments:
+  false`. It answers to `?tournamentId=` and to nothing else: not `GET
+  /club-locations`, not `?query=`, not `?tournamentSelectionOnly=true`. Profile
+  settings' Locations list is the union of the plain list and the saved list, with
+  the saved rows badged **Saved**; a tournament-only venue is therefore invisible
+  everywhere but on its tournament.
+- **`POST /club-locations` upserts by name**, case-insensitively, within (owner,
+  `isTournament`). Posting a name you already hold answers the existing row - its
+  old location and logo included, the new location ignored. The same name with
+  `isTournament: true` makes a second row. So a reader who "adds" a venue twice
+  gets one.
+- **A logo cannot be removed.** `PUT` without `avatarToken` keeps the current
+  `avatarVersion`; `avatarToken: null` answers 400 "Expected string, received
+  null" and `""` answers 400 "Invalid token format". It can only be replaced.
+- **Deleting a venue does not touch matches at it.** A Scheduled match keeps its
+  `clubLocationId` and its page still prints the venue's name (measured on a match
+  page before and after the DELETE). The match's Edit dialog can move it to
+  another venue; it cannot be left with none (see "A match with no venue is
+  Incomplete").
+- Validation: `name` at least 1 character, `location` required, no other rules.
+  Duplicate names across accounts are fine. The forms disable Continue until both
+  fields hold something.
+- **`PUT` can flip the flags.** A plain venue turned `isTournament: true,
+  saveForFutureTournaments: true` leaves `GET /club-locations` and appears in
+  `?tournamentSelectionOnly=true`. The app never does this; the Edit form on
+  Profile settings shows the Save box only on a venue that is already saved.
+
+### Where venues are made and edited in the app
+
+**(observed in app, 2026-09-04.)** The Postman collection has no UI notes; these
+are the surfaces, all of them driving one shared form (`CreateClubModal`: Upload
+Club Logo, Club name, Location, optional Save for future tournaments, Continue).
+
+| Surface | Route | Lists | Adds | Edits | Removes |
+|---|---|---|---|---|---|
+| **Profile settings -> Leaderboards, Teams and Locations -> Locations** | `/profile-settings` | plain + saved (badged **Saved**) | **Add Location** -> "Add new club location" (no Save box) | row kebab -> **Edit** -> "Edit club location" | row kebab -> **Remove** - `DELETE` on the click, **no confirmation** |
+| Match form, **Location Club** | `/match/create`, and the Update your match dialog | plain, before typing; plain + partner after 3 letters | **Create club location** at the top of the list | - | - |
+| Create Tournament, **Create or Select Clubs** | `/tournaments` | saved only | the **+** in the Location Club popover -> "Add new club location" **with** the Save box | - | - |
+| Tournament settings, **LOCATION** | `/tournaments/:id/settings` | `?tournamentId=` - every venue on it, Owner's and Admins' | **+ Location** -> "Add Location / Add a club location for this tournament", with the Save box | row kebab -> **Edit** -> "Edit Location" (creator only) | **none** - a venue cannot be taken off a tournament from the UI |
+| Fixture dialog (collection 14) | tournament schedule | `?tournamentId=` | "Create Club Location / Add a club location for this tournament group" | - | - |
+| Onboarding **Step 4** | `/selectClubLocation` | `?query=mil` on open (a hard-coded search) | **Add your club location** | - | - |
+
+The logo control opens the same round cropper as a profile photo ("Edit Your
+Avatar", zoom slider, Cancel, Apply); Apply puts the crop in the form and
+Continue saves it with `PUT {avatarToken}`. The `/selectClubLocation` route is
+reachable by URL only (collection 01, open question 1) and is not documented.
 
 **(observed in app, 2026-08-28.)** Two things the table above does not say.
 
