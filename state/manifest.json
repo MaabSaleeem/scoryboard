@@ -2467,14 +2467,14 @@
       "intercom_collection_id": "19733991",
       "brief": "briefs/22.md",
       "spec": "specs/22/22.2.spec.ts",
-      "commit_sha": "37e38f874b7c675a67515fc47b9303532a032d43",
+      "commit_sha": "026b45f53c73a01b9d5957c4b64d0ec67f391dac",
       "screenshots": [
         "screenshots/22/22.2/01-create-tournament-saved-venues.deadecbe.png",
         "screenshots/22/22.2/02-add-club-location-save-for-future.604d3f86.png",
         "screenshots/22/22.2/03-tournament-settings-locations.33379670.png",
         "screenshots/22/22.2/04-admin-cannot-edit-owners-venue.91c1d365.png"
       ],
-      "published_at": "2026-09-04T07:38:42.000Z",
+      "published_at": "2026-09-04T07:58:47.000Z",
       "status": "published"
     }
   }

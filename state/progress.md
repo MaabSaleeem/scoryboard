@@ -4098,11 +4098,11 @@ exploration was deterministic.
 ### Where to look hard
 
 - **22.2's claim that a venue cannot be taken off a tournament.** Measured in
-  the UI only: the row menu offers Edit and no Remove. Over the API,
-  `PUT /tournaments/:id {clubLocationIds}` was used to *attach* and never tested
-  with a **shorter** list to detach. The article is scoped to the app ("the app
-  has no way to"), which is what a reader can act on, but the API may well allow
-  it. `briefs/22.md`, open question 3.
+  the UI: the row menu offers Edit and no Remove, on every surface that lists a
+  tournament's venues. Over the API, `PUT /tournaments/:id {clubLocationIds}`
+  was used to *attach* and never tested with a **shorter** list to detach. If
+  detaching works there, a future release could expose it and the article would
+  need a step. `briefs/22.md`, open question 3.
 - **22.1's "another manager's venue never appears, even if you type its exact
   name".** True for the two accounts here and consistent with the API being
   per-account. It rests on my own accounts only; no third account was tried.
