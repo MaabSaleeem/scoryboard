@@ -88,25 +88,25 @@
     },
     "12.4": {
       "intercom_id": "16733249",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16733249-choosing-a-format-for-a-football-tournament",
       "collection": "12",
       "intercom_collection_id": "19733981",
       "brief": "briefs/12.md",
       "spec": "specs/12/12.4.spec.ts",
-      "commit_sha": "2b0b16cf6d18d3b9ac98bd25348d1de6e90ebd85",
+      "commit_sha": "df1b5eb08bc3e22bb0fdbe6fed3289303c2d67d6",
       "screenshots": [
-        "screenshots/12/12.4/01-choose-format-three-templates.99fc745e.png",
-        "screenshots/12/12.4/02-group-phase-only-selected.90cc4a34.png",
-        "screenshots/12/12.4/03-how-many-groups.2e3b82fe.png",
-        "screenshots/12/12.4/04-teams-in-each-group.879ac4d9.png",
-        "screenshots/12/12.4/05-encounters-open.77596f63.png",
-        "screenshots/12/12.4/06-overflow-matches-toggle.c7ea8073.png",
-        "screenshots/12/12.4/07-knockout-phase-only.915ea29a.png",
-        "screenshots/12/12.4/08-group-and-knockout.d7ad5c5b.png",
-        "screenshots/12/12.4/09-format-saved-groups-generated.8947c953.png"
+        "screenshots/12/12.4/01-choose-format-three-templates.29e7c582.png",
+        "screenshots/12/12.4/02-group-phase-only-selected.01268a43.png",
+        "screenshots/12/12.4/03-how-many-groups.0ed8f341.png",
+        "screenshots/12/12.4/04-teams-in-each-group.380a7e2c.png",
+        "screenshots/12/12.4/05-encounters-open.c06f9b1c.png",
+        "screenshots/12/12.4/06-league-schedule.539f2c1a.png",
+        "screenshots/12/12.4/07-knockout-phase-only.5d3af207.png",
+        "screenshots/12/12.4/08-group-and-knockout.dde20e0f.png",
+        "screenshots/12/12.4/09-format-saved-groups-generated.5427ebe3.png"
       ],
-      "published_at": "2026-08-28T11:01:48.000Z",
-      "status": "published",
-      "intercom_url": "https://help.scoryboard.com/en/articles/16733249-choosing-a-format-for-a-football-tournament"
+      "published_at": "2026-09-08T15:14:17.000Z",
+      "status": "published"
     },
     "12.5": {
       "intercom_id": "16733298",
@@ -465,11 +465,12 @@
     },
     "14.1": {
       "intercom_id": "16736750",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16736750-how-the-fixture-list-is-generated-for-a-football-tournament",
       "collection": "14",
       "intercom_collection_id": "19733983",
       "brief": "briefs/14.md",
       "spec": "specs/14/14.1.spec.ts",
-      "commit_sha": "56e7a37",
+      "commit_sha": "df1b5eb08bc3e22bb0fdbe6fed3289303c2d67d6",
       "screenshots": [
         "screenshots/14/14.1/01-schedule-tab.b979bed0.png",
         "screenshots/14/14.1/02-group-a-fixtures.d5b8a12a.png",
@@ -477,9 +478,8 @@
         "screenshots/14/14.1/04-phase-tabs.267dcb92.png",
         "screenshots/14/14.1/05-knockout-fixtures.60198bfe.png"
       ],
-      "published_at": "2026-08-28T17:08:18.000Z",
-      "status": "published",
-      "intercom_url": "https://help.scoryboard.com/en/articles/16736750-how-the-fixture-list-is-generated-for-a-football-tournament"
+      "published_at": "2026-09-08T15:14:27.000Z",
+      "status": "published"
     },
     "14.2": {
       "intercom_id": "16736752",
@@ -537,22 +537,22 @@
     },
     "14.5": {
       "intercom_id": "16736756",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16736756-rescheduling-fixtures-and-rolling-them-onto-the-next-day",
       "collection": "14",
       "intercom_collection_id": "19733983",
       "brief": "briefs/14.md",
       "spec": "specs/14/14.5.spec.ts",
-      "commit_sha": "679f8c9",
+      "commit_sha": "df1b5eb08bc3e22bb0fdbe6fed3289303c2d67d6",
       "screenshots": [
-        "screenshots/14/14.5/01-fixture-card-fields.eb04db88.png",
-        "screenshots/14/14.5/02-time-picker-open.d702f2db.png",
-        "screenshots/14/14.5/03-pitch-number-input.48081787.png",
-        "screenshots/14/14.5/04-select-matches.da8e11e3.png",
-        "screenshots/14/14.5/05-last-allowed-start-time.6e58796e.png",
-        "screenshots/14/14.5/06-rolled-across-days.04557b80.png"
+        "screenshots/14/14.5/01-fixture-card-fields.f413dec6.png",
+        "screenshots/14/14.5/02-time-picker-open.d0aded0d.png",
+        "screenshots/14/14.5/03-pitch-number-input.c29c2dc2.png",
+        "screenshots/14/14.5/04-select-matches.7f136440.png",
+        "screenshots/14/14.5/05-end-time.221fa48a.png",
+        "screenshots/14/14.5/06-rolled-across-days.e3decefd.png"
       ],
-      "published_at": "2026-08-28T17:08:38.000Z",
-      "status": "published",
-      "intercom_url": "https://help.scoryboard.com/en/articles/16736756-rescheduling-fixtures-and-rolling-them-onto-the-next-day"
+      "published_at": "2026-09-08T15:14:38.000Z",
+      "status": "published"
     },
     "14.6": {
       "intercom_id": "16736757",
@@ -1543,23 +1543,23 @@
     },
     "09.7": {
       "intercom_id": "16762199",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16762199-inviting-people-sharing-a-preview-and-the-matches-calendar",
       "collection": "09",
       "intercom_collection_id": "19733978",
       "brief": "briefs/09.md",
       "spec": "specs/09/09.7.spec.ts",
-      "commit_sha": "67a299df04e14b628587ce1fe9c9661786925859",
+      "commit_sha": "df1b5eb08bc3e22bb0fdbe6fed3289303c2d67d6",
       "screenshots": [
-        "screenshots/09/09.7/01-share-window.349ed0fb.png",
-        "screenshots/09/09.7/02-preview-signed-out.048c354f.png",
+        "screenshots/09/09.7/01-share-window.8a4b1b33.png",
+        "screenshots/09/09.7/02-preview-signed-out.d9bf8bc3.png",
         "screenshots/09/09.7/03-add-to-calendar.71cf1255.png",
         "screenshots/09/09.7/04-card-add-to-calendar.0ac3859c.png",
         "screenshots/09/09.7/05-calendar-month.2bdfceb7.png",
         "screenshots/09/09.7/06-calendar-day.d988ab1c.png",
         "screenshots/09/09.7/07-match-invitation.3124c37b.png"
       ],
-      "published_at": "2026-08-31T16:09:45.000Z",
-      "status": "published",
-      "intercom_url": "https://help.scoryboard.com/en/articles/16762199-inviting-people-sharing-a-preview-and-the-matches-calendar"
+      "published_at": "2026-09-08T15:13:53.000Z",
+      "status": "published"
     },
     "10.1": {
       "intercom_id": "16769856",
@@ -1736,20 +1736,20 @@
     },
     "10.10": {
       "intercom_id": "16769883",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16769883-live-viewers-and-following-a-match-from-another-device",
       "collection": "10",
       "intercom_collection_id": "19733979",
       "brief": "briefs/10.md",
       "spec": "specs/10/10.10.spec.ts",
-      "commit_sha": "9c4ca1982dabd8caccc7bebcb0ec5fa0a7180376",
+      "commit_sha": "df1b5eb08bc3e22bb0fdbe6fed3289303c2d67d6",
       "screenshots": [
         "screenshots/10/10.10/01-online-one.be96ccef.png",
         "screenshots/10/10.10/02-online-two.ed6280aa.png",
         "screenshots/10/10.10/03-follower-view.d109bb03.png",
         "screenshots/10/10.10/04-score-arrived.bccdbdb6.png"
       ],
-      "published_at": "2026-09-01T08:47:42.000Z",
-      "status": "published",
-      "intercom_url": "https://help.scoryboard.com/en/articles/16769883-live-viewers-and-following-a-match-from-another-device"
+      "published_at": "2026-09-08T15:14:06.000Z",
+      "status": "published"
     },
     "15.1": {
       "intercom_id": "16771619",

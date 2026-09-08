@@ -29,12 +29,12 @@ target.
 | ~~06~~ | ~~Following~~ | - | - | - | **retired** | - | **RETIRED 2026-08-31, merged into 05.** 06.1 became 05.5. Intercom collection 19733975 was empty before the merge and is empty after it; it must not be reused |
 | 07 | Teams | 11 | 63 | manager_pro | published | [briefs/07.md](../briefs/07.md) | 63 screenshots. **All eleven published by the reviewer 2026-08-29.** 07.7 and 07.9 retitled - the app has no ownership transfer and no Fan role. Accounts: `kb-manager-pro-07@`, `kb-fresh-07@`, six `kb-07-*@` |
 | 08 | Leaderboards & leagues | 5 | 30 | manager_pro | published | [briefs/08.md](../briefs/08.md) | 30 screenshots. Found that **removing a team from a leaderboard has no confirmation at all**, that the league table carries **no points, no draws and no goals conceded**, that the Share Leaderboard "public link" sends a signed-out visitor to `/signin`, and that a comment can never be deleted - `DELETE /comments/:id` answers 401 even to its author. The **External** badge on a team row means "not one of your own", and it wrongly marks the owner’s own teams until the account has opened `/teams` once. Four accounts: `kb-manager-pro-08@`, `kb-08-admin@`, `kb-08-free@`, `kb-08-outsider@`. Four played matches; they cannot be undone **Status corrected to `published` 2026-09-02: scripts/reconcile-manifest.mjs read every article in this collection back off Intercom and all of them are live.** |
-| 09 | Creating & scheduling matches | 7 | 44 | manager_pro | published | [briefs/09.md](../briefs/09.md) | 44 screenshots. Found that **Create Match creates the match** on the click, that **seven** fields decide Incomplete vs Scheduled - and a **leaderboard is one of them, even for a friendly** - and that **`DELETE /matches/:id` does not delete**, it sets `status: "Cancelled"`. 09.5 retitled "Editing or cancelling a match" - there is no delete anywhere in the app. 09.6's referee half narrowed: the Referee box only offers referees saved from a tournament, so it reads "No results found" for a manager who has never run one. The match **share link is not public** - a signed-out visitor gets Sign In and permanent skeletons. Four accounts: `kb-manager-pro-09@`, `kb-09-admin@`, `kb-09-player@`, `kb-referee-09@`. Two Scheduled fixtures on FIXED dates (24 and 30 Sept 2026); the seed refuses to run once they have passed. **All seven were published by the reviewer 2026-08-31, two minutes after the run posted them as drafts** **Status corrected to `published` 2026-09-02: scripts/reconcile-manifest.mjs read every article in this collection back off Intercom and all of them are live.** |
-| 10 | Match day | 10 | 60 | manager_pro | published | [briefs/10.md](../briefs/10.md) | 60 screenshots. **All ten published 2026-09-01 on the owner's instruction, straight after the run - not reviewed in Intercom first. The help centre is LIVE, so they are public.** See the session log. Found that **a match runs itself**: it starts when its date arrives and **ends itself 24 hours after full time** - the card says "Match auto-ends in" - so a match created more than a day after it finished arrives `Finished` at 0-0 and can never be scored (10.9). **END MATCH does not exist until the timer hits 00:00**; the timer pill IS the pause control. **Penalties and typed score entry are tournament-only**, so 10.6 was retitled "Yellow and red cards, and how the final score is set". The match feed has **no REST read at all** - it is a Firestore subscription, which is what makes 10.10 work. Two Free gates with no error code: the fourth substitute slot and Add media. **Reloading a paused match resumes it** - a real defect, warned about in 10.3 and 10.4. Four accounts: `kb-manager-pro-10@`, `kb-10-admin@`, `kb-10-player@`, `kb-referee-10@`. Two leaderboards: KB 10 Sunday League holds the fixtures, KB 10 Midweek holds every throwaway. One Scheduled fixture on a FIXED date (15 Oct 2026); the seed refuses to run once it has passed |
+| 09 | Creating & scheduling matches | 7 | 44 | manager_pro | published | [briefs/09.md](../briefs/09.md) | 44 screenshots. Found that **Create Match creates the match** on the click, that **seven** fields decide Incomplete vs Scheduled - and a **leaderboard is one of them, even for a friendly** - and that **`DELETE /matches/:id` does not delete**, it sets `status: "Cancelled"`. 09.5 retitled "Editing or cancelling a match" - there is no delete anywhere in the app. 09.6's referee half narrowed: the Referee box only offers referees saved from a tournament, so it reads "No results found" for a manager who has never run one. The match **share link is not public** - a signed-out visitor gets Sign In and permanent skeletons. Four accounts: `kb-manager-pro-09@`, `kb-09-admin@`, `kb-09-player@`, `kb-referee-09@`. Two Scheduled fixtures on FIXED dates (24 and 30 Sept 2026); the seed refuses to run once they have passed. **All seven were published by the reviewer 2026-08-31, two minutes after the run posted them as drafts** **Status corrected to `published` 2026-09-02: scripts/reconcile-manifest.mjs read every article in this collection back off Intercom and all of them are live.**  **AMENDED 2026-09-08: 09.7 rewritten and 2 shots re-captured - the match share link is genuinely public now. See the session log for 8sept-updates.md A1.**|
+| 10 | Match day | 10 | 60 | manager_pro | published | [briefs/10.md](../briefs/10.md) | 60 screenshots. **All ten published 2026-09-01 on the owner's instruction, straight after the run - not reviewed in Intercom first. The help centre is LIVE, so they are public.** See the session log. Found that **a match runs itself**: it starts when its date arrives and **ends itself 24 hours after full time** - the card says "Match auto-ends in" - so a match created more than a day after it finished arrives `Finished` at 0-0 and can never be scored (10.9). **END MATCH does not exist until the timer hits 00:00**; the timer pill IS the pause control. **Penalties and typed score entry are tournament-only**, so 10.6 was retitled "Yellow and red cards, and how the final score is set". The match feed has **no REST read at all** - it is a Firestore subscription, which is what makes 10.10 work. Two Free gates with no error code: the fourth substitute slot and Add media. **Reloading a paused match resumes it** - a real defect, warned about in 10.3 and 10.4. Four accounts: `kb-manager-pro-10@`, `kb-10-admin@`, `kb-10-player@`, `kb-referee-10@`. Two leaderboards: KB 10 Sunday League holds the fixtures, KB 10 Midweek holds every throwaway. One Scheduled fixture on a FIXED date (15 Oct 2026); the seed refuses to run once it has passed  **AMENDED 2026-09-08: 10.10, prose only - the two sign-in claims were false, and signed-out viewers show as `Anonymous User`. 8sept-updates.md A3.**|
 | 11 | Match insights & statistics | 3 | 9 | player | published | [briefs/11.md](../briefs/11.md) | 9 screenshots. 11.1 retitled - the app has no form guide and no head-to-head record. Found that **a match outside a leaderboard writes no statistics at all** and that a player counts the matches they were in the LINEUP for. Accounts: `kb-player-11@`, `kb-11-owner@`. Four played matches; they cannot be undone. **All three published by the reviewer 2026-08-31, then all three rewritten for clarity and republished** **Status corrected to `published` 2026-09-02: scripts/reconcile-manifest.mjs read every article in this collection back off Intercom and all of them are live.** |
-| 12 | Tournaments - setting one up | 10 (+2) | 80 | organiser | published | [briefs/12.md](../briefs/12.md) | 12 published, 80 screenshots. 12.11 and 12.12 added for Padel; not in the map |
+| 12 | Tournaments - setting one up | 10 (+2) | 80 | organiser | published | [briefs/12.md](../briefs/12.md) | 12 published, 80 screenshots. 12.11 and 12.12 added for Padel; not in the map  **THE DO-NOT-RE-RUN WAS REOPENED FOR 12.4 ONLY, 2026-09-08, on the repo owner's instruction** - all 9 of its shots re-captured, shot 06 re-pointed at the League schedule block. Every other collection-12 article is still not to be re-run. 8sept-updates.md A5.|
 | 13 | Tournaments - groups, brackets & phases | 11 | 55 | organiser | published | [briefs/13.md](../briefs/13.md) | flag: TOURNAMENT_FEATURE_ENABLED. 11 articles, 55 screenshots. 13.8 retitled. Account: kb-organiser-13@yopmail.com **Status corrected to `published` 2026-09-02: scripts/reconcile-manifest.mjs read every article in this collection back off Intercom and all of them are live.** |
-| 14 | Tournaments - the fixture schedule | 8 | 37 | organiser | published | [briefs/14.md](../briefs/14.md) | flag: TOURNAMENT_FEATURE_ENABLED. 8 articles, 37 screenshots. 14.5 retitled - fixtures cannot be deleted. Account: kb-organiser-14@yopmail.com **Status corrected to `published` 2026-09-02: scripts/reconcile-manifest.mjs read every article in this collection back off Intercom and all of them are live.** |
+| 14 | Tournaments - the fixture schedule | 8 | 37 | organiser | published | [briefs/14.md](../briefs/14.md) | flag: TOURNAMENT_FEATURE_ENABLED. 8 articles, 37 screenshots. 14.5 retitled - fixtures cannot be deleted. Account: kb-organiser-14@yopmail.com **Status corrected to `published` 2026-09-02: scripts/reconcile-manifest.mjs read every article in this collection back off Intercom and all of them are live.**  **AMENDED 2026-09-08: 14.1 prose only, and 14.5 rewritten with 6 shots re-captured - `Last allowed match start time` no longer exists. `14.3` has the same stale `WEEK 1` problem and is NOT fixed. 8sept-updates.md A2, A4, A13.**|
 | 15 | Tournaments - publishing & running | 9 | 62 | organiser | published | [briefs/15.md](../briefs/15.md) | flag: TOURNAMENT_FEATURE_ENABLED. 65 screenshots. **All nine published by the reviewer 2026-09-01, within the hour the run posted them as drafts. 15.8 step 1 was simplified and republished afterwards, live.** Four articles retitled: **15.1 there is nothing to publish** (`isPublic` is already true on every tournament, and the public page really IS public, unlike the leaderboard and match share links); 15.2 drops access tokens (`/tournaments/token/:token` exists and nothing mints one); 15.6 drops prizes because **the PRIZES tab is a Winner panel whose picker records nothing** - Save Winner can never be enabled, established with a trusted click sequence and a passing control test; 15.9's "completing" re-scoped to the aftermath, since there is no Complete control. **Score entry is now verified** - START, two typed boxes that save on their own, END - and ending the PHASE is what closes it. 15.7's free_pro flag does NOT bite: Free and Pro read a long tournament message identically. Announcement-only chat refuses a tournament ADMIN too. The info page and gallery DO exist, behind a 16-pixel unlabelled pencil. Four accounts: `kb-organiser-15@`, `kb-15-admin@`, `kb-15-free@`, `kb-15-outsider@`. Six tournaments; two on FIXED dates in Oct and Nov 2026 and the seed refuses to run once they have passed |
 | ~~16~~ | ~~Tournament plans & payment~~ | - | - | - | **retired** | - | **RETIRED 2026-08-29, merged into 04.** 16.1+16.2 -> 04.4, 16.3+16.4 -> 04.5, 16.6 -> 04.6. 16.5 dropped - managing a live Annual subscription needs a completed payment. Intercom collection 19733985 is empty and must not be reused |
 | 17 | Collecting & making payments | 9 | 63 | manager_pro | published | [briefs/17.md](../briefs/17.md) | 52 screenshots. **All nine published by the repo owner 2026-09-02, on their instruction, without the usual draft review.** Every capture stops before Stripe, on instruction: setting up a payout account opens a window at connect.stripe.com, Pay Now opens Stripe Elements, and both are CAPTCHA-gated. 17.9 retitled "Payment statuses and failed payments" - the app has no refund feature at all. 17.2 is 4 shots not 12, 17.8 is 6 not 8; the rest were Stripe's own screens. **The payout account on `kb-manager-pro-17@` was connected by a human and cannot be rebuilt from here** - never `--rebuild` this collection without one. `kb-17-nopayout@` must stay un-onboarded. Four accounts: `kb-manager-pro-17@`, `kb-player-17@`, `kb-17-admin@`, `kb-17-nopayout@` |
@@ -397,6 +397,15 @@ themselves remain accurate: the screenshots show a demo account with fewer
 tournaments, which misleads nobody.
 
 Do not "fix" this by re-capturing without being asked.
+
+**One exception, 2026-09-08.** The repo owner reopened this for **12.4 alone**,
+because the app changed under it: the overflow Yes/No question is gone from
+"Group phase only" and a League schedule block stands in its place, so
+`06-overflow-matches-toggle` had become unproducible. All nine of 12.4's shots
+were re-taken and it was republished. **The divergence above still stands for
+every other article in collection 12.** Note that none of 12.4's captures is one
+of the six that photograph the tournament list, so the count that made this a
+divergence in the first place did not appear in any of them.
 
 Next: `/kb-brief 13`.
 
@@ -4114,3 +4123,221 @@ exploration was deterministic.
 - **Powerleague venues.** 22.1 tells readers a search finds them. That list is
   a partner import on staging; if production has a different set, or none, the
   sentence is still true in shape but the reader may see nothing.
+
+---
+
+### 2026-09-08 - maintenance pass, A1 to A5 of 8sept-updates.md. Five live articles corrected.
+
+**Not a collection run.** This session amended five already-published articles
+across four collections, on the repo owner's instruction, working from
+`8sept-updates.md`. Items A6 to A16 and all of section B were NOT touched.
+
+Everything below was measured on staging on 2026-09-08 before it was written.
+`node scripts/audit-live.mjs` was clean before the run and clean after it.
+
+| Article | Item | Intercom id | Shots | What changed |
+|---|---|---|---|---|
+| 09.7 Inviting people, sharing a preview and the matches calendar | A1 | 16762199 | 7 | the share link really is public now; 2 shots re-captured |
+| 10.10 Live viewers, and following a match from another device | A3 | 16769883 | 4 | two sign-in claims deleted; Anonymous User added. Prose only |
+| 12.4 Choosing a format for a football tournament | A5 | 16733249 | 9 | overflow question scoped per template; all 9 re-captured |
+| 14.1 How the fixture list is generated for a football tournament | A4 | 16736750 | 5 | scoped by template. Prose only |
+| 14.5 Rescheduling fixtures, and rolling them onto the next day | A2 | 16736756 | 6 | End time replaces a dead label; all 6 re-captured |
+
+All five are live at `https://help.scoryboard.com/en/articles/`:
+
+- 09.7 `.../16762199-inviting-people-sharing-a-preview-and-the-matches-calendar`
+- 10.10 `.../16769883-live-viewers-and-following-a-match-from-another-device`
+- 12.4 `.../16733249-choosing-a-format-for-a-football-tournament`
+- 14.1 `.../16736750-how-the-fixture-list-is-generated-for-a-football-tournament`
+- 14.5 `.../16736756-rescheduling-fixtures-and-rolling-them-onto-the-next-day`
+
+Images pinned to `df1b5eb08bc3e22bb0fdbe6fed3289303c2d67d6`. All 31 URLs verified
+200 `image/png` on jsDelivr before publishing, and all 31 re-fetched off the live
+Intercom bodies afterwards - all rehosted, none broken. Every deleted phrase and
+every added phrase was then checked against the rendered public HTML: 0 problems.
+
+None of these five articles uses `{{link:}}`. They all predate cross-references
+and carry quoted titles instead, so the additions follow the same convention
+rather than mixing two styles in one article. The 173 cross-references elsewhere
+in the project are untouched and still resolve.
+
+### The match preview became public. That is the whole of A1 and A3.
+
+`GET /matches/:id` answers **200 with no token**, and so do `GET /teams/:id`,
+`GET /teams/:id/players` and `GET /players/:id` - which is where the line-up names
+come from. Measured from a fresh browser context, signed out:
+
+- Before kick-off the page is headed **Match Preview (View Only)**; afterwards,
+  **Match Result**.
+- A stranger sees the score, the countdown, the date, the kick-off, the venue,
+  the pitch, the referee, the leaderboard, the organiser's note, **both line-ups
+  by name**, and both teams' FACTS insights and statistics.
+- Once played, they also see the **whole feed**: every goal with scorer and
+  assister by name, every yellow and red card by name, typed commentary,
+  **Player of the match**, the average rating and review count - and the name of
+  whoever recorded each event, which is the manager.
+- The page carries `og:title`, `og:description` and `twitter:card`, so the link
+  **unfurls** with the two teams, the venue and its town, and the date.
+- A signed-out viewer is **counted** in the ONLINE tally and listed as
+  **Anonymous User** in the viewer panel, beside the owner's own row marked
+  **(You)**.
+
+**Three things did NOT change and were deliberately left alone**, all re-checked:
+`/matches/:id` signed out still redirects to `/signin`; a leaderboard's share link
+is still sign-in only (08.5); and `19.4` needed no edit - it says where the average
+rating appears, which is still true, and nothing in it becomes false.
+
+`GET /matches/:id/events` still answers **401** with no token. The feed a stranger
+reads comes from Firestore, not from that endpoint.
+
+### Verifying the feed half cost a permanent throwaway on kb-manager-pro-09@
+
+The feed and Player of the Match claims could not be read off a Scheduled match,
+and collection 09 holds no finished one. Two throwaway teams, a throwaway
+leaderboard and two throwaway matches were built on `kb-manager-pro-09@`, one of
+them played out with goals, cards, commentary and a Player of the Match, and read
+back signed out.
+
+**Both matches then appeared on Mo's `/schedule`,** which is exactly what 09.7's
+shots 05 and 06 photograph, and neither could be deleted - `DELETE` refuses any
+match whose date has passed. They were removed from the calendar by cancelling
+them instead, and the calendar was confirmed back to exactly its two seeded
+fixtures. The teams and the leaderboard were deleted. `seed-09.mjs` prunes stray
+leaderboards anyway.
+
+**Two cancelled matches now sit on that account for ever.** They are invisible in
+the calendar, in team fixture lists and in the leaderboard, which is the same
+harmless residue the 09 suite already leaves - see "Cancelled matches left
+behind". Worth knowing before somebody counts rows.
+
+**This contradicts `config/api.md`.** It says a Finished match is permanent and
+that `POST /status` refuses one. On 2026-09-08 both
+`PUT /matches/:id {"status":"Cancelled"}` and
+`POST /matches/:id/status {"status":"Cancelled"}` answered **200 on a Finished
+match**. No control in the app does this, so no published article is wrong - but
+the reference is. Not fixed here; `config/api.md` is A16's job.
+
+### A2 and A5 were stop-and-asks, and both were raised before anything was written
+
+Both fired the CLAUDE.md triggers - a documented step that no longer matches the
+app, and a called-for screenshot that cannot be produced. Both were put to the
+repo owner with the measurements in hand, and both decisions are theirs:
+
+- **A2**: scope 14.5's rolling section to Group & Knockout.
+- **A5**: reopen collection 12's do-not-re-run for 12.4 only.
+
+`Last allowed match start time` is gone from the product. On **KB 14 Cup**
+(Group & Knockout) a cutoff survives as **`End time`**, help text *"If the next
+match would finish past this time, scheduling moves to the next day."* On
+**KB 14 League** (Round Robin) - 14.5's own fixture - there is **no cutoff field
+at all**. The rule is finish-inclusive, and the article now works the arithmetic
+through: 15-minute matches 20 apart from 10:00 with an End time of 11:00 give
+10:00-10:15 and 10:35-10:50, and the next would run 11:10-11:25, so it rolls.
+
+`KB 14 Cup` is also 14.1's and 14.8's fixture. 14.5 now re-times it and restores
+it in a `finally` block using the new `CUP_GROUP_A_SCHEDULE` in
+`lib/fixtures-14.mjs`. **Verified: after the run, 14.1's five captures and 14.8's
+three are pixel-identical to what is published.** If that restore is ever
+dropped, both articles' images change.
+
+### A4 and A5 are the same product change, and it is flagged
+
+Saved from the format screen at its own defaults, measured on throwaway
+tournaments built on `kb-organiser-14@` and deleted afterwards:
+
+| Template | Fixtures | Dated | Status | Schedule tab |
+|---|---|---|---|---|
+| Group phase only, 1 group of 4 | 6 | **0** | all **Incomplete** | an empty **WEEK 1**, and an **UNSCHEDULED** band holding all six |
+| Group & knockout, 2 groups of 4 | 13 | **13** | all **Scheduled** | no WEEK or UNSCHEDULED bands; 10-minute steps, as before |
+
+The cause is the **League schedule** block that replaced the overflow Yes/No on
+Group phase only. It writes `footballGroupScheduleMode`,
+`footballScheduleFrequencyWeeks`, `footballScheduleVenueCount`,
+`footballScheduleStartTime` and `footballPreferredMatchDays` - and that last one
+is **empty by default**. No day ticked means no slot, so every fixture is
+generated undated.
+
+Ticking a day does not simply fix it. With the default 1 week and 1 pitch, saving
+opens **`Schedule capacity exceeded`**: *"6 matches per group x 1 groups = 6
+total. Only 1 fit in 1 weeks. Create 5 extra weeks?"* with **No, create only 1
+weeks** / **Yes, create extra weeks** / **Close**. Accepting it dates all six,
+one per ticked day a week apart. Both articles say so. **This corrects
+8sept-updates.md B1**, which records the dialog as blocking the save with no
+inline error - it blocks the save, but it offers a choice.
+
+**Read this before trusting A4 or A5 in production.** Everything in this section
+was measured on **staging only**. 8sept-updates.md B1 says the League schedule
+block sits behind `FOOTBALL_GROUP_LEAGUE_SCHEDULER_ENABLED` and that nobody has
+confirmed that flag outside staging; the flag is unreadable from the app, and
+`/users/me` returns no `flags` key in either environment. The repo owner was
+asked and chose to publish on the staging measurement. **If that flag is off in
+production, 14.1's "Group phase only is different" section and 12.4's shot 06
+both describe something a reader cannot see.** That is the single thing to
+re-check first.
+
+### Things found on the way that nobody asked for
+
+- **The match share link gained a slug.** It is now
+  `/match/<home>-vs-<away>/<id>/preview`, not `/match/<id>/preview`. It broke
+  `specs/09/09.7.spec.ts`'s exact assertion, which now matches on the id and the
+  route. It also changed 09.7's shot 01, whose QR code encodes that link, so **01
+  was re-captured as well** - one shot more than A1 asked for. The old
+  slug-less route still resolves.
+- **The Round Robin Schedule tab grew a `WEEK 1` band heading.** This is the same
+  change A4 is about, showing up where nobody looked for it. It shifted 14.5's
+  shot 02 by 19.3% and changed shot 04's height, so all six of 14.5's shots were
+  re-captured rather than mixing a stale strip with a fresh one.
+  **`14.3` photographs the same tab and is NOT fixed** - its shots predate the
+  heading. That is 8sept-updates.md A13, out of this session's scope.
+- **12.4's re-capture cost more than shot 06.** The League schedule block is tall,
+  so the layout moved under every capture: 03, 04 and 05 differ by about 27%, and
+  01, 02, 07 and 08 by about 4%. Only 09 was unchanged. All nine were taken
+  together. Nothing was saved on KB New Cup; the spec still only reads the Format
+  tab.
+- **A5's stated cost did not apply.** Reopening was said to mean accepting that
+  `kb-organiser@` holds four tournaments rather than two. The six captures that
+  photograph the tournament list are 12.1/01, 12.2/01, 12.3/04, 12.5/09, 12.6/02
+  and 12.8/01 - none in 12.4. No visible tournament count changed.
+
+### Two mechanical traps, both now commented in specs/14/14.5.spec.ts
+
+Worth reading before writing any spec that drives the bulk dialog:
+
+- **`pickDate` takes a months-forward count, not a month.** `freezeClock` pins the
+  app to 28 Aug 2026, so reaching 19 September needs `1`. Passing `0` picked 19
+  **August** and the update silently did nothing.
+- **The dialog closes before the refetch lands.** Capturing on the dialog's
+  disappearance alone photographs the schedule as it was - which is what the first
+  run of this rewrite produced, six fixtures still ten minutes apart on one day.
+  The assertion on `Mon, Sep 21 2026` is the proof the update applied. Do not
+  replace it with a bare wait.
+
+### Flake
+
+One. `09.7`'s "the share window, and what the link shows a signed-out visitor"
+failed once inside a full-file run and passed on the two runs after it, the second
+producing a **byte-identical** shot 01 and shot 02. Not diagnosed. If it recurs,
+suspect the ONLINE presence subscription, which is the one thing on that page that
+depends on another context being open.
+
+### What was left alone, deliberately
+
+- **A6 to A16, and all of section B.** Out of scope for this session.
+- **`config/api.md` and `8sept-updates.md`** carry the repo owner's own uncommitted
+  edits and were not staged. Two of the seven A16 gaps listed there were measured
+  here and could be written up from observed traffic: the `endTime` field on
+  `PUT /tournament-groups/:groupId`, and the five `footballSchedule*` fields on the
+  tournament.
+- **`08.5`, `02.6`, `15.1`, `15.2`, `15.5` and `19.4`**, as A1 instructs. `02.6`'s
+  and `19.4`'s claims were re-checked and both still hold.
+
+### Articles to re-read first
+
+1. **14.1** and **12.4** - both rest on the unconfirmed
+   `FOOTBALL_GROUP_LEAGUE_SCHEDULER_ENABLED` flag. See above.
+2. **09.7's "What the link shows"** - it tells a reader their players' names and
+   the whole match feed are readable by anybody holding the link. That is true and
+   verified, and it is the sharpest thing any of these five articles says.
+3. **14.5** - it now spans two tournaments, KB 14 League for shots 01-04 and
+   KB 14 Cup for 05-06. Check the scope sentences read clearly to somebody who has
+   only one of the two formats in front of them.
