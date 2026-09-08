@@ -249,6 +249,31 @@ pass as the articles, not after.
 - [ ] Fix line 91 - `GET /users/me` returns no `flags` key at all.
 - [ ] Fix `config/articles.yaml`'s note on 13.10 - see A7.
 
+**Then add what is missing.** Seven surfaces behind the work above are undocumented.
+The Postman collection does not have them - a regenerated OpenAPI export was diffed on
+2026-09-08 and added nothing - so recover them off the wire, the way the other 83 in
+this file were: drive the flow in the browser with the network log recording, read the
+real method, path and body, and append it to the relevant group marked
+`(observed in app, not in collection)` with the date. **An observed request is
+evidence. A path you reasoned your way to is not.**
+
+Ordered so the two that gate seeding come first.
+
+- [ ] **Football points on `PUT /tournament-groups/:groupId`.** Line 2295 lists that
+  body and has no points fields; only the padel ones are recorded. Needed to seed B1.
+- [ ] **The League schedule fields**, same endpoint - schedule mode, preferred match
+  days, weeks, matches per week, pitch count, daily start time. Needed to seed B1 and
+  B6, and to reproduce A4's undated round-robin.
+- [ ] **Padel profile fields** on the user update - best hand, court position, match
+  type, preferred time, padel bio. Needed to seed B2.
+- [ ] **Padel read surfaces** - statistics, teams, team rankings, tournament history,
+  and the `sport` filter on my-teams and team-rankings. Needed for B2's read half.
+- [ ] **The padel next-round call** behind `Continue <format>`. Needed for A6 and B5.
+- [ ] **`PUT /matches/:id {date: null}`** - the unschedule path. `isDateOnly` is
+  already listed as a match field with no note; add what a null date does. A14, B6.
+- [ ] **The public sitemap and per-match SEO endpoints.** Unauthenticated, so record
+  them as such. A1.
+
 ---
 
 ## B. Gaps - nothing false, something missing
