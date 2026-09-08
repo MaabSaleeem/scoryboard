@@ -1,14 +1,14 @@
 // Idempotent seed for collection 02 - "Finding your way around & your profile".
 //
 //   node scripts/seed-02.mjs
-//   node scripts/seed-02.mjs --rebuild     # delete the three accounts first
+//   node scripts/seed-02.mjs --rebuild     # delete the four accounts first
 //
 // Safe to re-run. Every account, team, member, follow and the one match is
 // looked up before it is written, so a second run makes almost no writes.
 // Nothing here reads a clock, a random value, or a mailbox.
 //
 // Accounts are isolated per collection (config/personas.yaml, account_isolation).
-// This script touches ONLY the three addresses in lib/fixtures-02.mjs. It never
+// This script touches ONLY the four addresses in lib/fixtures-02.mjs. It never
 // touches another collection's.
 //
 // --- Read this before you re-run it after a failure ----------------------
@@ -28,7 +28,7 @@ import {
   admin, asUser, mintSession, upload, j,
 } from '../lib/api.mjs';
 import {
-  ACCOUNTS, PROFILES, IMAGES, TEAMS, SQUADS, POSITIONS, MATCH,
+  ACCOUNTS, PROFILES, PADEL_PROFILE, IMAGES, TEAMS, SQUADS, POSITIONS, MATCH,
   EXPECTED_PLAYER_STATS, FOLLOWS,
 } from '../lib/fixtures-02.mjs';
 
@@ -92,6 +92,42 @@ async function ensureProfile(me, key, extra = {}) {
   if (!put.ok) throw new Error(`PUT /users/${me.id}: ${j(put.body)}`);
   note('PUT', `/users/${me.id}`, put.status,
     `${p.gender}, ${p.position}, bio ${p.bio.length} chars${Object.keys(extra).join(' ') && ` + ${Object.keys(extra).join(' ')}`}`);
+  return (await lookup(me.email)) ?? me;
+}
+
+/**
+ * Bring the padel account to the state 02.6, 02.7 and 02.8 photograph.
+ *
+ * Separate from ensureProfile() above rather than folded into it, because the
+ * two profiles do not have the same fields: PROFILES carries `position` and
+ * PADEL_PROFILE carries `bestHand`, `courtPositions`, `matchType`,
+ * `preferredTime` and `padelBio` instead. Sending one shape through the other's
+ * comparison would rewrite the account on every run.
+ *
+ * PUT /users/:userId is still a full replace, so the whole profile goes every
+ * time. See lib/fixtures-02.mjs for where each field name came from.
+ */
+async function ensurePadelProfile(me) {
+  const p = PADEL_PROFILE;
+  const same = me.gender === p.gender
+    && me.defaultProfile === p.defaultProfile
+    && me.bestHand === p.bestHand
+    && me.courtPositions === p.courtPositions
+    && me.matchType === p.matchType
+    && me.preferredTime === p.preferredTime
+    && me.bio === p.bio
+    && me.padelBio === p.padelBio
+    && me.isMarketingOpted === false
+    && (me.sports ?? []).join() === p.sports.join()
+    && String(me.dateOfBirth ?? '').startsWith(p.dateOfBirth);
+  if (same) {
+    note('GET', '/users/me', 200, `${me.email}: padel profile already set`);
+    return me;
+  }
+  const put = await asUser(me.token, `/users/${me.id}`, { method: 'PUT', body: p });
+  if (!put.ok) throw new Error(`PUT /users/${me.id}: ${j(put.body)}`);
+  note('PUT', `/users/${me.id}`, put.status,
+    `padel: ${p.bestHand}, ${p.courtPositions}, ${p.matchType}, ${p.preferredTime}`);
   return (await lookup(me.email)) ?? me;
 }
 
@@ -354,6 +390,15 @@ if (pro.membership !== 'Pro') {
   pro = await lookup(ACCOUNTS.pro);
 }
 ids.pro = { id: pro.id, playerId: pro.playerId, membership: pro.membership };
+
+// The padel account. Free, no team, no match, no leaderboard beyond the one
+// POST /admins/users makes for it - the layout is what 02.6, 02.7 and 02.8
+// photograph, and a padel profile has no Matches panel to fill anyway.
+let padel = await ensureAccount('padel');
+padel = await ensurePadelProfile(padel);
+ids.padel = {
+  id: padel.id, playerId: padel.playerId, defaultProfile: padel.defaultProfile,
+};
 
 // The persona must stay Free: 02.8's Free half is her own screen, and every
 // other article in this collection is captured as a Free member.

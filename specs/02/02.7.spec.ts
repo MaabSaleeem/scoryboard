@@ -9,12 +9,23 @@
 // Matches, which is the article's fourth step. The match card carries the
 // match's own date - 20 Aug 2026, not today - so it does not drift between runs
 // and needs no mask.
+//
+// --- Shot 05, added 2026-09-08 -------------------------------------------
+//
+// 8sept-updates.md A10. The article opens "Four panels on your home page answer
+// what have I actually played". A padel account has two of those four: Teams and
+// Team rank. There is no Matches panel and no Leaderboards table, and there is a
+// PADEL TOURNAMENTS panel instead.
+//
+// Captured full-page rather than clipped, which the style guide allows only when
+// the article documents a whole page - and here the subject IS the whole page.
+// Two of the four panels are missing, and an absence cannot be clipped to.
 
 import { test, expect } from '@playwright/test';
 import {
   shot, quiet, blockPromos, signInAs, onlyOurActivities, onScreen,
   fixtures02, statsReady, KB02, KB02_TEAMS,
-  panel, viewsCount, notificationBadge,
+  panel, viewsCount, notificationBadge, trendingTimes,
 } from '../../lib/kb';
 
 test.describe('02.7 Your teams, rankings and match history', () => {
@@ -55,6 +66,34 @@ test.describe('02.7 Your teams, rankings and match history', () => {
     await expect(onScreen(boards.getByText("Otto's leaderboard", { exact: true })).first()).toBeVisible();
     await shot(page, '02.7', '04-leaderboards-table', {
       clip: boards, mask: [viewsCount(page), notificationBadge(page)],
+    });
+  });
+
+  test('a padel account has two of those four panels, and one of its own', async ({ page }) => {
+    const fx = await fixtures02();
+
+    await blockPromos(page);
+    await onlyOurActivities(page);
+    await signInAs(page, KB02.padel, '/');
+    await quiet(page);
+
+    // Assert the shape before photographing it. Teams and Team rank survive on
+    // the padel side; the Matches panel and the Leaderboards table do not, and
+    // PADEL TOURNAMENTS stands where the Leaderboards table would be.
+    await expect(onScreen(page.getByText('Perry KB', { exact: true })).first()).toBeVisible();
+    await panel(page, 'TEAM RANK');
+    await panel(page, 'TEAMS');
+    await expect(onScreen(page.getByText('PADEL TOURNAMENTS', { exact: true })).first())
+      .toBeVisible();
+    await expect(page.locator('main h3').filter({ hasText: /^MATCHES$/i })).toHaveCount(0);
+    await expect(page.locator('main h3').filter({ hasText: /^Leaderboards$/i })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Create Match' })).toHaveCount(0);
+
+    // 05 - the whole page. The Trending strip's stamps are relative and move
+    // every run, so they are masked; the panels are the subject and are not.
+    await shot(page, '02.7', '05-padel-home-panels', {
+      fullPage: true,
+      mask: [viewsCount(page), notificationBadge(page), trendingTimes(page)],
     });
   });
 });

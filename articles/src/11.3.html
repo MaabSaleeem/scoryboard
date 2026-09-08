@@ -1,14 +1,16 @@
 <!-- title: When your statistics update after a match -->
-<!-- description: Statistics update within seconds of a match ending, but only for a match in a leaderboard, and only after you reload the page. -->
+<!-- description: Statistics update within seconds of a match ending, but only for a finished match, and only after you reload the page. -->
 
 <p>Your statistics update within a few seconds of a match ending. The page does not refresh itself, so reload it to see the new figures.</p>
 
-<p>Two things have to be true first. The match has to be <strong>finished</strong>, and it has to belong to a <strong>leaderboard</strong>. A match outside a leaderboard is never counted, however long you wait.</p>
+<p>One thing has to be true first: the match has to be <strong>finished</strong>. A match that is still Live, Paused or Incomplete writes nothing, however long you wait.</p>
+
+<p>Two kinds of finished match count. A match in a <strong>leaderboard</strong>, and a <strong>tournament fixture</strong>. There is no third kind: an ordinary match with no leaderboard never leaves Incomplete, so it can never be played.</p>
 
 <h2>Check the match, then reload</h2>
 
 <ol>
-  <li>Open the match. The <strong>MATCH DETAILS</strong> card has to read <strong>MATCH ENDED</strong>, and the strip along the bottom has to name a leaderboard.
+  <li>Open the match. The <strong>MATCH DETAILS</strong> card has to read <strong>MATCH ENDED</strong>. On a leaderboard match, the strip along the bottom names the leaderboard.
     {{shot:01|A finished match: the MATCH ENDED pill, the score, and the strip below naming KB 11 Sunday League, which is outlined.}}
   </li>
   <li>Reload <strong>Home</strong>. Your tiles carry the new figures. The <strong>LEADERBOARDS</strong> table at the foot of the page shows which leaderboard they came from.
@@ -20,17 +22,20 @@
 
 <p><strong>Seconds, not minutes.</strong> The figures are ready within ten seconds of the final whistle. You get no notification, so reload the page to see them. If a minute has passed and nothing has changed, the cause is below.</p>
 
-<p><strong>The same figures appear in four places.</strong> Your tiles on Home, the <strong>LEADERBOARDS</strong> table under them, your team's tiles, and the team's <strong>PLAYER STATS</strong> table.</p>
+<p><strong>The same figures appear in three places.</strong> Your tiles on Home, your team's tiles, and the team's <strong>PLAYER STATS</strong> table.</p>
+
+<p><strong>The LEADERBOARDS table is the fourth place, and it counts less.</strong> Each row is one leaderboard and holds only that leaderboard's own matches. A tournament fixture is in your tiles and in none of those rows.</p>
 
 <p><strong>A leaderboard with no matches reads zero.</strong> Your account comes with a leaderboard of its own. It stays at zero until a match is played in it.</p>
 
 <h2>If it does not work</h2>
 
 <ul>
-  <li><strong>No leaderboard is named under the score.</strong> The match is not counted, and it never will be. A finished match cannot be moved into a leaderboard.</li>
+  <li><strong>No leaderboard is named under the score.</strong> Check whether it is a tournament fixture. A tournament fixture has no leaderboard and still counts towards your tiles. An ordinary match with no leaderboard was never played, and a finished match cannot be moved into a leaderboard afterwards.</li>
   <li><strong>The match does not read MATCH ENDED.</strong> A match that is still Live, Paused or Incomplete writes nothing.</li>
   <li><strong>Your team's figures moved and yours did not.</strong> You were not in the lineup for that match. Your figures count only the matches you were named in. See "How team and player statistics are calculated".</li>
   <li><strong>The match is in your Matches list but not in your count.</strong> The list shows your teams' fixtures. The count shows the matches you were named in.</li>
+  <li><strong>Your tiles moved and the LEADERBOARDS table did not.</strong> The match was a tournament fixture. That table counts leaderboard matches only.</li>
   <li><strong>You reloaded and nothing changed.</strong> Check the score on the match. Goals entered after the match ended were not recorded, because a finished match cannot be edited.</li>
 </ul>
 

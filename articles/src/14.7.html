@@ -1,5 +1,5 @@
 <!-- title: Why padel matches share a start time, and when that is a clash -->
-<!-- description: A shared kick-off is what a round is. It is only a problem when the matches also share a court. -->
+<!-- description: A shared kick-off is what a round is. It is only a problem when the matches also share a court, and two things can do that. -->
 
 <p>In a padel tournament, matches that start at the same time are normal. That is what a <strong>round</strong> is: every pair plays at once, on a court of its own.</p>
 
@@ -21,6 +21,8 @@
 
 <p>It is a clash when two matches share a start time <strong>and</strong> a court number. Two pairs cannot use one court at once.</p>
 
+<p>A pair in two matches at once is the same problem. Look for a pair whose name appears twice under one kick-off time.</p>
+
 <ol>
   <li>Look down the court column. If every match reads the same court, they have all been written to it.
     {{shot:03|A padel group where all eight matches kick off at 10:00 and every one is on court 1.}}
@@ -28,19 +30,38 @@
   <li>Select <strong>Format</strong>, then <strong>Configuration</strong>, and check <strong>Courts</strong>.
     {{shot:04|The Padel Configuration dialog with the Courts field outlined, set to 4.}}
   </li>
-  <li>Save the configuration to rebuild the fixtures. Each match in a round gets its own court again.</li>
 </ol>
 
 <h2>What causes it</h2>
 
-<p>Only one thing does: a <strong>Court number</strong> typed into <strong>BULK MATCH UPDATE</strong>. That field writes the same court to every match it touches. Leave it empty unless the whole group really is on one court.</p>
+<p>Two things do.</p>
 
-<p>The fixture generator will never double-book a court on its own. Lower <strong>Courts</strong> to 1 and it splits the round across two start times instead of putting both matches on court 1.</p>
+<p><strong>A Court number typed into BULK MATCH UPDATE.</strong> That field writes the same court to every match it touches. Leave it empty unless the whole group really is on one court.</p>
+
+<p><strong>A round added by the Continue banner.</strong> Once every fixture in the group has a score, the <strong>Results</strong> tab grows a banner - <strong>Continue RoundRobin</strong>, or your own format's name - reading "Complete the current round to create the next player combinations". Selecting <strong>Continue</strong> builds another round, and that round is not spaced the way the first ones were.</p>
+
+<p>Read a Continue-added round before you publish it. On a round-robin tournament with four pairs and four courts, six new fixtures arrived in two kick-off times rather than six: four at the first and two at the second. Three of the four at the first kick-off were the same pair. One of them landed on a court and a kick-off time that an already-played fixture holds.</p>
+
+<p>The first fixture list does not do this. Set <strong>Courts</strong> to 1 and the generator splits a round across two start times rather than putting two matches on court 1.</p>
+
+<h2>How to fix a Continue-added round</h2>
+
+<p>Change the kick-off times and courts by hand, on the <strong>Schedule</strong> tab, with <strong>SELECT MATCH TO UPDATE</strong>.</p>
+
+<p><strong>Do not save Padel Configuration to rebuild them.</strong> Saving a changed configuration throws every fixture away and builds the group again from the format. On a tournament that has been played, that means:</p>
+
+<ul>
+  <li>the round Continue added is deleted;</li>
+  <li>every match that had been played goes back to <strong>Scheduled</strong> with no score.</li>
+</ul>
+
+<p>Eighteen played fixtures were reset this way on a test tournament. Nothing undoes it. Saving the dialog with nothing changed is safe and rebuilds nothing, but it also fixes nothing.</p>
 
 <h2>If it does not work</h2>
 
 <ul>
-  <li><strong>Every match is on court 1.</strong> Clear the court number and rebuild the fixtures by saving Padel Configuration.</li>
+  <li><strong>Every match is on court 1.</strong> A bulk update wrote that court number across the group. Clear it and set the courts again with <strong>SELECT MATCH TO UPDATE</strong>. Do not reach for Padel Configuration if any fixture has been played - see above.</li>
+  <li><strong>A pair is in two matches at one kick-off time.</strong> The round was added by <strong>Continue</strong>. Re-time one of the two by hand.</li>
   <li><strong>You have more courts than the rounds use.</strong> A round can only hold as many matches as there are pairs to play them. Four pairs make two matches, so only two courts are used.</li>
   <li><strong>The rounds have become a flat list.</strong> <strong>Same start time per round</strong> was cleared in a bulk update. Tick it and update the group again.</li>
   <li><strong>This is a football tournament.</strong> There, matches sharing a time is a genuine clash - see "Why two football fixtures clash, and fixtures showing only one team".</li>

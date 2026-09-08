@@ -1190,14 +1190,15 @@ export async function rebuildVerified01(
 import {
   ACCOUNTS as KB02, PROFILES as KB02_PROFILES, TEAMS as KB02_TEAMS,
   IMAGES as KB02_IMAGES, EXPECTED_PLAYER_STATS as KB02_STATS,
+  PADEL_PROFILE as KB02_PADEL,
 } from './fixtures-02.mjs';
 
-export { KB02, KB02_PROFILES, KB02_TEAMS, KB02_IMAGES, KB02_STATS };
+export { KB02, KB02_PROFILES, KB02_TEAMS, KB02_IMAGES, KB02_STATS, KB02_PADEL };
 
 /**
  * The collection's accounts and fixtures, looked up rather than hardcoded.
  *
- * `scripts/seed-02.mjs --rebuild` deletes and recreates all three accounts, and
+ * `scripts/seed-02.mjs --rebuild` deletes and recreates all four accounts, and
  * every id changes when it does. A spec that carried an id would then point at
  * a deleted row - collection 12 learned the same lesson about tournaments.
  */
@@ -1206,11 +1207,26 @@ export async function fixtures02() {
     const token: string = (await mintSession(email)).idToken;
     const me = (await asUser(token, '/users/me')).body?.data;
     if (!me?.playerId) throw new Error(`${email} is not seeded. Run: node scripts/seed-02.mjs`);
-    return { email, token, id: String(me.id), playerId: String(me.playerId), membership: me.membership };
+    return {
+      email, token, id: String(me.id), playerId: String(me.playerId),
+      membership: me.membership, defaultProfile: me.defaultProfile,
+    };
   };
   const player = await session(KB02.player);
   const owner = await session(KB02.owner);
   const pro = await session(KB02.pro);
+  const padel = await session(KB02.padel);
+
+  // The padel account has to OPEN on the padel side, which is `defaultProfile`
+  // and not `sports`. An account whose sports are padel but whose default is
+  // Player still gets the two-pill switch and still lands on Football, and the
+  // padel layout - which is what 02.6, 02.7 and 02.8 photograph - never renders.
+  if (padel.defaultProfile !== 'Padel') {
+    throw new Error(
+      `${KB02.padel} must have defaultProfile "Padel", not "${padel.defaultProfile}". `
+      + 'Run: node scripts/seed-02.mjs',
+    );
+  }
 
   if (player.membership !== 'Free' || pro.membership !== 'Pro') {
     throw new Error(
@@ -1226,7 +1242,7 @@ export async function fixtures02() {
     return String(row.teamId);
   };
   return {
-    player, owner, pro,
+    player, owner, pro, padel,
     home: byName(KB02_TEAMS.home),
     away: byName(KB02_TEAMS.away),
   };
@@ -1274,7 +1290,7 @@ export async function statsReady(token: string, playerId: string) {
  * Call before the first navigation: a route added after the fetch has gone out
  * does nothing.
  */
-export const KB02_OURS = /KB 02|Pia KB|Pru KB|Otto KB|Pia K FC/;
+export const KB02_OURS = /KB 02|Pia KB|Pru KB|Otto KB|Pia K FC|Perry KB|Perry K FC/;
 
 export async function onlyOurActivities(page: Page) {
   // A URL predicate rather than a glob, for the reason in blockPromos() above:
@@ -1332,6 +1348,54 @@ export async function statTiles(page: Page) {
   await expect(grid.getByText(/^assists$/i)).toBeVisible();
   await expect(grid.getByText(/^player of the match$/i)).toBeVisible();
   return grid;
+}
+
+/**
+ * The padel profile's own grid of ten tiles.
+ *
+ * A padel profile is NOT the football profile with different numbers in it - it
+ * is a different layout, and five of its ten tiles do not exist on the football
+ * side: WIN RATE, BEST HAND, COURT POSITION, MATCH TYPE and PREFERRED TIME. So
+ * statTiles() above cannot find it: that helper keys on "goals scored", which a
+ * padel profile has no tile for.
+ *
+ * Keyed on "best hand" for the same reason - it is on the padel side and nowhere
+ * else. Case-insensitive, because the DOM's casing under the CSS is inconsistent
+ * across the whole tile grid (see statTile above).
+ */
+export async function padelStatTiles(page: Page) {
+  const grid = statTile(page, 'best hand')
+    .locator('xpath=ancestor::div[contains(@class,"grid")][1]');
+  await expect(grid.getByText(/^court position$/i)).toBeVisible();
+  await expect(grid.getByText(/^match type$/i)).toBeVisible();
+  await expect(grid.getByText(/^preferred time$/i)).toBeVisible();
+  await expect(grid.getByText(/^win rate$/i)).toBeVisible();
+  return grid;
+}
+
+/**
+ * The profile-role switch at the top right of a profile.
+ *
+ * A radix toggle group - `role="radiogroup"` holding `role="radio"` buttons.
+ * The number of pills depends on the account, which is the whole point of
+ * 21.1's and 02.6's corrections:
+ *
+ *   football only, not a referee   ONE pill,   Football
+ *   plays padel, not a referee     TWO pills,  Football, Padel
+ *   plays padel and a referee      THREE,      Referee, Football, Padel
+ *
+ * The visible LABEL renders on some pills and not others depending on which is
+ * selected, so the reliable handle is the `<img alt="...">` inside each -
+ * "Referee profile", "Football profile", "Padel profile". config/api.md says the
+ * same thing.
+ */
+export function profileSwitch(page: Page) {
+  return onScreen(page.locator('main [role="radiogroup"]')).first();
+}
+
+export function profilePill(page: Page, alt: 'Referee' | 'Football' | 'Padel') {
+  return profileSwitch(page)
+    .locator(`[role="radio"]:has(img[alt="${alt} profile"])`);
 }
 
 /** The sidebar's own navigation list: Home down to Subscriptions. */
@@ -1550,7 +1614,10 @@ export async function fixtures07() {
     const token: string = (await mintSession(email)).idToken;
     const me = (await asUser(token, '/users/me')).body?.data;
     if (!me?.playerId) throw new Error(`${email} is not seeded. Run: node scripts/seed-07.mjs`);
-    return { email, token, id: String(me.id), playerId: String(me.playerId), membership: me.membership };
+    return {
+      email, token, id: String(me.id), playerId: String(me.playerId),
+      membership: me.membership, defaultProfile: me.defaultProfile,
+    };
   };
 
   const pro = await session(KB07.pro);
