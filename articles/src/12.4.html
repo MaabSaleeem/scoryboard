@@ -37,20 +37,26 @@
   <li>Choose <strong>Encounters</strong> - how many times each team plays the others in its group. The list stays empty until the two fields above it are filled in.
     {{shot:05|The Encounters list open, showing Play all teams in pool once selected, then 2, 3, 4, 5, 6 and 7.}}
   </li>
-  <li>Decide what happens to overflow. <strong>Yes</strong> pushes matches that will not fit onto the next day. <strong>No</strong> keeps them on the tournament date with no start time.
-    {{shot:06|The overflow question outlined, with Yes and No buttons and Yes selected.}}
+  <li>Fill in the <strong>League schedule</strong> block. It decides when the fixtures are played: the scheduling mode, how many pitches you have, how many weeks the league runs, how many matches a week, the daily start time, and which days you play on.
+    {{shot:06|The League schedule block outlined, showing Scheduling mode set to Custom schedule, Number of pitches/venues 1, Schedule duration 1 week, an empty Matches per week, a 10:00 AM daily start time, and Monday to Sunday all unticked.}}
   </li>
 </ol>
 
+<p><strong>Tick at least one day under Preferred match day(s).</strong> They all start unticked. With no day ticked there is nowhere to put a fixture, so every fixture is generated without a date. See "How the fixture list is generated for a football tournament".</p>
+
+<p><strong>Group phase only has no overflow question.</strong> The League schedule block is what handles the calendar here. The other two templates do have one - see below.</p>
+
 <h2>The other two templates</h2>
 
-<p><strong>Knockout phase only</strong> asks one question: how many teams go into the bracket.</p>
+<p><strong>Knockout phase only</strong> asks how many teams go into the bracket. You choose from 2, 4, 8, 16, 32 or 64.</p>
 
 {{shot:07|The Knockout phase only card selected and outlined, with a single question - how many teams proceed to knockout.}}
 
 <p><strong>Group &amp; knockout phase</strong> asks both sets: the group questions, then how many teams come out of the groups and into the bracket.</p>
 
 {{shot:08|The Group and knockout phase card selected and outlined, showing both the group fields and the knockout field.}}
+
+<p>Both of them also ask <strong>Automatically schedule overflow matches on the next day</strong>. <strong>Yes</strong> pushes matches that will not fit onto the next day. <strong>No</strong> keeps them on the tournament date with no start time. Neither template has a League schedule block.</p>
 
 <h2>What you will see</h2>
 
@@ -66,5 +72,8 @@
   <li><strong>"8 teams cannot be split into 3 equal groups."</strong> The number of teams has to divide by the number of groups. Scoryboard lists the group counts that would work - pick one of those.</li>
   <li><strong>"With 2 groups and 8 teams, each group must have 4 teams."</strong> Teams per group is not a free choice. It is the number of teams divided by the number of groups.</li>
   <li><strong>Encounters will not open.</strong> Fill in the number of groups and the teams per group first. Until both are set there is nothing for it to offer.</li>
+  <li><strong>There is no overflow question.</strong> You are on <strong>Group phase only</strong>, which does not have one. It has the League schedule block instead.</li>
+  <li><strong>Your fixtures have no dates.</strong> No day is ticked under <strong>Preferred match day(s)</strong>. Tick at least one and save again.</li>
+  <li><strong>"Schedule capacity exceeded."</strong> Your league has fewer slots than fixtures. Scoryboard counts the weeks, the days you ticked and the pitches, tells you how many fit, and offers to add the extra weeks. Choose <strong>Yes, create extra weeks</strong>, or go back and give it more days or more pitches.</li>
   <li><strong>Out of range.</strong> You can have 1 to 64 groups, 2 to 64 teams in each, and 1 to 128 matches per team.</li>
 </ul>

@@ -32,30 +32,45 @@
 
 <h2>Rolling fixtures onto the next day</h2>
 
-<p>A group that will not fit into one day can spill over into the next.</p>
+<p>A group that will not fit into one day can spill over into the next. The control that does it is <strong>End time</strong>.</p>
+
+<p><strong>Only a Group &amp; knockout tournament has an End time.</strong> A Group phase only tournament is a round-robin league, and its dialog has no End time and no other cutoff. Its fixtures cannot be rolled this way.</p>
 
 <ol>
   <li>Select <strong>BULK MATCH UPDATE</strong> on the group.</li>
   <li>Set the <strong>Match date</strong> and the <strong>First match start time</strong>.</li>
-  <li>Set <strong>Last allowed match start time</strong>. Nothing will be scheduled to start after it.
-    {{shot:05|The dialog with Last allowed match start time outlined and set to 11:00 AM, alongside a 10:00 AM start, a 15-minute duration and a 20-minute gap.}}
+  <li>Set <strong>End time</strong>. Nothing will be scheduled to <em>finish</em> after it.
+    {{shot:05|The Bulk Match Updates dialog with End time outlined and set to 11:00 AM, above its note "If the next match would finish past this time, scheduling moves to the next day", alongside a 10:00 AM start, a 15-minute duration and a 20-minute gap.}}
   </li>
   <li>Clear <strong>Same start time per round</strong>, then set <strong>Duration</strong> and <strong>Time between matches</strong>.</li>
   <li>Select <strong>Update Matches</strong>.
-    {{shot:06|Six fixtures spread two per day across Saturday 26, Sunday 27 and Monday 28 September.}}
+    {{shot:06|Six fixtures spread two per day across Saturday 19, Sunday 20 and Monday 21 September, kicking off at 10:00 and 10:35 each day.}}
   </li>
 </ol>
 
 <h2>What you will see</h2>
 
-<p>Fixtures fill the first day until the next kick-off would pass your <strong>Last allowed match start time</strong>. The rest move to the next day and start again at your first start time. Two matches a day, then the next day, and so on.</p>
+<p>Fixtures fill the first day until one would <strong>finish</strong> past your <strong>End time</strong>. That one moves to the next day and starts again at your first start time.</p>
+
+<p>The cutoff counts the whole match, not just its kick-off. The dialog says so: "If the next match would finish past this time, scheduling moves to the next day."</p>
+
+<p>Six fixtures, 15 minutes each, 20 minutes apart, starting at 10:00 with an End time of 11:00 work out like this:</p>
+
+<ul>
+  <li>10:00 to 10:15. It fits.</li>
+  <li>10:35 to 10:50. It fits.</li>
+  <li>The next would run 11:10 to 11:25. That finishes after 11:00, so it moves to the next day.</li>
+</ul>
+
+<p>Two matches a day, then the next day, and so on.
 
 <h2>If it does not work</h2>
 
 <ul>
   <li><strong>You want to delete a fixture.</strong> You cannot. A tournament fixture has no delete or cancel control. The fixtures come from the group, so removing one means deleting the group - see "Editing and deleting a group in a football tournament" - or changing the format, which rebuilds the whole list.</li>
   <li><strong>The pitch cell will not open.</strong> Select it once, directly. It turns into a text box.</li>
-  <li><strong>Everything landed on one day.</strong> No <strong>Last allowed match start time</strong> was set, so nothing was pushed over.</li>
+  <li><strong>Everything landed on one day.</strong> No <strong>End time</strong> was set, so nothing was pushed over.</li>
+  <li><strong>There is no End time in the dialog.</strong> This is a Group phase only tournament. Only Group &amp; knockout has one.</li>
   <li><strong>Every fixture now starts at the same time.</strong> <strong>Same start time per round</strong> was left ticked. See "Why two football fixtures clash, and fixtures showing only one team".</li>
   <li><strong>Nothing saved.</strong> The dialog needs at least one field filled in.</li>
 </ul>

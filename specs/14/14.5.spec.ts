@@ -15,14 +15,30 @@
 //   - the four cells on a fixture card - date, time, pitch, referee - each
 //     editable in place, sending PUT /matches/:id
 //   - SELECT MATCH TO UPDATE, which sends the same bulk payload with match ids
-//   - "Last allowed match start time", which rolls whatever will not fit onto
-//     the next day
+//   - the dialog's cutoff field, which rolls whatever will not fit onto the
+//     next day
+//
+// CHANGED 2026-09-08 - see 8sept-updates.md A2 and briefs/14.md, 14.5.
+// "Last allowed match start time" no longer exists anywhere in the product. Two
+// things replaced it, and they are NOT the same change:
+//
+//   1. Where a cutoff survives it is called `End time`, and its help text is
+//      "If the next match would finish past this time, scheduling moves to the
+//      next day." It counts the WHOLE match, not just its start.
+//   2. On a Round Robin tournament the field is gone entirely. KB 14 League's
+//      Bulk Match Updates dialog has no cutoff of any kind.
+//
+// So shots 05 and 06 moved from KB 14 League to KB 14 Cup, which is Group &
+// Knockout. Shots 01-04 stay on KB 14 League. KB 14 Cup is also 14.1's and
+// 14.8's fixture, so this spec restores its Group A before it finishes - the
+// same contract it already had with KB 14 League.
 
 import { test, expect } from '@playwright/test';
 import {
   signInAs, quiet, shot, fixtures14, headerIdentity, centre, onScreen, freezeClock,
   scheduleReady, scheduleCard, scheduleCardHeader, fixtureCard, openBulkDialog,
-  untickSameStartTime, pickDate, pickTime, asUser, restoreGroupSchedule, LEAGUE_SCHEDULE,
+  untickSameStartTime, pickDate, pickTime, asUser, restoreGroupSchedule,
+  LEAGUE_SCHEDULE, CUP_GROUP_A_SCHEDULE,
 } from '../../lib/kb';
 
 test.describe('14.5 Rescheduling fixtures', () => {
@@ -97,38 +113,80 @@ test.describe('14.5 Rescheduling fixtures', () => {
     await header.getByRole('button', { name: 'Cancel', exact: true }).click();
     await expect(header.getByRole('button', { name: 'Bulk Match Update', exact: true })).toBeVisible();
 
-    // The roll. Six fixtures, 15 minutes each with 20 between them, first at
-    // 10:00 and nothing allowed to start after 11:00 - so two fit on each day
-    // and the rest move on.
-    const card2 = await scheduleCard(page, 'Group A');
-    const dialog = await openBulkDialog(page, card2);
-    await pickDate(page, dialog.getByRole('button', { name: 'Select date' }), 1, '26');
+    // Round Robin has NO cutoff field. Asserted here, on this article's first
+    // fixture, because the article now says so in as many words. If the field
+    // ever comes back, this fails and the article needs its scope note removed.
+    const leagueDialog = await openBulkDialog(page, await scheduleCard(page, 'Group A'));
+    await expect(leagueDialog.getByText('End time', { exact: true })).toHaveCount(0);
+    await expect(leagueDialog.getByText('Last allowed match start time', { exact: true })).toHaveCount(0);
+    await leagueDialog.getByRole('button', { name: 'Close' }).click();
+    await expect(page.locator('[role="dialog"]').locator('visible=true')).toHaveCount(0);
+
+    const restoredLeague = await restoreGroupSchedule(asUser, fx.token, groupId, LEAGUE_SCHEDULE);
+    expect(restoredLeague.ok, 'restoring KB 14 League failed').toBeTruthy();
+  });
+
+  // The roll, on KB 14 Cup - Group & Knockout, the only football format that
+  // still has a cutoff.
+  //
+  // Six fixtures in Group A, 15 minutes each with 20 between them, first at
+  // 10:00 and an End time of 11:00. The rule is finish-inclusive: a fixture
+  // rolls when it would FINISH past the End time, not when it would start past
+  // it.
+  test('rolling a group onto the next day, on a Group and Knockout tournament', async ({ page }) => {
+    const fx = await fixtures14();
+    const detail = await fx.detail(fx.cup);
+    const groupA = detail.groups.find((g: any) => g.name === 'Group A') ?? detail.groups[0];
+
+    await signInAs(page, fx.email, `/tournaments/${fx.cup}/schedule`);
+    await quiet(page);
+    await freezeClock(page);
+    await scheduleReady(page);
+
+    const card = await scheduleCard(page, 'Group A');
+    const dialog = await openBulkDialog(page, card);
+    // One month forward: freezeClock pins the app to 28 Aug 2026, so the date
+    // picker opens on August and KB 14 Cup's own date is 19 September.
+    await pickDate(page, dialog.getByRole('button', { name: 'Select date' }), 1, '19');
     await pickTime(page, dialog.getByRole('button', { name: 'Select time' }).first(), '10', '00', 'AM');
     await pickTime(page, dialog.getByRole('button', { name: 'Select time' }).first(), '11', '00', 'AM');
     await untickSameStartTime(dialog);
     await dialog.locator('input[name="duration"]').fill('15');
     await dialog.locator('input[name="timeBetweenMatches"]').fill('20');
-    const lastAllowed = dialog.getByText('Last allowed match start time', { exact: true });
-    await expect(lastAllowed).toBeVisible();
-    await shot(page, '14.5', '05-last-allowed-start-time', {
+
+    const endTime = dialog.getByText('End time', { exact: true });
+    await expect(endTime).toBeVisible();
+    // The help text IS the rule, and the article quotes it. Assert it rather
+    // than trusting the label: the label changed name, but what changed meaning
+    // is the arithmetic underneath it.
+    await expect(dialog.getByText('If the next match would finish past this time, scheduling moves to the next day.'))
+      .toBeVisible();
+    await shot(page, '14.5', '05-end-time', {
       clip: dialog,
-      // The label and its field, so the outline carries the rule as well as the
-      // input: "If the next match start goes past this time, scheduling moves to
-      // the next day."
-      annotate: lastAllowed.locator('xpath=..'),
+      annotate: endTime.locator('xpath=..'),
     });
 
-    await dialog.getByRole('button', { name: 'Update Matches' }).click();
-    await expect(page.locator('[role="dialog"]').locator('visible=true')).toHaveCount(0);
+    try {
+      await dialog.getByRole('button', { name: 'Update Matches' }).click();
+      await expect(page.locator('[role="dialog"]').locator('visible=true')).toHaveCount(0);
 
-    const rolled = await scheduleCard(page, 'Group A');
-    await expect(onScreen(rolled.getByRole('button', { name: 'Mon, Sep 28 2026', exact: true })).first())
-      .toBeVisible();
-    await scheduleReady(page);
-    await centre(rolled);
-    await shot(page, '14.5', '06-rolled-across-days', { clip: rolled });
-
-    const restored = await restoreGroupSchedule(asUser, fx.token, groupId, LEAGUE_SCHEDULE);
-    expect(restored.ok, 'restoring KB 14 League failed').toBeTruthy();
+      // Wait for the THIRD day to appear before capturing. Not decoration: the
+      // dialog closes before the refetch lands, and a capture taken on the
+      // `[role="dialog"]` count alone photographs the schedule as it was. That
+      // is exactly what the first run of this rewrite produced - six fixtures
+      // still ten minutes apart on one day. This assertion is the proof the
+      // update applied, so do not remove it in favour of a bare wait.
+      const rolled = await scheduleCard(page, 'Group A');
+      await expect(onScreen(rolled.getByRole('button', { name: 'Mon, Sep 21 2026', exact: true })).first())
+        .toBeVisible({ timeout: 30_000 });
+      await scheduleReady(page);
+      await centre(rolled);
+      await shot(page, '14.5', '06-rolled-across-days', { clip: rolled });
+    } finally {
+      // KB 14 Cup is 14.1's and 14.8's fixture. Restore it whatever happened
+      // above, or their captures change on the next run.
+      const restored = await restoreGroupSchedule(asUser, fx.token, groupA.id, CUP_GROUP_A_SCHEDULE);
+      expect(restored.ok, 'restoring KB 14 Cup Group A failed').toBeTruthy();
+    }
   });
 });

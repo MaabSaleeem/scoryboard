@@ -1,5 +1,24 @@
 // 12.4 - Choosing a format, groups and matches per team.
 //
+// RE-CAPTURED 2026-09-08, on the repo owner's decision to reopen collection 12's
+// do-not-re-run for this one article. See 8sept-updates.md A5 and briefs/12.md.
+//
+// What changed in the product: the "Automatically schedule overflow matches on
+// the next day" Yes/No control is **gone from Group phase only**. A **League
+// schedule** block stands where it was. The control survives unchanged on
+// Knockout phase only and on Group & knockout phase, which the article used to
+// say asked about knockout counts alone.
+//
+// So shot 06 was re-pointed. It used to capture the overflow control inside the
+// Group-phase-only step list, where it no longer is. It now captures the League
+// schedule block, in the same position in the same flow. Shots 07 and 08 gained
+// an assertion that the overflow control IS on the other two templates - that is
+// the half of the change the article was silent about, so it is worth failing
+// over.
+//
+// Nothing here saves. The Format tab of the untouched "KB New Cup" is read and
+// left alone, exactly as before.
+//
 // The Format tab on the untouched "KB New Cup" is where every empty-state shot
 // comes from. Nothing is saved there: saving the format writes the groups and
 // generates the fixture list, and would turn the untouched fixture into a
@@ -73,13 +92,25 @@ test.describe('12.4 Choosing a format', () => {
     await shot(page, '12.4', '05-encounters-open', { mask: [headerIdentity(page)] });
     await page.keyboard.press('Escape');
 
-    const overflow = onScreen(
+    // Group phase only has no overflow question any more. Assert the absence
+    // before capturing what replaced it: if the control ever comes back, this
+    // fails and the article's per-template scoping is wrong again.
+    await expect(
       page.getByText('Automatically schedule overflow matches on the next day'),
-    ).first();
-    await centre(overflow);
-    await shot(page, '12.4', '06-overflow-matches-toggle', {
+    ).toHaveCount(0);
+
+    const leagueSchedule = onScreen(page.getByText('League schedule', { exact: true })).first();
+    await expect(leagueSchedule).toBeVisible();
+    // The block, not the heading: the heading alone tells a reader nothing. Walk
+    // up to the container that holds Scheduling mode through Preferred match
+    // day(s).
+    const scheduleBlock = leagueSchedule.locator('xpath=..');
+    await expect(scheduleBlock.getByText('Scheduling mode', { exact: true })).toBeVisible();
+    await expect(scheduleBlock.getByText('Preferred match day(s)', { exact: true })).toBeVisible();
+    await centre(leagueSchedule);
+    await shot(page, '12.4', '06-league-schedule', {
       mask: [headerIdentity(page)],
-      annotate: overflow,
+      annotate: scheduleBlock,
     });
 
     // Knockout only asks one question, and it asks it with a picker, not a
@@ -90,6 +121,12 @@ test.describe('12.4 Choosing a format', () => {
     await knockoutOnly.click();
     await expect(knockoutTeams).toBeVisible();
     await expect(page.locator('input[name="groupCount"]:visible')).toHaveCount(0);
+    // The overflow control lives HERE now, and the article says so. It was
+    // previously documented as a Group-phase-only question and this template was
+    // described as asking one thing.
+    await expect(
+      onScreen(page.getByText('Automatically schedule overflow matches on the next day')).first(),
+    ).toBeVisible();
     await centre(knockoutTeams);
     await shot(page, '12.4', '07-knockout-phase-only', {
       mask: [headerIdentity(page)],
@@ -100,6 +137,10 @@ test.describe('12.4 Choosing a format', () => {
     await groupAndKnockout.click();
     await expect(page.locator('input[name="groupCount"]:visible')).toBeVisible();
     await expect(knockoutTeams).toBeVisible();
+    await expect(
+      onScreen(page.getByText('Automatically schedule overflow matches on the next day')).first(),
+    ).toBeVisible();
+    await expect(page.getByText('League schedule', { exact: true })).toHaveCount(0);
     // Centre the first field rather than the knockout one: this format shows two
     // rows of fields, and centring the lower row pushes the annotated card off
     // the top of the viewport.

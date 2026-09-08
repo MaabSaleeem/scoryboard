@@ -10,13 +10,21 @@
 // seeded fixture - without anybody having sent anything. The **referee is not
 // notified at all**.
 //
-// **The public link is not public.** The Share window offers
-// `/match/:id/preview` with a QR code and says it is "the link you should share on
-// social media, on your website or elsewhere". A signed-out visitor who opens it
-// gets a Sign In button, five empty tab labels and grey skeletons that never
-// resolve - held for twenty seconds with no console error. Shot 02 is that page,
-// because a reader needs to know before they hand the link out. Collection 08
-// found the same class of defect on a leaderboard's share link.
+// **The public link IS public - changed, verified 2026-09-08.** The Share window
+// offers `/match/:id/preview` with a QR code and says it is "the link you should
+// share on social media, on your website or elsewhere". That is now true. A
+// signed-out visitor gets the whole read-only match: both teams, the score, the
+// countdown, the referee, the leaderboard, the date, the venue, the pitch, the
+// organiser's note, both line-ups BY NAME and the FACTS panels. `GET /matches/:id`
+// answers 200 with no token, and the names come from `GET /teams/:id/players`,
+// which is public too. Shot 02 is that page.
+//
+// It used to be the opposite: a Sign In button, five empty tab labels and grey
+// skeletons that never resolved. That is what shot 02 held until 2026-09-08.
+//
+// Two things did NOT change, and this spec must not be "harmonised" with them:
+// `/matches/:id` (the signed-in route) still redirects a stranger to `/signin`,
+// and a leaderboard's share link is still sign-in only - see 08.5.
 //
 // **The calendar** is `/schedule`, with three views. Month is the default and the
 // only one with a text label.
@@ -50,8 +58,12 @@ test.describe('09.7 Inviting people, sharing a preview and the matches calendar'
     const dlg = await openShareMatch(page);
     const link = dlg.locator('input');
     const previewUrl = await link.inputValue();
-    expect(previewUrl, 'the share link should be the match preview route')
-      .toContain(`/match/${fx.match.fixture}/preview`);
+    // The share link gained a slug segment: it is now
+    // `/match/<home>-vs-<away>/<id>/preview`, not `/match/<id>/preview`.
+    // Observed 2026-09-08. Assert the id and the route, not the exact shape, so
+    // the slug can change again without failing this run.
+    expect(previewUrl, 'the share link should be a match preview route carrying the id')
+      .toMatch(new RegExp(`/match/.*${fx.match.fixture}/preview`));
     await settled09(page);
     await shot(page, '09.7', '01-share-window', { clip: dlg, clipPad: 24, annotate: link });
     await closeDialog09(page);
@@ -62,14 +74,42 @@ test.describe('09.7 Inviting people, sharing a preview and the matches calendar'
     const visitor = await browser.newContext();
     const guest = await visitor.newPage();
     try {
+      // Freeze the visitor's clock too. The preview renders a live "Match starts
+      // in" countdown, which ticks once a second and would otherwise put a
+      // different number in every run of this capture.
+      await freezeClock09(guest);
       await guest.goto(previewUrl, { waitUntil: 'domcontentloaded' });
-      // Wait for the shell to have drawn - the Sign In button is the whole of what
-      // a visitor gets - and then prove the match is not on the page.
-      await expect(guest.getByRole('button', { name: 'Sign In' }).or(guest.getByText('Sign In')).first())
-        .toBeVisible({ timeout: 30_000 });
-      await expect(guest.getByText(KB09_TEAMS.united)).toHaveCount(0);
-      await expect(guest.getByText(KB09_VENUES.astro.name)).toHaveCount(0);
+
+      // The match itself, on a page nobody signed in to. Each of these is a claim
+      // the article now makes, so each is asserted rather than eyeballed.
+      await expect(guest.getByText(KB09_TEAMS.united).first()).toBeVisible({ timeout: 30_000 });
+      await expect(guest.getByText(KB09_TEAMS.rovers).first()).toBeVisible();
+      await expect(guest.getByText(KB09_VENUES.astro.name).first()).toBeVisible();
+      await expect(guest.getByText('Match Preview (View Only)').first()).toBeVisible();
+      // The organiser's note, which the article warns is readable by strangers.
+      await expect(guest.getByText(/Meet at the clubhouse/).first()).toBeVisible();
+
+      // The line-ups, by name. This is the sharpest of the article's claims -
+      // that the link exposes your players' names - so prove it on the LINEUP
+      // tab rather than trusting the payload.
+      // onScreen, not .first(): the tab strip is rendered twice, once for the
+      // wide layout and once for the narrow one, and the unused twin has a
+      // zero-sized box. .first() picks the invisible one and the click times out.
+      await onScreen(guest.getByText('LINEUP', { exact: true })).first().click();
+      await expect(guest.getByText('Nia KB').first()).toBeVisible({ timeout: 30_000 });
+      await expect(guest.getByText('Bo KB').first()).toBeVisible();
+      await onScreen(guest.getByText('MATCH DETAILS', { exact: true })).first().click();
+      await expect(guest.getByText(KB09_VENUES.astro.name).first()).toBeVisible();
+
+      // Back to the top before the capture. Clicking through to LINEUP and back
+      // leaves the page scrolled, and the first version of this shot cut off both
+      // the "Match Preview (View Only)" heading and the tab strip - the two things
+      // that tell a reader they are looking at the shared page and not the app.
+      await guest.evaluate(() => window.scrollTo(0, 0));
+      await expect(guest.getByText('Match Preview (View Only)').first()).toBeInViewport();
+
       await quiet09(guest);
+      await settled09(guest);
       await shot(guest, '09.7', '02-preview-signed-out', {});
     } finally {
       await visitor.close();

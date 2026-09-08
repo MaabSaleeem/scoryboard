@@ -3,13 +3,15 @@
 
 <p>Scoryboard builds the whole fixture list for you when you save the format. You never create a match by hand.</p>
 
+<p class="scope"><em>What you get depends on the template. <strong>Group &amp; knockout phase</strong> gives you dated, Scheduled fixtures. <strong>Group phase only</strong> does not - see <a href="#round-robin">Group phase only is different</a> below. This article's screenshots are a Group &amp; knockout tournament.</em></p>
+
 <h2>Where the fixtures are</h2>
 
 <ol>
   <li>Open the tournament and select <strong>Schedule</strong>.
     {{shot:01|The Schedule tab of a football tournament, showing the Group Phase with Group A and Group B.}}
   </li>
-  <li>Read a group's list. Every team in the group plays every other team once, and each match already has a date and a kick-off time.
+  <li>Read a group's list. Every team in the group plays every other team once. On a <strong>Group &amp; knockout</strong> tournament each match already has a date and a kick-off time.
     {{shot:02|The Group A card with six fixtures, kicking off at 10:00, 10:10, 10:20, 10:30, 10:40 and 10:50.}}
   </li>
   <li>Read one fixture. It carries the date, the kick-off time, the pitch and the referee.
@@ -37,12 +39,29 @@
 
 <h2>What you will see</h2>
 
-<p>Group matches are <strong>Scheduled</strong>. Knockout matches are <strong>Incomplete</strong> until both their teams are known, and their slots read <strong>TBD</strong> or <strong>Winner Match C1</strong>.</p>
+<p>On a <strong>Group &amp; knockout</strong> tournament, group matches are <strong>Scheduled</strong>. Knockout matches are <strong>Incomplete</strong> until both their teams are known, and their slots read <strong>TBD</strong> or <strong>Winner Match C1</strong>.</p>
+
+<h2 id="round-robin">Group phase only is different</h2>
+
+<p>A <strong>Group phase only</strong> tournament is a round-robin league, and it is scheduled differently. Saved at the format screen's own defaults, it generates every fixture but gives none of them a date.</p>
+
+<ul>
+  <li>Every fixture arrives <strong>Incomplete</strong>, not Scheduled.</li>
+  <li>None of them has a date or a kick-off time. The date, time, pitch and referee cells all read <strong>-</strong>.</li>
+  <li>The Schedule tab splits into two bands. <strong>WEEK 1</strong> is the week the fixtures would be played in, and it is empty. <strong>UNSCHEDULED</strong> holds all of them.</li>
+</ul>
+
+<p>This is not a fault. The format screen's <strong>League schedule</strong> block decides when a round-robin's fixtures are played, and its <strong>Preferred match day(s)</strong> start with no day ticked. With no day to put a fixture on, every fixture stays in <strong>UNSCHEDULED</strong>.</p>
+
+<p>To give them dates, go back to <strong>Format</strong>, tick at least one day under <strong>Preferred match day(s)</strong>, and save again. If the league has fewer slots than fixtures, Scoryboard says <strong>Schedule capacity exceeded</strong> and offers to add the extra weeks.</p>
+
+<p>Each fixture then takes one slot on one of your chosen days, a week apart, at your daily start time.</p>
 
 <h2>If it does not work</h2>
 
 <ul>
   <li><strong>There are no fixtures.</strong> The format has not been saved yet. See "Choosing a format for a football tournament".</li>
+  <li><strong>The fixtures are there but every one is Incomplete, under UNSCHEDULED.</strong> This is a Group phase only tournament. That is what it does - see <a href="#round-robin">Group phase only is different</a>.</li>
   <li><strong>A fixture has only one team.</strong> The group has more slots than teams. See "Why two football fixtures clash, and fixtures showing only one team".</li>
   <li><strong>Two fixtures start at the same time.</strong> Same article.</li>
   <li><strong>You see rounds instead of a flat list.</strong> That is the padel layout - see "How the fixture list is generated for a padel tournament".</li>

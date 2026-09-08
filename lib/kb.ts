@@ -791,7 +791,7 @@ export async function untickSameStartTime(dialog: Locator) {
 // values scripts/seed-14.mjs uses. See lib/fixtures-14.mjs for why they live in
 // one place.
 // @ts-ignore - plain JS module, no types
-export { LEAGUE_SCHEDULE, PADEL_CONFIG, restoreGroupSchedule, regeneratePadelSchedule } from './fixtures-14.mjs';
+export { LEAGUE_SCHEDULE, CUP_GROUP_A_SCHEDULE, PADEL_CONFIG, restoreGroupSchedule, regeneratePadelSchedule } from './fixtures-14.mjs';
 
 // --- collection 01: getting started and onboarding --------------------------
 
