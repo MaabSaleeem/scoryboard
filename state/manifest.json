@@ -341,13 +341,13 @@
       "intercom_collection_id": "19733982",
       "brief": "briefs/13.md",
       "spec": "specs/13/13.5.spec.ts",
-      "commit_sha": "45226cbf20476b913d94934925bf3ff160f06f70",
+      "commit_sha": "1cd5f3e59128186b413fc3817f2cdaf73a44f733",
       "screenshots": [
         "screenshots/13/13.5/01-results-group-phase.4cfb96e6.png",
         "screenshots/13/13.5/02-standings-columns.fd207ce1.png",
         "screenshots/13/13.5/03-fixtures-with-scores.7b2f7106.png"
       ],
-      "published_at": "2026-09-13T05:54:29.000Z",
+      "published_at": "2026-09-13T09:11:29.000Z",
       "status": "published"
     },
     "13.6": {
@@ -447,7 +447,7 @@
       "intercom_collection_id": "19733982",
       "brief": "briefs/13.md",
       "spec": "specs/13/13.11.spec.ts",
-      "commit_sha": "45226cbf20476b913d94934925bf3ff160f06f70",
+      "commit_sha": "1cd5f3e59128186b413fc3817f2cdaf73a44f733",
       "screenshots": [
         "screenshots/13/13.11/01-no-phase-controls.858a02d4.png",
         "screenshots/13/13.11/02-start-disabled.51e6889a.png",
@@ -458,9 +458,10 @@
         "screenshots/13/13.11/07-undo-card.9c0bf3d5.png",
         "screenshots/13/13.11/08-undo-confirm.d713def2.png",
         "screenshots/13/13.11/09-end-phase-card.8c204815.png",
-        "screenshots/13/13.11/10-end-phase-confirm.7650cdea.png"
+        "screenshots/13/13.11/10-end-phase-confirm.7650cdea.png",
+        "screenshots/13/13.11/11-padel-continue-banner.3340dddc.png"
       ],
-      "published_at": "2026-09-13T05:54:49.000Z",
+      "published_at": "2026-09-13T09:11:36.000Z",
       "status": "published"
     },
     "14.1": {
@@ -506,7 +507,7 @@
       "intercom_collection_id": "19733983",
       "brief": "briefs/14.md",
       "spec": "specs/14/14.3.spec.ts",
-      "commit_sha": "45226cbf20476b913d94934925bf3ff160f06f70",
+      "commit_sha": "1cd5f3e59128186b413fc3817f2cdaf73a44f733",
       "screenshots": [
         "screenshots/14/14.3/01-bulk-match-update-button.a10ebca0.png",
         "screenshots/14/14.3/02-dialog-as-it-opens.ab3d8651.png",
@@ -514,7 +515,7 @@
         "screenshots/14/14.3/04-dialog-filled.3c6f381d.png",
         "screenshots/14/14.3/05-new-kick-off-times.600543d8.png"
       ],
-      "published_at": "2026-09-13T05:54:56.000Z",
+      "published_at": "2026-09-13T09:11:40.000Z",
       "status": "published"
     },
     "14.4": {
@@ -542,16 +543,18 @@
       "intercom_collection_id": "19733983",
       "brief": "briefs/14.md",
       "spec": "specs/14/14.5.spec.ts",
-      "commit_sha": "df1b5eb08bc3e22bb0fdbe6fed3289303c2d67d6",
+      "commit_sha": "1cd5f3e59128186b413fc3817f2cdaf73a44f733",
       "screenshots": [
         "screenshots/14/14.5/01-fixture-card-fields.f413dec6.png",
         "screenshots/14/14.5/02-time-picker-open.d0aded0d.png",
         "screenshots/14/14.5/03-pitch-number-input.c29c2dc2.png",
         "screenshots/14/14.5/04-select-matches.7f136440.png",
         "screenshots/14/14.5/05-end-time.221fa48a.png",
-        "screenshots/14/14.5/06-rolled-across-days.e3decefd.png"
+        "screenshots/14/14.5/06-rolled-across-days.e3decefd.png",
+        "screenshots/14/14.5/07-unscheduled-band.e984271e.png",
+        "screenshots/14/14.5/08-fixture-unscheduled.89cd6a30.png"
       ],
-      "published_at": "2026-09-08T15:14:38.000Z",
+      "published_at": "2026-09-13T09:11:51.000Z",
       "status": "published"
     },
     "14.6": {
