@@ -2479,6 +2479,68 @@
       ],
       "published_at": "2026-09-04T07:58:47.000Z",
       "status": "published"
+    },
+    "01.8": {
+      "intercom_id": "16932797",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16932797-the-padel-rating-questionnaire",
+      "collection": "01",
+      "intercom_collection_id": "19733970",
+      "brief": "briefs/01.md",
+      "spec": "specs/01/01.8.spec.ts",
+      "commit_sha": "06fb25a4f381c1ab7900868e5a10f83ebc462229",
+      "screenshots": [
+        "screenshots/01/01.8/01-add-rating.e4b419c0.png",
+        "screenshots/01/01.8/02-intro.e84a7fc2.png",
+        "screenshots/01/01.8/03-experience.5fa08ac5.png",
+        "screenshots/01/01.8/04-how-long.9eae2102.png",
+        "screenshots/01/01.8/05-movement.a8726a30.png",
+        "screenshots/01/01.8/06-suggested-range.d8617196.png",
+        "screenshots/01/01.8/07-level-cards.7af4febb.png",
+        "screenshots/01/01.8/08-confidence.f695903b.png",
+        "screenshots/01/01.8/09-player-preferences.171cac65.png",
+        "screenshots/01/01.8/10-all-set.9da15b13.png"
+      ],
+      "published_at": "2026-09-13T08:04:02.000Z",
+      "status": "published"
+    },
+    "02.9": {
+      "intercom_id": "16932798",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16932798-setting-up-your-padel-profile",
+      "collection": "02",
+      "intercom_collection_id": "19733971",
+      "brief": "briefs/02.md",
+      "spec": "specs/02/02.9.spec.ts",
+      "commit_sha": "06fb25a4f381c1ab7900868e5a10f83ebc462229",
+      "screenshots": [
+        "screenshots/02/02.9/01-sports-list.1559c5c0.png",
+        "screenshots/02/02.9/02-padel-fields-revealed.86e32764.png",
+        "screenshots/02/02.9/03-best-hand-options.18d17df0.png",
+        "screenshots/02/02.9/04-default-profile.9c18a2ed.png",
+        "screenshots/02/02.9/05-padel-bio.a73e793a.png",
+        "screenshots/02/02.9/06-level-panel-empty.f44b3229.png",
+        "screenshots/02/02.9/07-padel-tiles.0bf5b275.png"
+      ],
+      "published_at": "2026-09-13T08:04:06.000Z",
+      "status": "published"
+    },
+    "13.12": {
+      "intercom_id": "16932799",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16932799-changing-a-football-format-after-you-have-saved-it",
+      "collection": "13",
+      "intercom_collection_id": "19733982",
+      "brief": "briefs/13.md",
+      "spec": "specs/13/13.12.spec.ts",
+      "commit_sha": "06fb25a4f381c1ab7900868e5a10f83ebc462229",
+      "screenshots": [
+        "screenshots/13/13.12/01-configuration-button.59d17de5.png",
+        "screenshots/13/13.12/02-football-configuration-dialog.68d707b4.png",
+        "screenshots/13/13.12/03-points-fields.d35bf04a.png",
+        "screenshots/13/13.12/04-encounters-options.8daa5908.png",
+        "screenshots/13/13.12/05-knockout-teams-options.df758e69.png",
+        "screenshots/13/13.12/06-update-confirm.dd6b5715.png"
+      ],
+      "published_at": "2026-09-13T08:04:12.000Z",
+      "status": "published"
     }
   }
 }
