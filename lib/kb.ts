@@ -483,6 +483,10 @@ export async function fixtures13() {
     sundayLeague: byTitle('KB 13 Sunday League'),
     padelCup: byTitle('KB 13 Padel Cup'),
     padelOpen: byTitle('KB 13 Padel Open'),
+    // 13.12 only. Its start date rolls forward, so scripts/seed-13.mjs deletes
+    // and rebuilds it when it comes within four weeks - and the id changes when
+    // it does. Looked up like every other fixture here, never carried.
+    configuration: byTitle('KB 13 Configuration'),
     detail: async (id: string) => (await asUser(token, `/tournaments/${id}`)).body.data,
   };
 }
@@ -1180,6 +1184,125 @@ export async function rebuildVerified01(
   return { token: session.idToken as string, me };
 }
 
+/**
+ * Delete kb-01-padel@ and build it again as a PADEL account with no rating.
+ *
+ * 01.8's entry point is the "Complete The Padel Rating Questionnaire" panel on
+ * Profile settings, and that panel exists only while `rating7` is unset. The
+ * questionnaire sets it, the panel then goes, and `rating7` cannot be cleared -
+ * `{"rating7": null}` and `{"rating7": 0}` are both refused 400. See
+ * PADEL_QUESTIONNAIRE_RUNS_ONCE in lib/fixtures-01.mjs.
+ *
+ * So the account is thrown away and made again, the same answer 01.4 uses for
+ * the setup wizard. Two differences from rebuildVerified01():
+ *
+ *   * no `position`. A padel account has no Preferred position field at all -
+ *     `Best hand *` stands in its place - and sending one would put a football
+ *     field on a padel profile.
+ *   * `sports: ['Padel']` is the gate. Without Padel in `sports` none of the
+ *     padel fields renders and the questionnaire panel never appears.
+ *
+ * `Best hand *` is deliberately LEFT UNSET. A reader arriving from a padel
+ * signup has not filled it in either - 01.6 measures that account's checklist
+ * at three missing fields - and 01.8 photographs what they see, not a tidied
+ * version of it.
+ */
+export async function rebuildPadel01(
+  email: string,
+  info: { name: string; lastName: string; gender: string; sports: string[] },
+) {
+  await deleteAccount(email, KB01_PASSWORD);
+
+  const made = await admin('/admins/users', {
+    method: 'POST', body: { name: info.name, lastName: info.lastName, email },
+  });
+  if (!made.ok) throw new Error(`POST /admins/users ${email}: ${JSON.stringify(made.body)}`);
+
+  let session = await mintSession(email);
+  const set = await firebaseSetPassword(session.idToken, KB01_PASSWORD);
+  if (!set.ok) throw new Error(`accounts:update ${email}: ${JSON.stringify(set.body)}`);
+  session = await mintSession(email);
+
+  const me = (await asUser(session.idToken, '/users/me')).body?.data;
+  const put = await asUser(session.idToken, `/users/${me.id}`, {
+    method: 'PUT',
+    body: {
+      name: info.name,
+      lastName: info.lastName,
+      gender: info.gender,
+      sports: info.sports,
+      isMarketingOpted: false,
+    },
+  });
+  if (!put.ok) throw new Error(`PUT /users/${me.id}: ${JSON.stringify(put.body)}`);
+
+  // POST /admins/users makes "<Name>'s leaderboard" and two default teams. The
+  // leaderboard goes for the same reason rebuildVerified01() removes it: a
+  // reader who has just signed up has none.
+  for (const board of (await asUser(session.idToken, '/leaderboards')).body?.data ?? []) {
+    await asUser(session.idToken, `/leaderboards/${board.id}`, { method: 'DELETE' });
+  }
+
+  const fresh = (await asUser(session.idToken, '/users/me')).body?.data;
+  if (fresh?.rating7 !== undefined) {
+    throw new Error(
+      `${email} came back with rating7=${fresh.rating7}. The questionnaire panel will not `
+      + 'render, so 01.8 cannot be captured. The account was not really rebuilt.',
+    );
+  }
+  return { token: session.idToken as string, me: fresh };
+}
+
+/**
+ * The Profile settings panel that opens the padel rating questionnaire.
+ *
+ * Keyed on the heading rather than on the Add Rating button: the button's name
+ * is generic enough to collide, and the heading is what tells a reader they are
+ * in the right place. Returns the panel so a capture can clip to it.
+ */
+export async function padelRatingPanel(page: Page) {
+  const heading = onScreen(
+    page.getByText('Complete The Padel Rating Questionnaire', { exact: true }),
+  ).first();
+  await expect(heading).toBeVisible();
+  // The nearest ancestor that holds the button as well as the words. The two
+  // divs above the heading carry the copy but not the button - it sits in a
+  // sibling column - so a clip of either is the text with nothing to press.
+  const panel = heading.locator(
+    "xpath=ancestor::div[.//button[normalize-space()='Add Rating']][1]",
+  );
+  await expect(panel.getByRole('button', { name: 'Add Rating', exact: true })).toBeVisible();
+  return panel;
+}
+
+/**
+ * The questionnaire's own dialog, waited for by the copy on the screen.
+ *
+ * Every screen of the wizard is the same Radix dialog with its contents
+ * swapped, so a bare `[role="dialog"]` matches from the first screen to the
+ * last and proves nothing about which one is showing. Passing the marker makes
+ * each capture assert its own screen before it is taken.
+ */
+export async function padelWizard(page: Page, marker: string | RegExp) {
+  const dialog = onScreen(page.locator('[role="dialog"]')).last();
+  await expect(dialog.getByText(marker)).toBeVisible();
+  await expect(page.locator('.animate-pulse')).toHaveCount(0);
+  return dialog;
+}
+
+/**
+ * Choose one of the wizard's answer buttons, then advance.
+ *
+ * The options are buttons whose whole text is the answer, and `Next` stays
+ * disabled until one is selected - so the two always go together. Waiting for
+ * the question to change is what makes the next capture safe; a fixed pause
+ * would not.
+ */
+export async function answerAndNext(page: Page, dialog: Locator, answer: string) {
+  await dialog.getByRole('button', { name: answer, exact: true }).click();
+  await dialog.getByRole('button', { name: 'Next', exact: true }).click();
+}
+
 // --- collection 02: finding your way around, and your profile ---------------
 //
 // Everything below is read by specs/02/*.spec.ts. The names, squads, match and
@@ -1190,10 +1313,14 @@ export async function rebuildVerified01(
 import {
   ACCOUNTS as KB02, PROFILES as KB02_PROFILES, TEAMS as KB02_TEAMS,
   IMAGES as KB02_IMAGES, EXPECTED_PLAYER_STATS as KB02_STATS,
-  PADEL_PROFILE as KB02_PADEL,
+  PADEL_PROFILE as KB02_PADEL, PADEL_SETUP_PROFILE as KB02_PADEL_SETUP,
+  PADEL_SETUP_CHOICES as KB02_PADEL_CHOICES,
 } from './fixtures-02.mjs';
 
-export { KB02, KB02_PROFILES, KB02_TEAMS, KB02_IMAGES, KB02_STATS, KB02_PADEL };
+export {
+  KB02, KB02_PROFILES, KB02_TEAMS, KB02_IMAGES, KB02_STATS, KB02_PADEL,
+  KB02_PADEL_SETUP, KB02_PADEL_CHOICES,
+};
 
 /**
  * The collection's accounts and fixtures, looked up rather than hardcoded.
@@ -1246,6 +1373,92 @@ export async function fixtures02() {
     home: byName(KB02_TEAMS.home),
     away: byName(KB02_TEAMS.away),
   };
+}
+
+/**
+ * Delete kb-02-padelsetup@ and build it again, football only.
+ *
+ * 02.9's spec calls this first thing. `scripts/seed-02.mjs` does the same job,
+ * and both exist deliberately: the seed keeps the address capturable between
+ * runs, and this keeps a run that follows a crashed one working.
+ *
+ * It cannot be done in place. 02.9 documents ticking Padel in `Sports *`, and
+ * the four fields that appear cannot be unset afterwards - omitting them from
+ * the full-replace PUT keeps them, `""` is refused by the enum and so is
+ * `null`. See PADEL_SETUP_IS_REBUILT_EVERY_RUN in lib/fixtures-02.mjs.
+ *
+ * The id changes every run, so the caller takes it from here rather than from
+ * anything written down.
+ */
+export async function rebuildPadelSetup02() {
+  const email: string = KB02.padelSetup;
+  try {
+    const token: string = (await mintSession(email)).idToken;
+    const me = (await asUser(token, '/users/me')).body?.data;
+    if (me?.id) await admin(`/admins/user-delete/${me.id}`, { method: 'DELETE' });
+  } catch {
+    // generate-signin-token answers 404 when there is no account. Nothing to do.
+  }
+
+  const made = await admin('/admins/users', {
+    method: 'POST',
+    body: {
+      name: KB02_PADEL_SETUP.name,
+      lastName: KB02_PADEL_SETUP.lastName,
+      email,
+    },
+  });
+  if (!made.ok) throw new Error(`POST /admins/users ${email}: ${JSON.stringify(made.body)}`);
+
+  const token: string = (await mintSession(email)).idToken;
+  const created = (await asUser(token, '/users/me')).body?.data;
+  const put = await asUser(token, `/users/${created.id}`, {
+    method: 'PUT', body: KB02_PADEL_SETUP,
+  });
+  if (!put.ok) throw new Error(`PUT /users/${created.id}: ${JSON.stringify(put.body)}`);
+
+  const me = (await asUser(token, '/users/me')).body?.data;
+  const leftovers = ['bestHand', 'courtPositions', 'matchType', 'preferredTime']
+    .filter((k) => me?.[k]);
+  if (leftovers.length) {
+    throw new Error(`${email} still carries ${leftovers.join(', ')} after the rebuild. `
+      + '02.9 cannot photograph a settings page with no padel on it.');
+  }
+  return { email, token, id: String(me.id), playerId: String(me.playerId) };
+}
+
+/**
+ * The padel profile's LEVEL panel.
+ *
+ * `LEVEL` is CSS-uppercased from something else and is not that string in the
+ * DOM - the same trap padelStatTiles() records. `Level Progress` is the panel's
+ * own title and the reliable handle.
+ *
+ * The panel renders on every padel profile. What it does NOT render, until the
+ * account has a rating, is a number: an account that has never done the padel
+ * rating questionnaire shows the title and "Play matches and see how your level
+ * changes" and nothing else. Measured 2026-09-13, and it is why 02.9 sends the
+ * reader to 01.8.
+ */
+export async function padelLevelPanel(page: Page) {
+  const title = onScreen(page.getByText('Level Progress', { exact: true })).first();
+  await expect(title).toBeVisible();
+  // Two steps, and the second one is counted because it has to be.
+  //
+  // The first is found by content: the nearest ancestor carrying the panel's
+  // own caption. That is the body of the panel - the caption and the ghosted
+  // chart under it - and it is what the assertions read.
+  //
+  // The panel's HEADING is two divs above that, and it cannot be found the same
+  // way: it renders as `LEVEL` but is CSS-uppercased from something else, so
+  // that string is not in the DOM - the same trap padelStatTiles() and
+  // boardReady()'s callers record. A clip that stops at the body is a chart
+  // with no title on it, which is why the count is here rather than a third
+  // text match.
+  const body = title.locator(
+    "xpath=ancestor::div[contains(., 'Play matches and see how your level changes')][1]",
+  );
+  return body.locator('xpath=ancestor::div[2]');
 }
 
 /**

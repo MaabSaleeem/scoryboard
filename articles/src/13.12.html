@@ -1,0 +1,86 @@
+<!-- title: Changing a football format after you have saved it -->
+<!-- description: One dialog holds the league type, the match length, the points a result is worth and the group questions. Changing any of them rebuilds every fixture. -->
+
+<p>Everything you answered when you chose the format can be changed afterwards. Only the tournament <strong>Owner</strong> and an <strong>Administrator</strong> can.</p>
+
+<p>Everyone else is sent to the tournament's public page, which has no Format tab.</p>
+
+<h2>Before you start</h2>
+
+<p>Read this first. <strong>Changing any value here throws away every fixture in the tournament and builds it again.</strong> Scores go with them. A match that had been played and finished comes back Scheduled and empty, and nothing undoes it.</p>
+
+<p>So do this before you publish the fixture list, not after. If the tournament is under way, you are choosing between the change and the results you already have.</p>
+
+<h2>Opening the dialog</h2>
+
+<ol>
+  <li>Open the tournament and select <strong>Format</strong>. <strong>Configuration</strong> sits in the <strong>Phases</strong> header.
+    {{shot:01|The Phases header of a group and knockout tournament, with the Configuration button outlined.}}
+  </li>
+  <li>Read the dialog. It is headed <strong>Football Configuration</strong> and it scrolls: the group questions and the knockout question are below the fold.
+    {{shot:02|The Football Configuration dialog showing League type, Match duration, Win points, Draw points, Loss points and the two group questions.}}
+  </li>
+  <li>Set <strong>Win points</strong>, <strong>Draw points</strong> and <strong>Loss points</strong>. These are what the PTS column in the group table counts. Each takes a whole number from 0 to 99.
+    {{shot:03|The points fields at their defaults, with Draw points outlined and reading 2.}}
+  </li>
+  <li>Choose <strong>Encounters</strong> - how many times each team plays the others in its group. The first option is written out as <strong>Play all teams in pool once</strong>; the rest are the numbers 2 to 10.
+    {{shot:04|The Encounters list open, showing Play all teams in pool once above the numbers 2 to 10.}}
+  </li>
+  <li>Choose <strong>How many teams proceed to knockout?</strong>. The list stops at the number of teams you have, so eight teams offer 2, 4 and 8.
+    {{shot:05|The knockout list open over the scrolled dialog, offering 2 teams, 4 teams and 8 teams.}}
+  </li>
+  <li>Select <strong>Save</strong>, then read the warning and select <strong>Confirm Changes</strong>. Select <strong>Cancel</strong> if you would rather keep your fixtures.
+    {{shot:06|The Update Football Configuration dialog, warning that the current scheduled matches will be reset and recreated.}}
+  </li>
+</ol>
+
+<h2>The defaults, and what a draw is worth</h2>
+
+<p>A new football tournament starts on <strong>3</strong> for a win, <strong>2</strong> for a draw and <strong>0</strong> for a loss. A draw is worth 2, not 1.</p>
+
+<p>Those values are applied whether or not you ever open these boxes, and they are what the group table adds up. See {{link:13.5|Reading the group standings table in a football tournament}}.</p>
+
+<h2>What each template asks</h2>
+
+<p>The dialog changes with the template you chose. The league type, the match duration and the three points boxes are on all three.</p>
+
+<ul>
+  <li><strong>Group &amp; knockout phase</strong> asks the group questions, Encounters, how many teams proceed to knockout, and whether to push overflow matches onto the next day. That is the tournament photographed above.</li>
+  <li><strong>Knockout phase only</strong> asks neither group question and has no Encounters. It asks how many teams go into the bracket, and the overflow question.</li>
+  <li><strong>Group phase only</strong> asks the group questions and Encounters. It has no knockout question and no overflow question, and it carries a <strong>League schedule</strong> block instead. That block is described in {{link:12.4|Choosing a format for a football tournament}}.</li>
+</ul>
+
+<p>On <strong>Knockout phase only</strong> the points boxes still appear, and they do nothing. Straight elimination has no table to score.</p>
+
+<h2>What you will see</h2>
+
+<p>The fixtures are thrown away and generated again from the new settings. Kick-off times, pitches and match numbers all change. Anything you set by hand on those matches is lost.</p>
+
+<p>Selecting <strong>Save</strong> without changing anything is safe. Your fixtures keep their dates and their scores.</p>
+
+<h2>If it does not work</h2>
+
+<ul>
+  <li><strong>You cannot type in a points box.</strong> Use the stepper arrows in the field. Typing puts the new digit in front of the old one, so 1 over 2 leaves 21.</li>
+  <li><strong>Save does nothing and there is no message.</strong> Check the points. The boxes accept 0 to 99, and a value of 100 or more is refused by the server with nothing on screen to tell you.</li>
+  <li><strong>You did not want the fixtures rebuilt.</strong> Select <strong>Cancel</strong> on the warning. Nothing is sent until you select Confirm Changes.</li>
+  <li><strong>You lost a played result.</strong> There is no way back. The warning is the only chance to stop it, which is why this article puts it first.</li>
+  <li><strong>The points changed nothing.</strong> Your tournament is knockout only. There is no group table for them to count towards.</li>
+  <li><strong>There is no Configuration button.</strong> You are not the tournament's Owner or an Administrator.</li>
+  <li><strong>You wanted a different template entirely.</strong> Configuration keeps the template you chose. It changes the questions inside it, not the shape of the tournament.</li>
+</ul>
+
+<h2>Padel and Other Sports</h2>
+
+<p>A padel tournament has a Configuration button too, and a different dialog behind it - standings type, scoring, rounds and courts. See {{link:13.10|Changing a padel format after you have saved it}}.</p>
+
+<p>An <strong>Other Sports</strong> tournament opens this dialog, and its heading still reads <strong>Football Configuration</strong>. The settings work the same way.</p>
+
+<h2>Related</h2>
+
+<ul>
+  <li>{{link:12.4|Choosing a format for a football tournament}}</li>
+  <li>{{link:13.5|Reading the group standings table in a football tournament}}</li>
+  <li>{{link:13.10|Changing a padel format after you have saved it}}</li>
+  <li>{{link:14.1|How the fixture list is generated for a football tournament}}</li>
+</ul>

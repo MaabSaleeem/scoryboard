@@ -27,6 +27,30 @@
 //     League          scored is the cheapest way to reach "End Phase".
 //   KB 13 Padel Cup   Padel, Swiss, 8 players. Nothing played.
 //   KB 13 Padel Open  Padel, Swiss, 8 players, group matches scored. 13.6.
+//   KB 13            Football, Group and Knockout, 8 teams, 2 groups of 4,
+//     Configuration   nothing played. 13.12 only. Added 2026-09-13 for
+//                     8sept-updates.md B1. Its own tournament rather than a
+//                     seventh use of KB 13 Cup, because 13.12's spec opens a
+//                     dialog whose Save deletes and recreates every fixture -
+//                     and KB 13 Cup is what seven other articles photograph.
+//
+// --- The date guard, and why only the seventh tournament has one ----------
+//
+// 8sept-updates.md's STOP block is right about this file: the six tournaments
+// above carry FIXED dates and there is not one Date.now() among them. They
+// survive because nothing here rebuilds them - every one is looked up by title
+// and left alone - and they are NOT re-capturable once their dates pass.
+//
+// KB 13 Configuration is different, and deliberately so. It is new, nothing
+// else photographs it, and its whole job is to be re-runnable - so it carries
+// the guard the others lack: `ensureFutureTournament()` deletes and rebuilds it
+// once its start date comes within LEAD_DAYS. A past-dated tournament generates
+// matches that auto-finish 0-0, and a dialog captured over a board of finished
+// 0-0 fixtures is not the picture 13.12 describes.
+//
+// This does NOT fix the other six. Fixing those means moving every date visible
+// in 13.5, 13.11, 14.1, 14.2, 14.5, 14.6 and 14.7, which is its own piece of
+// work and is not this session's.
 //
 // The padel format save is a plain PUT /tournaments/:id carrying the padel
 // fields - captured on the wire 2026-08-28, which collection 12 could not do.
@@ -519,6 +543,105 @@ const padelOpen = ids.tournaments['KB 13 Padel Open'];
 await ensurePadelFormat(padelOpen, 'KB 13 Padel Open');
 await reconcilePhases(padelOpen, 'KB 13 Padel Open', ['Group Phase', 'Knockout Phase']);
 await scoreGroupPhase(padelOpen, 'KB 13 Padel Open', fixedResult);
+
+// --- 7b. KB 13 Configuration - 13.12's own tournament, with a date guard -----
+//
+// Group and knockout on purpose. That is the one football template whose
+// Football Configuration dialog carries NO League schedule block: group phase
+// only shows the block instead of the overflow question, and the block sits
+// behind FOOTBALL_GROUP_LEAGUE_SCHEDULER_ENABLED, which nobody has confirmed in
+// production. Capturing here keeps every pixel of 13.12 off a flagged surface.
+// Measured on all three templates, 2026-09-13 - see briefs/13.md.
+const CONFIG_TEAMS = ['KB 13 Larks', 'KB 13 Terns', 'KB 13 Gulls', 'KB 13 Petrels',
+                      'KB 13 Divers', 'KB 13 Grebes', 'KB 13 Snipes', 'KB 13 Curlews'];
+
+// How close the start date may come before the tournament is rebuilt further
+// out, and how far out it is then put. Whole weeks, and a Saturday either way,
+// so a rebuilt board reads the way the published captures do.
+const LEAD_DAYS = 28;
+const PUSH_DAYS = 56;
+
+/** The next Saturday at least `days` from today, as YYYY-MM-DD. */
+function saturdayAtLeast(days) {
+  const d = new Date(Date.now() + days * 86_400_000);
+  d.setUTCDate(d.getUTCDate() + ((6 - d.getUTCDay() + 7) % 7));
+  return d.toISOString().slice(0, 10);
+}
+
+/**
+ * Look the tournament up, and rebuild it if its start date is too close.
+ *
+ * The only clock-reading fixture in this file, and the reason is in the header:
+ * a tournament whose start date has passed generates matches that auto-finish
+ * 0-0 and can never be scored, so a fixed date makes an article capturable
+ * exactly once. Deleting and recreating is the whole repair - nothing else
+ * references this tournament, and DELETE /tournaments/:id really does delete
+ * (verified on staging 2026-09-13, "Tournament deleted successfully").
+ */
+async function ensureFutureTournament(title, teamNames) {
+  const startDate = saturdayAtLeast(PUSH_DAYS);
+  const list = (await asUser(T, '/tournaments')).body.data ?? [];
+  const found = list.find((t) => t.title === title);
+
+  if (found) {
+    const id = found._id ?? found.id;
+    const starts = new Date(found.startDate).getTime();
+    const daysAway = Math.round((starts - Date.now()) / 86_400_000);
+    if (daysAway >= LEAD_DAYS) {
+      note('GET', '/tournaments', 200, `${title} exists ${id}, starts in ${daysAway} days`);
+      ids.tournaments[title] = id;
+      return id;
+    }
+    // Not a PUT. A partial PUT /tournaments/:id wipes the tournament's groups
+    // and all fixtures (config/api.md, known defect), and a full one would have
+    // to reproduce every field the format save sends. Delete and build again.
+    const del = await asUser(T, `/tournaments/${id}`, { method: 'DELETE' });
+    note('DELETE', `/tournaments/${id}`, del.status,
+      `${title} started in ${daysAway} days - rebuilding at ${startDate}`);
+  }
+
+  const created = await asUser(T, '/tournaments', {
+    method: 'POST',
+    body: {
+      title,
+      gameType: 'Football',
+      startDate,
+      duration: '10 min',
+      clubLocationIds: [ids.venue],
+      isAutoStartEnable: false,
+      startTime: '10:00',
+      timeZone: 'Europe/London',
+    },
+  });
+  if (!created.ok) throw new Error(`POST /tournaments ${title}: ${j(created.body)}`);
+  const id = created.body.data.id;
+  note('POST', '/tournaments', created.status, `${title} = ${id}, starts ${startDate}`);
+  ids.tournaments[title] = id;
+
+  const state = await ensureTeams(id, teamNames, title);
+  const byName = Object.fromEntries(state.teams.map((t) => [t.name, t.id]));
+  await ensureFootballFormat(id, title,
+    groupAndKnockout(teamNames.map((n) => byName[n])));
+  await reconcilePhases(id, title, ['Group Phase', 'Knockout Phase']);
+  return id;
+}
+
+const configuration = await ensureFutureTournament('KB 13 Configuration', CONFIG_TEAMS);
+
+// 13.12 photographs the three points boxes, so they have to read the defaults.
+// They are 3 / 2 / 0 and the server applies them whether or not the organiser
+// ever opened the boxes - but the article's own dialog SAVE writes whatever is
+// in them, so a spec that was interrupted after a save can leave them changed.
+{
+  const t = (await asUser(T, `/tournaments/${configuration}`)).body.data;
+  const points = { win: t.footballWinPoints, draw: t.footballDrawPoints, loss: t.footballLossPoints };
+  if (points.win !== 3 || points.draw !== 2 || points.loss !== 0) {
+    throw new Error(`KB 13 Configuration carries ${j(points)}, not the 3/2/0 defaults 13.12 `
+      + 'photographs. A spec was interrupted after saving the Configuration dialog. '
+      + 'Delete the tournament and re-run this seed.');
+  }
+  note('GET', `/tournaments/${configuration}`, 200, 'KB 13 Configuration points 3/2/0');
+}
 
 // --- 8. report --------------------------------------------------------------
 const summary = {};

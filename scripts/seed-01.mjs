@@ -7,7 +7,7 @@
 // a clock, a random value, or a mailbox.
 //
 // Accounts are isolated per collection (config/personas.yaml, account_isolation).
-// This script touches ONLY the seven addresses in lib/fixtures-01.mjs, all of
+// This script touches ONLY the eight addresses in lib/fixtures-01.mjs, all of
 // them kb-fresh-01@ or kb-01-*@. It never touches another collection's.
 //
 // Why this seed is longer than the others: collection 01 documents the flows
@@ -260,7 +260,60 @@ for (const key of ['signup', 'wizard']) {
   }
 }
 
-// --- 6. report --------------------------------------------------------------
+// --- 6. kb-01-padel - 01.8's account, rebuilt every run ---------------------
+// The padel rating questionnaire runs once. Completing it sets `rating7`, which
+// removes the "Complete The Padel Rating Questionnaire" panel from Profile
+// settings - and that panel is 01.8's only entry point. `rating7` cannot be put
+// back: `null` and `0` are both refused 400. See PADEL_QUESTIONNAIRE_RUNS_ONCE
+// in lib/fixtures-01.mjs.
+//
+// So this account is torn down and remade, the same answer kb-01-wizard gets.
+// `lib/kb.ts`'s rebuildPadel01() does the same thing from inside the spec, so a
+// run that starts without the seed still works; this keeps the address in a
+// capturable state between runs.
+//
+// No `position`: a padel account has no Preferred position field. No
+// `bestHand` either - a reader arriving from a padel signup has not filled it
+// in, and 01.8 photographs what they see.
+{
+  const gone = await deleteAccount(ACCOUNTS.padel, PASSWORD);
+  note('DELETE', ACCOUNTS.padel, gone.status, `layer=${gone.layer}`);
+
+  const info = PERSONAL_INFO.padel;
+  const made = await admin('/admins/users', {
+    method: 'POST', body: { name: info.name, lastName: info.lastName, email: ACCOUNTS.padel },
+  });
+  note('POST', '/admins/users', made.status, `${ACCOUNTS.padel} uid=${made.body?.data?.uid}`);
+
+  let me = await lookup(ACCOUNTS.padel);
+  if (!me) throw new Error(`${ACCOUNTS.padel} was created but has no Scoryboard user`);
+  me = await ensurePassword(ACCOUNTS.padel, me);
+
+  const put = await asUser(me.token, `/users/${me.id}`, {
+    method: 'PUT',
+    body: {
+      name: info.name,
+      lastName: info.lastName,
+      gender: info.gender,
+      sports: info.sports,
+      isMarketingOpted: false,
+    },
+  });
+  if (!put.ok) throw new Error(`PUT /users/${me.id}: ${j(put.body)}`);
+  note('PUT', `/users/${me.id}`, put.status, `sports=${info.sports.join('/')}, no position`);
+
+  await ensureNoLeaderboard(me);
+
+  const check = await lookup(ACCOUNTS.padel);
+  if (check?.rating7 !== undefined) {
+    throw new Error(`${ACCOUNTS.padel} has rating7=${check.rating7}. The questionnaire panel `
+      + 'will not render and 01.8 cannot be captured.');
+  }
+  ids.padel = { id: check.id, playerId: check.playerId };
+  note('GET', '/users/me', 200, `${ACCOUNTS.padel}: sports=${check.sports?.join('/')}, no rating7`);
+}
+
+// --- 7. report --------------------------------------------------------------
 console.log('\n--- IDs ---');
 console.log(j(ids));
 

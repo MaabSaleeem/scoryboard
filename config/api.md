@@ -148,9 +148,71 @@ The values are the **labels themselves**, spaces and capitals included. Two trap
   here.
 - **`Best hand *` is asterisked but not enforced.** Saving without it succeeds and
   leaves four profile tiles reading N/A. A known product defect.
+- **None of the four can be cleared.** **(measured on staging, 2026-09-13.)**
+  This is the exception to the full-replace rule above, and it is not obvious:
+  `bio` really is cleared by a body that omits it, and `bestHand`,
+  `courtPositions`, `matchType` and `preferredTime` are **kept**. `""` answers
+  `400 "Invalid enum value. Expected 'Left Handed' | 'Right Handed', received
+  ''"` and `null` answers `400 "Expected 'Left Handed' | 'Right Handed',
+  received null"`. So there is no way to take padel off an account over the API,
+  and a fixture that needs a football-only settings page has to be **deleted and
+  recreated** - which is what `scripts/seed-02.mjs` does for `kb-02-padelsetup@`.
 
 `sports` is the gate: without `Padel` in it none of these fields renders, and
 `Select your default profile` offers only `Football`.
+
+### The padel rating questionnaire - `rating7`, and the one call it makes
+
+**(observed in app, 2026-09-13. New - the route was listed under [Onboarding
+routes](#onboarding-routes-and-the-guard-that-orders-them), nothing else was.)**
+
+`/padel-level` is a nine-screen wizard, and it is also a **modal** on
+`/profile-settings`: a panel headed `Complete The Padel Rating Questionnaire`
+with an `Add Rating` button, sitting above `BASIC INFORMATION`. The two draw the
+same screens.
+
+**The whole wizard writes exactly one call**, on `Save and proceed`:
+
+```json
+PUT /users/6aa031ecd2d0446ceef8ea71
+{"data":{"rating7":1,"courtPositions":"Left side",
+  "matchType":"Friendly","preferredTime":"Morning"}}
+```
+
+Nothing else is sent, and nothing is sent before it - the four answers, the
+confidence answer and the slider position are **not stored anywhere**. Only the
+level you picked and the three preferences survive.
+
+| Field | Notes |
+|---|---|
+| `rating7` | the chosen level, a number. `0.5` to `7.0` in half steps on screen. **`null` is refused** `400 "Expected number, received null"`, and so is `0`. There is no way to clear it |
+| `courtPositions`, `matchType`, `preferredTime` | the same three fields Profile settings carries, asked again on the wizard's last-but-one screen. Optional - `Skip` and `Next` both move on |
+
+**Three consequences worth knowing before you build anything on this.**
+
+- **The entry point is one-shot.** Once `rating7` is set the Profile settings
+  panel is gone. `/padel-level` stays reachable by URL, but a reader has no way
+  back to it. A fixture that needs the panel has to be **deleted and recreated**;
+  `lib/kb.ts`'s `rebuildPadel01()` does it.
+- **The save wipes both bios.** It is a partial `PUT /users/:userId`, so the
+  optional fields it omits are cleared - `bio` and `padelBio` both come back
+  `""`. Proved twice, once by replaying the observed body from a script and once
+  by driving the wizard in the browser with both bios set. **A live defect**, the
+  same family as the avatar one above, and article 01.8 warns about it.
+- **The guard is `rating7`, not the player record.** `GET /players/:id` carries a
+  `padelLevel` object (`provider: "Internal"`, `value`, `normalizedValue`,
+  `progressPoints`, `matchesTracked`, ...) which is **not** what the wizard
+  writes and **not** what the panel keys on. A player with `padelLevel.value: 1`
+  and no `rating7` still gets the panel.
+
+**The reader-facing states are copy, not fields.** The last screen names
+`Self-rated` ("Your chosen starting level."), `Provisional` ("Once you have some
+match data, but not enough yet.") and `Validated` ("Enough reliable match history
+for the rating to be trusted."). Nothing in any response carries that word.
+
+**PadelLevels is named to the reader twice** - on the suggested-range screen and
+on the result screen. `/padellevels/*` is the related admin surface, and our key
+is refused there (see [Conventions](#conventions)).
 
 ### `GET /users/me` returns no feature flags
 
@@ -164,6 +226,13 @@ answers `{status, data}` and `data` holds exactly 25 keys:
 `freeTournamentProAllowanceRemaining`, `membership`,
 `isFirstTeamCreationEmailSent`, `playerId`, `bio`, `padelBio`, `refereeBio`,
 `dateOfBirth`, `gender`, `position`, `sports`, `id`.
+
+**(amended 2026-09-13.)** Twenty-five is the count on a **football** account.
+A padel one adds the fields under [The padel profile
+fields](#the-padel-profile-fields) - `bestHand`, `courtPositions`, `matchType`,
+`preferredTime` - and, once the questionnaire has been done, **`rating7`**. The
+list above is the floor, not the ceiling. What has not changed is that none of
+them is a flag.
 
 The string `"flags"` does not appear anywhere in the response. **No feature flag
 is readable from the API**, which is why
@@ -2668,6 +2737,40 @@ there; the other two templates do not show it. It sits behind
 API** (see [`GET /users/me` returns no feature
 flags](#get-usersme-returns-no-feature-flags)), so everything in this section is
 staging-only until somebody with infra access confirms the flag in production.
+
+**(observed in app, 2026-09-13, second pass - while writing 13.12.)** The body
+above is the **Group phase only** one. On **group and knockout** the same call
+carries `knockoutTeamCount` and **none of the six `football*Schedule*` fields**:
+
+```json
+PUT /tournaments/6aa642b2ac0430a175b3858e
+{"data":{"teamCount":8,"teamSize":"5 VS 5","duration":"10 min",
+  "teamIds":["...","...","...","...","...","...","...","..."],"isComplete":true,
+  "format":"GroupAndKnockout","groupCount":2,"teamsPerGroup":4,"matchesPerTeam":1,
+  "knockoutTeamCount":8,"autoScheduleMatchesNextDay":true,
+  "footballWinPoints":3,"footballLossPoints":0,"footballDrawPoints":1,
+  "status":"Published"}}
+```
+
+`knockoutTeamCount` is `How many teams proceed to knockout? *`. Its options are
+capped by the team count: eight teams offer `2 teams`, `4 teams` and `8 teams`
+and nothing above.
+
+**What the save does to the fixtures, and the two cases are different.**
+Measured by reading the fixture ids off `GET /tournaments/:id/matches` either
+side of the save:
+
+- **nothing changed** - the `PUT` still goes out, and every fixture keeps its
+  id. Nothing is lost. **This differs from padel**, where an unchanged save
+  makes no write at all (see [The padel format
+  save](#the-padel-format-save---it-is-not-a-separate-endpoint));
+- **any value changed** - every fixture is deleted and recreated with a new id,
+  and **a points box is enough to trigger it**. On a group-and-knockout
+  tournament of 19 fixtures, one of them played and `Finished 3-1`, all 19 came
+  back with new ids, `Scheduled` or `Incomplete`, and no score. Nothing undoes
+  it.
+
+Article 13.12 documents this, and puts the warning before the procedure.
 
 **The Football Configuration dialog**, for whoever writes 8sept-updates.md B1:
 its heading is `Football Configuration` - on an Other Sports tournament too,

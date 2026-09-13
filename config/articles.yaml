@@ -7,8 +7,8 @@
 
 meta:
   collections: 22
-  articles: 130
-  screenshots: 727
+  articles: 133
+  screenshots: 750
   # 13, 14 and 15 were split by sport on 2026-08-28 after walking both game
   # types through every tab. These totals count what this file lists: they do
   # not yet include collection 12's two padel articles, which are published
@@ -27,6 +27,7 @@ collections:
       - {id: "01.5", title: "Setting up your first team and leaderboard", shots: 8}
       - {id: "01.6", title: "The profile checklist in your sidebar", shots: 3}
       - {id: "01.7", title: "Deleting your account, and why an account may be disabled", shots: 4}
+      - {id: "01.8", title: "The padel rating questionnaire", shots: 10, persona: fresh, note: "ADDED 2026-09-13, 8sept-updates.md B3. PADEL ONLY. The nine-screen wizard behind Profile settings -> Complete The Padel Rating Questionnaire -> Add Rating. It is also the /padel-level step a padel signup meets in 01.4. Covers the questionnaire and the Self-rated / Provisional / Validated ladder ONLY - there is no sync status, no provider badge and no error copy anywhere in the app, so failure behaviour is NOT documented and needs product input. Runs once per account: the banner disappears once rating7 is set, and rating7 cannot be cleared over the API, so the spec rebuilds its account every run the way 01.4 rebuilds kb-01-wizard@."}
 
   - id: "02"
     name: Finding your way around & your profile
@@ -41,6 +42,7 @@ collections:
       - {id: "02.6", title: "What your public player profile shows", shots: 4}
       - {id: "02.7", title: "Your teams, rankings and match history", shots: 4}
       - {id: "02.8", title: "Comparing your stats with other players", flags: [free_pro], shots: 4, note: "needs Free gate modal plus Pro state"}
+      - {id: "02.9", title: "Setting up your padel profile", shots: 7, note: "ADDED 2026-09-13, 8sept-updates.md B2. Padel is a third profile type beside Player and Referee. Write side: ticking Padel in Sports * reveals Best hand *, Court position, Match type and Preferred time inline; Padel Bio only appears in My Bio AFTER the first save. Read side: the padel profile is a different layout - LEVEL, ten different tiles, TEAM RANK, TEAMS, PADEL TOURNAMENTS. The STATISTICS half is planned, not written: PADEL TOURNAMENTS cannot be populated from here because pairs are server-generated placeholders, and every real account returns []. Needs the enrolment route from product."}
 
   - id: "04"
     name: Plans & membership
@@ -166,6 +168,7 @@ collections:
       - {id: "13.9", title: "Setting and renaming bracket matches in a football tournament", flags: [role], shots: 5, note: "football fills slots by hand - Add team to slot"}
       - {id: "13.10", title: "Changing a padel format after you have saved it", flags: [role], shots: 5, note: "PADEL ONLY. The Configuration sub-tab on Format - standings type, scoring, rounds, courts. Football and Other Sports have a Configuration button too, but it opens a DIFFERENT dialog, headed Football Configuration and holding league type, match duration and win/draw/loss points - corrected 2026-09-08, 8sept-updates.md A7. That football dialog is now recorded in config/api.md - 'The football format save, its points, and the League schedule block', observed on the wire 2026-09-13. It also carries a League schedule block (scheduling mode, pitches, weeks, matches per week, daily start time, preferred match days), and it is titled Football Configuration on an Other Sports tournament too. The ARTICLE is still unwritten; that is 8sept-updates.md B1."}
       - {id: "13.11", title: "Tournament phases - preview, start, end and undo", flags: [role], shots: 9, note: "SHARED. Phase controls are driven by having two phases, not by sport. Needs a football group-and-knockout fixture - a group-only tournament shows none of this."}
+      - {id: "13.12", title: "Changing a football format after you have saved it", flags: [role], shots: 6, note: "ADDED 2026-09-13, 8sept-updates.md B1. FOOTBALL ONLY, and the football mirror of 13.10. The Configuration button on the Phases header opens a dialog headed Football Configuration - league type, match duration, win/draw/loss points, the group questions, Encounters, and how many teams proceed to knockout. Captured on GROUP AND KNOCKOUT on purpose: that is the one template whose dialog carries no League schedule block, so nothing here sits behind FOOTBALL_GROUP_LEAGUE_SCHEDULER_ENABLED. The League schedule block is Group-phase-only and is documented in 12.4, which this article links to. Fixture: KB 13 Configuration, its own tournament - see scripts/seed-13.mjs."}
 
   - id: "14"
     name: Tournaments - the fixture schedule

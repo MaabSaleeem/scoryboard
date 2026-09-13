@@ -28,7 +28,7 @@ import {
   admin, asUser, mintSession, upload, j,
 } from '../lib/api.mjs';
 import {
-  ACCOUNTS, PROFILES, PADEL_PROFILE, IMAGES, TEAMS, SQUADS, POSITIONS, MATCH,
+  ACCOUNTS, PROFILES, PADEL_PROFILE, PADEL_SETUP_PROFILE, IMAGES, TEAMS, SQUADS, POSITIONS, MATCH,
   EXPECTED_PLAYER_STATS, FOLLOWS,
 } from '../lib/fixtures-02.mjs';
 
@@ -132,6 +132,66 @@ async function ensurePadelProfile(me) {
 }
 
 /**
+ * Delete 02.9's account and build it again, football only.
+ *
+ * The opposite job to ensurePadelProfile() above, and it cannot be done in
+ * place. 02.9 documents ticking Padel in `Sports *`, and the four padel fields
+ * that appear cannot be unset afterwards: omitting them from the full-replace
+ * PUT keeps them, `""` is refused by the enum and so is `null`. See
+ * PADEL_SETUP_IS_REBUILT_EVERY_RUN in lib/fixtures-02.mjs for the three
+ * measurements.
+ *
+ * So the address is thrown away and made again. Its id changes every run, which
+ * is why no spec carries it.
+ *
+ * Unconditional, unlike the other ensure* helpers here. Checking first would
+ * mean trusting that a half-finished spec left the account worth keeping, and
+ * the whole point of this function is that it did not.
+ */
+async function rebuildPadelSetup() {
+  const email = ACCOUNTS.padelSetup;
+  const existing = await lookup(email);
+  if (existing) {
+    const del = await admin(`/admins/user-delete/${existing.id}`, { method: 'DELETE' });
+    note('DELETE', `/admins/user-delete/${existing.id}`, del.status, email);
+  } else {
+    note('DELETE', email, 404, 'was not there - nothing to remove');
+  }
+
+  const made = await admin('/admins/users', {
+    method: 'POST',
+    body: {
+      name: PADEL_SETUP_PROFILE.name,
+      lastName: PADEL_SETUP_PROFILE.lastName,
+      email,
+    },
+  });
+  if (!made.ok) throw new Error(`POST /admins/users ${email}: ${j(made.body)}`);
+  note('POST', '/admins/users', made.status, `${email} uid=${made.body.data.uid}`);
+
+  const me = await lookup(email);
+  if (!me) throw new Error(`${email} was created but has no Scoryboard user`);
+
+  const put = await asUser(me.token, `/users/${me.id}`, {
+    method: 'PUT', body: PADEL_SETUP_PROFILE,
+  });
+  if (!put.ok) throw new Error(`PUT /users/${me.id}: ${j(put.body)}`);
+
+  const after = (await lookup(email)) ?? me;
+  const leftovers = ['bestHand', 'courtPositions', 'matchType', 'preferredTime']
+    .filter((k) => after[k]);
+  if (leftovers.length || (after.padelBio ?? '') !== '') {
+    throw new Error(`${email} still carries padel fields after the rebuild: `
+      + `${[...leftovers, 'padelBio'].join(', ')}. `
+      + '02.9 cannot photograph a settings page with no padel on it.');
+  }
+  note('PUT', `/users/${me.id}`, put.status,
+    `${email}: football only, ${PADEL_SETUP_PROFILE.position}, no padel fields`);
+  return after;
+}
+
+/**
+ * Give the persona her profile photo and banner./**
  * Give the persona her profile photo and banner.
  *
  * Both endpoints answer with a token and the token is stored by PUT
@@ -398,6 +458,15 @@ let padel = await ensureAccount('padel');
 padel = await ensurePadelProfile(padel);
 ids.padel = {
   id: padel.id, playerId: padel.playerId, defaultProfile: padel.defaultProfile,
+};
+
+// 02.9's account. Deleted and remade every run - see rebuildPadelSetup() above
+// and PADEL_SETUP_IS_REBUILT_EVERY_RUN in lib/fixtures-02.mjs. It owns nothing,
+// plays nothing and follows nobody: the article is about a settings page and a
+// profile layout, and an empty one is what a reader taking up padel has.
+const padelSetup = await rebuildPadelSetup();
+ids.padelSetup = {
+  id: padelSetup.id, playerId: padelSetup.playerId, sports: padelSetup.sports,
 };
 
 // The persona must stay Free: 02.8's Free half is her own screen, and every
