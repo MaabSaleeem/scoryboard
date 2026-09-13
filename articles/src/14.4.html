@@ -20,10 +20,14 @@
   <li>Set the <strong>Match date</strong> and the <strong>First match start time</strong>.
     {{shot:03|The dialog filled in with 17-10-2026 and 09:00 AM.}}
   </li>
-  <li>Select <strong>Update Matches</strong>. The rounds keep their shape and move to the new time.
-    {{shot:04|The four rounds after the update, each with two matches on courts 1 and 2.}}
+  <li>Select <strong>Update Matches</strong>. Every match in the group moves to the date and the time you set.
+    {{shot:04|The four rounds after the update, each with two matches on courts 1 and 2, and every one of the eight kicking off at 9:00.}}
   </li>
 </ol>
+
+<p><strong>The rounds keep their grouping and their courts. They do not keep their separate kick-off times.</strong> The picture above holds four rounds, and all eight matches now start at 9:00. That is what the dialog does: while <strong>Same start time per round</strong> is ticked you cannot set a gap, so there is nothing to space the rounds with.</p>
+
+<p>To put the rounds back on a ladder, change a value in <strong>Padel Configuration</strong> and save. That rebuilds the fixtures from the format, one round every match duration plus gap. Do it before any match is played - the rebuild throws away every score.</p>
 
 <h2>Setting a court</h2>
 
@@ -43,12 +47,23 @@
 
 <p>The step from one round to the next is the match duration plus this number. With 10-minute matches and a 10-minute gap, rounds are 20 minutes apart.</p>
 
+<p>A round added later by the <strong>Continue</strong> banner takes the same step. It starts one duration plus one gap after the last round.</p>
+
+<h2 id="round-robin">Round Robin ignores the gap</h2>
+
+<p>The gap works on <strong>Swiss</strong>, <strong>Americano</strong>, <strong>Mexicano</strong> and <strong>King of the Court</strong>. Those formats start all the matches of a round together, so there is a round to space.</p>
+
+<p><strong>Round Robin has nothing to space.</strong> It gives every match its own kick-off, one match duration after the last. <strong>Gap between rounds (minutes)</strong> is still on the dialog, still marked required - and changing it moves no fixture.</p>
+
+<p>To re-time a Round Robin group, use the bulk dialog and clear <strong>Same start time per round</strong>. <strong>Duration</strong> and <strong>Time between matches</strong> become editable, and each kick-off is then the one before it plus those two added together.</p>
+
 <h2>If it does not work</h2>
 
 <ul>
   <li><strong>Time between matches is greyed out.</strong> That is expected while <strong>Same start time per round</strong> is ticked. The round gap is in Padel Configuration, not here.</li>
   <li><strong>The rounds have turned into a flat list.</strong> The tick box was cleared. Tick it and update the group again.</li>
   <li><strong>Every match is now on court 1.</strong> A court number was set in the bulk dialog. Clear it and rebuild the fixtures from Padel Configuration.</li>
+  <li><strong>The gap changes nothing.</strong> This is a <strong>Round Robin</strong> tournament - see <a href="#round-robin">Round Robin ignores the gap</a>.</li>
   <li><strong>Saving the configuration lost your times.</strong> It rebuilds the fixtures. Re-time the group afterwards.</li>
   <li><strong>You cannot type in a number field.</strong> Use the up and down arrows in the field instead.</li>
 </ul>

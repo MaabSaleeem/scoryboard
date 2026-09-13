@@ -2685,6 +2685,30 @@ POST /tournament-phases/6aa02e55d2d0446ceef8cdf6/padel-next-round
 The new round's fixtures appear in the same group, continuing the kick-off ladder
 (round 1 at 09:00, round 2 at 09:20 with a 20-minute step, on the same courts).
 
+**On Swiss it continues the ladder by `duration + padelRoundGapMinutes`, and
+there is no fixed component.** **(measured 2026-09-13 on a throwaway, three ways,
+for 8sept-updates.md B8.)** Four rounds generated, all eight matches scored, then
+`padel-next-round`:
+
+| `duration` | Gap | Rounds generated | Continue added round 5 at |
+|---|---|---|---|
+| 10 min | 10 | 10:00, 10:20, 10:40, 11:00 | **11:20** |
+| 10 min | 30 | 10:00, 10:40, 11:20, 12:00 | **12:40** |
+| 20 min | 10 | 10:00, 10:30, 11:00, 11:30 | **12:00** |
+| 10 min | 0 | 10:00, 10:10, 10:20, 10:30 | **10:40** |
+
+8sept-updates.md B8's *"a Continue-added Swiss round uses the gap plus a
+hardcoded 30 minutes"* is **wrong**. Every row is the plain duration-plus-gap
+step; a hardcoded 30 would have put the first row at 11:40.
+
+**On Round Robin the Continue round does not continue the ladder at all.**
+Measured the same day on the same throwaway: a one-encounter group of six
+fixtures ran 10:00 to 10:50, ten minutes apart. After Continue, the five new
+fixtures came back at **10:20 and 10:30** - back inside the ladder already
+played - with three of them at 10:20 sharing courts 1, 2 and 3 and **`Player 1 &
+Player 2` in all three**, and one landing on the court and time an already-played
+fixture holds. That is the behaviour article 14.7 documents.
+
 Things to know before writing about it:
 
 - ~~**Every padel format except Swiss shows the banner.** Swiss still
@@ -2788,9 +2812,27 @@ the organiser opened the points boxes.
 | `footballGroupScheduleMode` | Scheduling mode | `"Custom"` or `"Manual"`. The `<select>` shows exactly two options and their labels are **`Custom schedule`** and **`Generate fixtures without dates`**. A reader never sees the words `Custom` or `Manual`; do not print them in an article |
 | `footballScheduleVenueCount` | Number of pitches/venues | integer, defaults `1` |
 | `footballScheduleFrequencyWeeks` | Schedule duration (weeks) | integer, defaults `1`. The `Schedule capacity exceeded` dialog raises it |
-| `footballScheduleMatchesPerWeek` | Matches per week (optional) | integer. **Omitted from the body entirely when the box is blank** |
+| `footballScheduleMatchesPerWeek` | Matches per week (optional) | integer. **Omitted from the body entirely when the box is blank**. It **overrides the week's capacity rather than being capped by it** - see below |
 | `footballScheduleStartTime` | Daily schedule start time | `"HH:MM"`, 24-hour, defaults `"10:00"` |
 | `footballPreferredMatchDays` | Preferred match day(s) | array of integers, **ISO weekday: Mon 1 ... Sat 6, Sun 7**. Disambiguated by ticking Sunday alone, which sent `[7]`. **Empty by default** - and no day ticked means no slot, which is why a Group-phase-only tournament saved at the wizard's own defaults generates every fixture undated |
+
+**`footballScheduleMatchesPerWeek` double-books, and nothing warns.**
+**(observed in app, 2026-09-13, on a throwaway Group-phase-only tournament of four
+teams and six fixtures, deleted afterwards.)** A week's fixtures are shared out
+across the ticked days and the pitches. Ask for more matches a week than
+`ticked days x venueCount` slots hold and the surplus is **stacked on the same
+date, the same kick-off and the same pitch**. No dialog, no toast, no `400`:
+
+| Days ticked | `VenueCount` | `MatchesPerWeek` | What came back |
+|---|---|---|---|
+| Sat | 1 | *(omitted)* | one fixture a week, 14 Nov to 19 Dec, 10:00, pitch 1 |
+| Sat | 1 | 2 | **two at 10:00 on pitch 1** each week, three weeks |
+| Sat | 1 | 3 | **three at 10:00 on pitch 1**, and one team in two of them |
+| Sat | 1 | 6 | **all six at 10:00 on pitch 1**, every team three times over |
+| Sat | 2 | 2 | two a week, 10:00, **pitch 1 and pitch 2** - no clash |
+| Sat, Sun | 1 | 2 | one on the Saturday, one on the Sunday - no clash |
+
+Article 14.6 documents this as the second cause of a football clash.
 
 **The block is on Group phase only.** It replaced the overflow Yes/No question
 there; the other two templates do not show it. It sits behind
@@ -2870,6 +2912,31 @@ format save uses, with the padel fields instead:
  "padelRoundCount":4,"padelCourtCount":4,"padelRoundGapMinutes":10}
 ```
 
+**Padel fixture timing is not one rule. Round Robin is the exception.**
+**(observed in app, 2026-09-13, on one throwaway padel tournament re-saved into
+each format in turn - 8 players, 4 courts, `duration` `10 min`,
+`padelRoundGapMinutes` 10 - deleted afterwards.)** `state/progress.md` and
+articles 14.2, 14.4 and 13.6 carried the Swiss rule as if it were padel's:
+
+| `padelFormat` | Generated | Kick-offs |
+|---|---|---|
+| `Swiss` | all `padelRoundCount` rounds | a round at a time, **step = duration + gap** (20) |
+| `Americano` | 3 rounds | the same, step 20 |
+| `Mexicano` | round 1 only | its matches share one kick-off |
+| `KingOfTheCourt` | round 1 only | the same. Needs **2 to players/4 courts**: 1 court answers `400 "King of the Court requires at least 2 courts"`, 5 courts `400 "...cannot use more courts than four players per court allow"` |
+| `RoundRobin` | `padelRoundCount` x every pairing, in one flat ladder | **one match per slot, step = duration alone** |
+
+- **Round Robin ignores `padelRoundGapMinutes` completely.** Gap 0, 10 and 30 all
+  returned the identical 10-minute ladder; `duration` `20 min` returned a
+  20-minute one. The field is still on the dialog and still marked required.
+- **The round headings survive anyway.** `roundOrder` is still set - a Round Robin
+  "round" is six consecutive matches, not six simultaneous ones - so the Schedule
+  and Results tabs render `ROUND 1`, `ROUND 2` exactly as Swiss does. Confirmed on
+  screen.
+- **Courts cycle 1..`padelCourtCount` and start again**, one match at a time, so
+  the generated list never double-books a court. Swiss on **1 court** splits a
+  round across two kick-off times instead of stacking it, which is what 14.2 says.
+
 `teamIds` is empty on a first save: the server generates one pair per two players
 from `padelMinPlayers` and names them "Player 1 & Player 2" and so on. Re-sending
 the same call with different values is what the **Padel Configuration** dialog
@@ -2915,7 +2982,13 @@ How the times come out:
   not added.
 - **`sameStartTimePerRound: true` with no gap** - **every** fixture in the group
   gets the same kick-off time. A football group has no rounds, so the whole group
-  counts as one.
+  counts as one. **Padel is no different, and the rounds do not save it.**
+  (measured 2026-09-13 on a throwaway.) A four-round Swiss group came back with
+  all eight matches at 09:00 under four `ROUND` headings; a six-fixture Round
+  Robin group came back with all six at 09:00, **two on court 1 and two on court
+  2**. Since the dialog disables `timeBetweenMatches` while the box is ticked,
+  this is the only thing the UI can do here - which is what 14.4's own shot 04
+  photographs, and why that article now says so.
 - **`endTime`** is a per-day ceiling **on the whole match, not on its kick-off**.
   When the next match would *finish* past it, scheduling moves to the next day
   and restarts at `startTime`. ~~when the next kick-off would pass it~~ - the old

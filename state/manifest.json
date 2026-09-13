@@ -352,19 +352,19 @@
     },
     "13.6": {
       "intercom_id": "16735818",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16735818-reading-the-group-standings-table-in-a-padel-tournament",
       "collection": "13",
       "intercom_collection_id": "19733982",
       "brief": "briefs/13.md",
       "spec": "specs/13/13.6.spec.ts",
-      "commit_sha": "6f70fde4203d9959f18441032a9933a7f63341b8",
+      "commit_sha": "42845a361a63b758c0333efd6d012c231c3f8125",
       "screenshots": [
         "screenshots/13/13.6/01-padel-results-group-phase.2bf6baba.png",
         "screenshots/13/13.6/02-padel-standings-columns.1710471e.png",
         "screenshots/13/13.6/03-padel-fixtures-by-round.c8770595.png"
       ],
-      "published_at": "2026-08-28T14:41:49.000Z",
-      "status": "published",
-      "intercom_url": "https://help.scoryboard.com/en/articles/16735818-reading-the-group-standings-table-in-a-padel-tournament"
+      "published_at": "2026-09-13T09:54:57.000Z",
+      "status": "published"
     },
     "13.7": {
       "intercom_id": "16735824",
@@ -484,11 +484,12 @@
     },
     "14.2": {
       "intercom_id": "16736752",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16736752-how-the-fixture-list-is-generated-for-a-padel-tournament",
       "collection": "14",
       "intercom_collection_id": "19733983",
       "brief": "briefs/14.md",
       "spec": "specs/14/14.2.spec.ts",
-      "commit_sha": "55d7723",
+      "commit_sha": "42845a361a63b758c0333efd6d012c231c3f8125",
       "screenshots": [
         "screenshots/14/14.2/01-schedule-tab.9e0e83b6.png",
         "screenshots/14/14.2/02-round-sections.b7837d0b.png",
@@ -496,9 +497,8 @@
         "screenshots/14/14.2/04-court-number.64cbfee5.png",
         "screenshots/14/14.2/05-swiss-rules.cf151035.png"
       ],
-      "published_at": "2026-08-28T17:08:23.000Z",
-      "status": "published",
-      "intercom_url": "https://help.scoryboard.com/en/articles/16736752-how-the-fixture-list-is-generated-for-a-padel-tournament"
+      "published_at": "2026-09-13T09:55:03.000Z",
+      "status": "published"
     },
     "14.3": {
       "intercom_id": "16736753",
@@ -520,11 +520,12 @@
     },
     "14.4": {
       "intercom_id": "16736755",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16736755-bulk-scheduling-padel-rounds-courts-and-the-gap-between-rounds",
       "collection": "14",
       "intercom_collection_id": "19733983",
       "brief": "briefs/14.md",
       "spec": "specs/14/14.4.spec.ts",
-      "commit_sha": "835cf7d",
+      "commit_sha": "42845a361a63b758c0333efd6d012c231c3f8125",
       "screenshots": [
         "screenshots/14/14.4/01-court-number-field.a643d434.png",
         "screenshots/14/14.4/02-same-start-time-per-round.3d9651ab.png",
@@ -532,9 +533,8 @@
         "screenshots/14/14.4/04-rounds-after-update.fbe9fe27.png",
         "screenshots/14/14.4/05-gap-between-rounds.45d2c294.png"
       ],
-      "published_at": "2026-08-28T17:08:32.000Z",
-      "status": "published",
-      "intercom_url": "https://help.scoryboard.com/en/articles/16736755-bulk-scheduling-padel-rounds-courts-and-the-gap-between-rounds"
+      "published_at": "2026-09-13T09:55:09.000Z",
+      "status": "published"
     },
     "14.5": {
       "intercom_id": "16736756",
@@ -559,20 +559,20 @@
     },
     "14.6": {
       "intercom_id": "16736757",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16736757-why-two-football-fixtures-clash-and-fixtures-showing-only-one-team",
       "collection": "14",
       "intercom_collection_id": "19733983",
       "brief": "briefs/14.md",
       "spec": "specs/14/14.6.spec.ts",
-      "commit_sha": "7623051",
+      "commit_sha": "42845a361a63b758c0333efd6d012c231c3f8125",
       "screenshots": [
         "screenshots/14/14.6/01-group-a-all-one-time.9c1a04ba.png",
         "screenshots/14/14.6/02-same-start-time-ticked.cecba88f.png",
         "screenshots/14/14.6/03-fixture-with-one-team.0c02b064.png",
         "screenshots/14/14.6/04-empty-slot-on-format.e8389dec.png"
       ],
-      "published_at": "2026-08-28T17:08:42.000Z",
-      "status": "published",
-      "intercom_url": "https://help.scoryboard.com/en/articles/16736757-why-two-football-fixtures-clash-and-fixtures-showing-only-one-team"
+      "published_at": "2026-09-13T09:55:14.000Z",
+      "status": "published"
     },
     "14.7": {
       "intercom_id": "16736759",
@@ -581,14 +581,14 @@
       "intercom_collection_id": "19733983",
       "brief": "briefs/14.md",
       "spec": "specs/14/14.7.spec.ts",
-      "commit_sha": "dbd397adcce6ffae1efa40b83d33876ff65326e0",
+      "commit_sha": "42845a361a63b758c0333efd6d012c231c3f8125",
       "screenshots": [
         "screenshots/14/14.7/01-round-one-two-courts.0667cfa3.png",
         "screenshots/14/14.7/02-court-number-outlined.dd497f18.png",
         "screenshots/14/14.7/03-every-match-court-one.e24c4ed9.png",
         "screenshots/14/14.7/04-courts-in-configuration.3f17fe99.png"
       ],
-      "published_at": "2026-09-13T04:34:41.000Z",
+      "published_at": "2026-09-13T09:55:18.000Z",
       "status": "published"
     },
     "14.8": {
@@ -1530,11 +1530,12 @@
     },
     "09.6": {
       "intercom_id": "16762197",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16762197-assigning-a-referee-and-adding-a-banner-or-note",
       "collection": "09",
       "intercom_collection_id": "19733978",
       "brief": "briefs/09.md",
       "spec": "specs/09/09.6.spec.ts",
-      "commit_sha": "67a299df04e14b628587ce1fe9c9661786925859",
+      "commit_sha": "42845a361a63b758c0333efd6d012c231c3f8125",
       "screenshots": [
         "screenshots/09/09.6/01-referee-empty.84b84bfb.png",
         "screenshots/09/09.6/02-strip-referee.d0c7ea50.png",
@@ -1543,9 +1544,8 @@
         "screenshots/09/09.6/05-no-note.3bb8fc42.png",
         "screenshots/09/09.6/06-edit-note.03babad2.png"
       ],
-      "published_at": "2026-08-31T16:17:28.000Z",
-      "status": "published",
-      "intercom_url": "https://help.scoryboard.com/en/articles/16762197-assigning-a-referee-and-adding-a-banner-or-note"
+      "published_at": "2026-09-13T09:54:52.000Z",
+      "status": "published"
     },
     "09.7": {
       "intercom_id": "16762199",

@@ -3,6 +3,8 @@
 
 <p>A padel fixture list is built in <strong>rounds</strong>, not in a single sequence. Matches in one round start together, on different courts.</p>
 
+<p class="scope"><em>This article's screenshots are a <strong>Swiss</strong> tournament. <strong>Americano</strong>, <strong>Mexicano</strong> and <strong>King of the Court</strong> are timed the same way. <strong>Round Robin</strong> is not - see <a href="#round-robin">Round Robin is timed differently</a> below.</em></p>
+
 <h2>Where the fixtures are</h2>
 
 <ol>
@@ -25,6 +27,8 @@
 
 <h2>How the times are worked out</h2>
 
+<p>This is how every padel format except <strong>Round Robin</strong> is timed.</p>
+
 <ul>
   <li>Every match in a round shares one kick-off time.</li>
   <li>The next round starts a <strong>match duration</strong> plus a <strong>gap between rounds</strong> later. With 10-minute matches and a 10-minute gap, the rounds are 20 minutes apart.</li>
@@ -37,11 +41,27 @@
 
 <p>The number of courts is what limits how many matches a round can hold. Set it lower and the round is split across two start times instead - Scoryboard will not put two matches on one court at once.</p>
 
+<h2 id="round-robin">Round Robin is timed differently</h2>
+
+<p>A <strong>Round Robin</strong> padel tournament still lists its fixtures under <strong>ROUND</strong> headings. The times under those headings work another way.</p>
+
+<ul>
+  <li>Every match has its own kick-off time. The matches of a round do not start together.</li>
+  <li>The step from one match to the next is the <strong>match duration</strong>. With 10-minute matches the fixtures run ten minutes apart, all the way down the group.</li>
+  <li><strong>Gap between rounds (minutes)</strong> does nothing here. The field is still on the Configuration dialog, and Round Robin ignores whatever you put in it.</li>
+  <li>Courts still count up from 1 and start again at 1. Two matches never share a court, because no two of them start together.</li>
+</ul>
+
+<p>A Round Robin round is a block of matches played one after another, not a set played at once.</p>
+
+<p>A round added later by the <strong>Continue</strong> banner is the exception, and it can put two matches on one court at one time. See "Why padel matches share a start time, and when that is a clash".</p>
+
 <h2>If it does not work</h2>
 
 <ul>
   <li><strong>There are no fixtures.</strong> The format has not been saved yet. See "Choosing a format for a padel tournament".</li>
   <li><strong>Two matches share a start time.</strong> That is what a round is. It is only a problem if they also share a court - see "Why padel matches share a start time, and when that is a clash".</li>
   <li><strong>You see a flat list instead of rounds.</strong> A bulk update has turned the rounds off. Tick <strong>Same start time per round</strong> and update the group again.</li>
+  <li><strong>Each match in a round has its own time.</strong> This is a <strong>Round Robin</strong> tournament - see <a href="#round-robin">Round Robin is timed differently</a>.</li>
   <li><strong>You expected a pitch, not a court.</strong> Pitch is the football wording - see "How the fixture list is generated for a football tournament".</li>
 </ul>
