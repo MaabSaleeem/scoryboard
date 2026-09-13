@@ -14,6 +14,21 @@
 //
 // The padel note in the map is wording only: padel participants are pairs, so the
 // same counts read as teams. No separate capture.
+//
+// Re-captured 2026-09-13 for 8sept-updates.md A15, shots 03, 04 and 06. Three
+// changes, one of them the point of the exercise:
+//
+//   - 06: the football DRAW is now worth 2 points by default, so KB 15 Done
+//     Cup's table reads 9/6/2/2 where it read 9/6/1/1. Ranking order unchanged.
+//   - 06: the fixture cards now show each match's ACTUAL start time
+//     (`startedAt`, 9:59 for all six - the seed started them in one burst)
+//     rather than the scheduled 10:00, 10:10, 10:20. Product change, published
+//     on the repo owner's instruction. It also grew a `WEEK 1` band.
+//   - 03 and 04: layout only. The empty-referees panel and the followers dialog
+//     both got taller. No content changed; taken with the rest so one article
+//     does not mix two versions of the app.
+//
+// 01, 02 and 05 came back byte-identical and keep their published filenames.
 
 import { test, expect } from '@playwright/test';
 import {

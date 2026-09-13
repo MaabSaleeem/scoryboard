@@ -6,6 +6,23 @@
 //
 // The Results tab opens on the Knockout Phase once the group phase is complete,
 // so the spec chooses Group Phase first - as the reader has to.
+//
+// Re-captured 2026-09-13 for 8sept-updates.md A15. TWO product changes are in
+// these images, and only the first was expected:
+//
+//   1. The football DRAW is now worth 2 points by default, not 1, and it is
+//      applied at READ time - a tournament whose stored config carries no
+//      points fields recomputes anyway. KB 13 Summer Cup's Group A returned
+//      7/5/3/1 in August and returns 8/7/3/2 today off identical W/D/L/GF/GA.
+//      Ranking order is unchanged. Nothing in this spec asserts a number.
+//   2. A Results-tab fixture card now shows the match's ACTUAL start time
+//      (`startedAt`) where it used to show its scheduled kick-off, and while a
+//      phase still allows score editing the score renders in input boxes with
+//      no WIN/DRAW badge. The seed force-starts all twelve group matches inside
+//      twenty seconds, so every card reads one repeated minute. Published on
+//      the repo owner's instruction, 2026-09-13: accurate, and no prose here
+//      refers to a kick-off time. NOT clock-driven - freezing the clock was
+//      tried and changes nothing.
 
 import { test, expect } from '@playwright/test';
 import {

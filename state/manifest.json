@@ -424,11 +424,12 @@
     },
     "13.10": {
       "intercom_id": "16735857",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16735857-changing-a-padel-format-after-you-have-saved-it",
       "collection": "13",
       "intercom_collection_id": "19733982",
       "brief": "briefs/13.md",
       "spec": "specs/13/13.10.spec.ts",
-      "commit_sha": "8c3747a0850a7eedb928027a5904e2fee46dd05b",
+      "commit_sha": "dbd397adcce6ffae1efa40b83d33876ff65326e0",
       "screenshots": [
         "screenshots/13/13.10/01-configuration-button.ec564953.png",
         "screenshots/13/13.10/02-padel-configuration-dialog.df545e60.png",
@@ -436,9 +437,8 @@
         "screenshots/13/13.10/04-courts-field.57c55fca.png",
         "screenshots/13/13.10/05-update-confirm.751b22a5.png"
       ],
-      "published_at": "2026-08-28T14:43:34.000Z",
-      "status": "published",
-      "intercom_url": "https://help.scoryboard.com/en/articles/16735857-changing-a-padel-format-after-you-have-saved-it"
+      "published_at": "2026-09-13T04:34:37.000Z",
+      "status": "published"
     },
     "13.11": {
       "intercom_id": "16735884",
@@ -573,20 +573,20 @@
     },
     "14.7": {
       "intercom_id": "16736759",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16736759-why-padel-matches-share-a-start-time-and-when-that-is-a-clash",
       "collection": "14",
       "intercom_collection_id": "19733983",
       "brief": "briefs/14.md",
       "spec": "specs/14/14.7.spec.ts",
-      "commit_sha": "11b79d9",
+      "commit_sha": "dbd397adcce6ffae1efa40b83d33876ff65326e0",
       "screenshots": [
         "screenshots/14/14.7/01-round-one-two-courts.0667cfa3.png",
         "screenshots/14/14.7/02-court-number-outlined.dd497f18.png",
         "screenshots/14/14.7/03-every-match-court-one.e24c4ed9.png",
         "screenshots/14/14.7/04-courts-in-configuration.3f17fe99.png"
       ],
-      "published_at": "2026-08-28T17:08:48.000Z",
-      "status": "published",
-      "intercom_url": "https://help.scoryboard.com/en/articles/16736759-why-padel-matches-share-a-start-time-and-when-that-is-a-clash"
+      "published_at": "2026-09-13T04:34:41.000Z",
+      "status": "published"
     },
     "14.8": {
       "intercom_id": "16736763",
@@ -661,11 +661,12 @@
     },
     "01.4": {
       "intercom_id": "16738275",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16738275-the-setup-wizard-what-each-step-does",
       "collection": "01",
       "intercom_collection_id": "19733970",
       "brief": "briefs/01.md",
       "spec": "specs/01/01.4.spec.ts",
-      "commit_sha": "ad60ed9788521b72c7a805303a4c2395552b2552",
+      "commit_sha": "dbd397adcce6ffae1efa40b83d33876ff65326e0",
       "screenshots": [
         "screenshots/01/01.4/01-step-1-personal-information.42c6cf29.png",
         "screenshots/01/01.4/02-gender-list.84796da9.png",
@@ -680,9 +681,8 @@
         "screenshots/01/01.4/11-setup-my-team.15c4738a.png",
         "screenshots/01/01.4/12-home-after-skip.eaa27a1d.png"
       ],
-      "published_at": "2026-08-28T19:57:57.000Z",
-      "status": "published",
-      "intercom_url": "https://help.scoryboard.com/en/articles/16738275-the-setup-wizard-what-each-step-does"
+      "published_at": "2026-09-13T04:33:57.000Z",
+      "status": "published"
     },
     "01.5": {
       "intercom_id": "16738278",
@@ -707,19 +707,19 @@
     },
     "01.6": {
       "intercom_id": "16738281",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16738281-the-profile-checklist-in-your-sidebar",
       "collection": "01",
       "intercom_collection_id": "19733970",
       "brief": "briefs/01.md",
       "spec": "specs/01/01.6.spec.ts",
-      "commit_sha": "fe7fff8c21fd7e369ef595e0dde618c0e3139dd4",
+      "commit_sha": "dbd397adcce6ffae1efa40b83d33876ff65326e0",
       "screenshots": [
         "screenshots/01/01.6/01-sidebar-checklist.b611653b.png",
         "screenshots/01/01.6/02-personal-details-highlighted.e21dcaed.png",
         "screenshots/01/01.6/03-my-bio-highlighted.f10c2ddf.png"
       ],
-      "published_at": "2026-08-28T19:57:58.000Z",
-      "status": "published",
-      "intercom_url": "https://help.scoryboard.com/en/articles/16738281-the-profile-checklist-in-your-sidebar"
+      "published_at": "2026-09-13T04:34:01.000Z",
+      "status": "published"
     },
     "01.7": {
       "intercom_id": "16738286",
@@ -829,54 +829,57 @@
     },
     "02.6": {
       "intercom_id": "16738976",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16738976-what-your-public-player-profile-shows",
       "collection": "02",
       "intercom_collection_id": "19733971",
       "brief": "briefs/02.md",
       "spec": "specs/02/02.6.spec.ts",
-      "commit_sha": "2000806a276fe05ecc19821ed91a3f135a369fc4",
+      "commit_sha": "dbd397adcce6ffae1efa40b83d33876ff65326e0",
       "screenshots": [
-        "screenshots/02/02.6/01-public-profile.f39dad71.png",
-        "screenshots/02/02.6/02-visitor-actions.87b4a820.png",
+        "screenshots/02/02.6/01-public-profile.1569c939.png",
+        "screenshots/02/02.6/02-visitor-actions.7f928047.png",
         "screenshots/02/02.6/03-bio-and-statistics.6ec04cbb.png",
-        "screenshots/02/02.6/04-matches-no-create.e963401c.png"
+        "screenshots/02/02.6/04-matches-no-create.e963401c.png",
+        "screenshots/02/02.6/05-padel-profile.39950204.png",
+        "screenshots/02/02.6/06-padel-statistics.5c38044c.png"
       ],
-      "published_at": "2026-08-28T21:43:52.000Z",
-      "status": "published",
-      "intercom_url": "https://help.scoryboard.com/en/articles/16738976-what-your-public-player-profile-shows"
+      "published_at": "2026-09-13T04:34:05.000Z",
+      "status": "published"
     },
     "02.7": {
       "intercom_id": "16738977",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16738977-your-teams-rankings-and-match-history",
       "collection": "02",
       "intercom_collection_id": "19733971",
       "brief": "briefs/02.md",
       "spec": "specs/02/02.7.spec.ts",
-      "commit_sha": "2000806a276fe05ecc19821ed91a3f135a369fc4",
+      "commit_sha": "dbd397adcce6ffae1efa40b83d33876ff65326e0",
       "screenshots": [
         "screenshots/02/02.7/01-teams-panel.7d3d5957.png",
         "screenshots/02/02.7/02-team-rank.20bf84c2.png",
         "screenshots/02/02.7/03-past-matches.19531a1b.png",
-        "screenshots/02/02.7/04-leaderboards-table.a9850c97.png"
+        "screenshots/02/02.7/04-leaderboards-table.a9850c97.png",
+        "screenshots/02/02.7/05-padel-home-panels.7593bf2c.png"
       ],
-      "published_at": "2026-08-29T09:38:38.000Z",
-      "status": "published",
-      "intercom_url": "https://help.scoryboard.com/en/articles/16738977-your-teams-rankings-and-match-history"
+      "published_at": "2026-09-13T04:34:09.000Z",
+      "status": "published"
     },
     "02.8": {
       "intercom_id": "16738979",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16738979-comparing-your-stats-with-other-players",
       "collection": "02",
       "intercom_collection_id": "19733971",
       "brief": "briefs/02.md",
       "spec": "specs/02/02.8.spec.ts",
-      "commit_sha": "2000806a276fe05ecc19821ed91a3f135a369fc4",
+      "commit_sha": "dbd397adcce6ffae1efa40b83d33876ff65326e0",
       "screenshots": [
         "screenshots/02/02.8/01-compare-button-free.63560c9b.png",
         "screenshots/02/02.8/02-compare-gate-free.f31a6880.png",
         "screenshots/02/02.8/03-compare-table-pro.b317fb66.png",
         "screenshots/02/02.8/04-compare-arrows-pro.5bd5b052.png"
       ],
-      "published_at": "2026-08-28T21:44:01.000Z",
-      "status": "published",
-      "intercom_url": "https://help.scoryboard.com/en/articles/16738979-comparing-your-stats-with-other-players"
+      "published_at": "2026-09-13T04:34:14.000Z",
+      "status": "published"
     },
     "07.1": {
       "intercom_id": "16740184",
@@ -1052,11 +1055,12 @@
     },
     "07.10": {
       "intercom_id": "16740286",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16740286-your-team-page-stats-matches-top-players-and-followers",
       "collection": "07",
       "intercom_collection_id": "19733976",
       "brief": "briefs/07.md",
       "spec": "specs/07/07.10.spec.ts",
-      "commit_sha": "2d3bfc544de8d377f953086f571f71c17cd4e286",
+      "commit_sha": "dbd397adcce6ffae1efa40b83d33876ff65326e0",
       "screenshots": [
         "screenshots/07/07.10/01-team-header.ea523892.png",
         "screenshots/07/07.10/02-team-stats.2cb842b9.png",
@@ -1064,9 +1068,8 @@
         "screenshots/07/07.10/04-matches-past.0dea19ef.png",
         "screenshots/07/07.10/05-player-stats.a4cd39ff.png"
       ],
-      "published_at": "2026-08-29T00:38:25.000Z",
-      "status": "published",
-      "intercom_url": "https://help.scoryboard.com/en/articles/16740286-your-team-page-stats-matches-top-players-and-followers"
+      "published_at": "2026-09-13T04:34:17.000Z",
+      "status": "published"
     },
     "07.11": {
       "intercom_id": "16740298",
@@ -1302,34 +1305,34 @@
     },
     "11.2": {
       "intercom_id": "16756936",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16756936-how-team-and-player-statistics-are-calculated",
       "collection": "11",
       "intercom_collection_id": "19733980",
       "brief": "briefs/11.md",
       "spec": "specs/11/11.2.spec.ts",
-      "commit_sha": "6e58965",
+      "commit_sha": "dbd397adcce6ffae1efa40b83d33876ff65326e0",
       "screenshots": [
         "screenshots/11/11.2/01-player-stat-tiles.b78402dc.png",
         "screenshots/11/11.2/02-team-stat-tiles.ad838df6.png",
         "screenshots/11/11.2/03-player-stats-table.c07dfe73.png"
       ],
-      "published_at": "2026-08-31T08:24:56.000Z",
-      "status": "published",
-      "intercom_url": "https://help.scoryboard.com/en/articles/16756936-how-team-and-player-statistics-are-calculated"
+      "published_at": "2026-09-13T04:34:30.000Z",
+      "status": "published"
     },
     "11.3": {
       "intercom_id": "16756939",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16756939-when-your-statistics-update-after-a-match",
       "collection": "11",
       "intercom_collection_id": "19733980",
       "brief": "briefs/11.md",
       "spec": "specs/11/11.3.spec.ts",
-      "commit_sha": "1548298",
+      "commit_sha": "dbd397adcce6ffae1efa40b83d33876ff65326e0",
       "screenshots": [
         "screenshots/11/11.3/01-match-details-leaderboard.da26ac7e.png",
         "screenshots/11/11.3/02-leaderboards-table.fb9f2913.png"
       ],
-      "published_at": "2026-08-31T08:25:00.000Z",
-      "status": "published",
-      "intercom_url": "https://help.scoryboard.com/en/articles/16756939-when-your-statistics-update-after-a-match"
+      "published_at": "2026-09-13T04:34:33.000Z",
+      "status": "published"
     },
     "08.1": {
       "intercom_id": "16760527",
@@ -1391,11 +1394,12 @@
     },
     "08.4": {
       "intercom_id": "16760742",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16760742-leaderboard-statistics-players-and-matches",
       "collection": "08",
       "intercom_collection_id": "19733977",
       "brief": "briefs/08.md",
       "spec": "specs/08/08.4.spec.ts",
-      "commit_sha": "0ae393231d3108df40d77e9f9d4ecf0f0856f493",
+      "commit_sha": "dbd397adcce6ffae1efa40b83d33876ff65326e0",
       "screenshots": [
         "screenshots/08/08.4/01-board-header.6e970273.png",
         "screenshots/08/08.4/02-team-stats.98351adc.png",
@@ -1404,9 +1408,8 @@
         "screenshots/08/08.4/05-matches-past.ce2e0ca9.png",
         "screenshots/08/08.4/06-matches-team-filter.d8e74065.png"
       ],
-      "published_at": "2026-08-31T13:18:04.000Z",
-      "status": "published",
-      "intercom_url": "https://help.scoryboard.com/en/articles/16760742-leaderboard-statistics-players-and-matches"
+      "published_at": "2026-09-13T04:34:22.000Z",
+      "status": "published"
     },
     "08.5": {
       "intercom_id": "16760763",
@@ -1488,11 +1491,12 @@
     },
     "09.4": {
       "intercom_id": "16762195",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16762195-match-tags-and-attaching-a-match-to-a-leaderboard",
       "collection": "09",
       "intercom_collection_id": "19733978",
       "brief": "briefs/09.md",
       "spec": "specs/09/09.4.spec.ts",
-      "commit_sha": "67a299df04e14b628587ce1fe9c9661786925859",
+      "commit_sha": "dbd397adcce6ffae1efa40b83d33876ff65326e0",
       "screenshots": [
         "screenshots/09/09.4/01-game-type-open.c3a71bb5.png",
         "screenshots/09/09.4/02-tag-badge.7306882d.png",
@@ -1500,9 +1504,8 @@
         "screenshots/09/09.4/04-strip-leaderboard.12de6567.png",
         "screenshots/09/09.4/05-player-view-only.1bf4a8db.png"
       ],
-      "published_at": "2026-08-31T16:09:24.000Z",
-      "status": "published",
-      "intercom_url": "https://help.scoryboard.com/en/articles/16762195-match-tags-and-attaching-a-match-to-a-leaderboard"
+      "published_at": "2026-09-13T04:34:26.000Z",
+      "status": "published"
     },
     "09.5": {
       "intercom_id": "16762196",
@@ -2323,7 +2326,7 @@
       "intercom_collection_id": "19733990",
       "brief": "briefs/21.md",
       "spec": "specs/21/21.1.spec.ts",
-      "commit_sha": "0f2413c2f2349c1e30a1ba63e85d10403c4557fd",
+      "commit_sha": "dbd397adcce6ffae1efa40b83d33876ff65326e0",
       "screenshots": [
         "screenshots/21/21.1/01-add-referee-dialog.7565bd90.png",
         "screenshots/21/21.1/02-profile-referee-switch.d09eeee0.png",
@@ -2333,7 +2336,7 @@
         "screenshots/21/21.1/06-referee-bio-filled.5b01533f.png",
         "screenshots/21/21.1/07-referee-profile.e8e0b886.png"
       ],
-      "published_at": "2026-09-03T09:21:45.000Z",
+      "published_at": "2026-09-13T04:34:49.000Z",
       "status": "published"
     },
     "21.2": {

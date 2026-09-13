@@ -16,12 +16,18 @@ Nothing is invented. Gaps are listed under [Not in the collection](#not-in-the-c
     staging is `scoryboard-staging`. ID tokens expire after one hour; mint a fresh
     one per session (see [Session minting](#session-minting)).
   - **Admin** - `X-API-KEY: $SCORYBOARD_ADMIN_API_KEY`. Used by everything under
-    `/admins/*`, all of `/bookings/*`, ~~`/matches/:id/facts`~~, `/padellevels/*`,
-    `/marketings/*` and `/tournaments/create/centernet`. 36 endpoints in total.
-    No user token needed.
+    `/admins/*`, all of `/bookings/*`, ~~`/matches/:id/facts`~~,
+    ~~`/padellevels/*`~~, `/marketings/*` and `/tournaments/create/centernet`.
+    36 endpoints in total. No user token needed.
     **(observed in app, 2026-08-31)** `/matches/:id/facts` is in that list because
     the Postman collection sends the admin key with it. It does not need one: the
     web app calls it with the signed-in user's bearer token on every match page.
+    **(measured on staging, 2026-09-13)** `/padellevels/*` is struck out because
+    **our admin key is refused there**. `GET /padellevels/results?days=7` answers
+    `401 {"reason":"User is not Authorized"}` to the admin key, to a user bearer
+    token and to no credential at all - the same body all three times. Whatever
+    opens it is a third key this project does not hold, so treat every
+    `/padellevels/*` row as unreachable rather than as admin-key.
 - Pagination: `?skip=<n>&limit=<n>` on list endpoints.
 - Images are versioned: `GET .../avatar?v=<version>` and `.../banner?v=<version>`.
   The version comes back on the parent entity. Omitting `v` may serve a cached image.
@@ -88,8 +94,8 @@ most of step 1.
 | Method | Path | For | Body / notes |
 |---|---|---|---|
 | POST | `/users` | Create the DB user after Firebase signup | `name`, `lastName`, `email`; optional `gender`, `dateOfBirth`, `position`, `sports[]`, `bio`, `avatarToken`, `defaultProfile` (`Player` or `Referee`), `isMarketingOpted`, `gclid`/`gbraid`/`wbraid`, `utm_*` |
-| GET | `/users/me` | Current user, membership, flags | - |
-| PUT | `/users/:userId` | Update own details | `name`, `lastName`, `gender`, `dateOfBirth`, `sports`, `position`; optional `bio`, `isMarketingOpted`, `avatarToken`, `bannerToken`. A 10-year minimum-age rule applies to `dateOfBirth`. **(observed in app, 2026-08-29)** It is a full REPLACE, not a patch - see below |
+| GET | `/users/me` | Current user and membership. **There is no `flags` key** | - |
+| PUT | `/users/:userId` | Update own details | `name`, `lastName`, `gender`, `dateOfBirth`, `sports`, `position`; optional `bio`, `isMarketingOpted`, `avatarToken`, `bannerToken`. A 10-year minimum-age rule applies to `dateOfBirth`. **(observed in app, 2026-08-29)** It is a full REPLACE, not a patch - see below. **(observed in app, 2026-09-13)** It also carries the six **padel profile** fields - see [The padel profile fields](#the-padel-profile-fields) |
 | DELETE | `/users/:userId` | Delete own account | - |
 | POST | `/users/reset-password` | Send a password-reset email | `email` |
 | POST | `/users/subscription` | Self-serve Free / Pro toggle | `membership`: `Free` or `Pro`. Pro is free during beta, no payment step. **(observed in app, 2026-08-29)** Both directions are one call from `/subscriptions` and **neither is confirmed**: "Upgrade to PRO" upgrades on the click and opens a Congratulations window, "Cancel subscription" downgrades on the click and says nothing. See [Membership, plans and the Free-plan limits](#membership-plans-and-the-free-plan-limits) |
@@ -106,6 +112,64 @@ Sending only part of the profile also answers `400` on some paths: a body of
 `{"avatarToken"}` alone was accepted, but `{"bio"}` alone answered
 `"name is required", "lastName is required", "gender is required"`. Send the whole
 profile every time.
+
+### The padel profile fields
+
+**(observed in app, 2026-09-13. New - none of these was recorded, and one of them
+cannot be guessed.)** Padel is a third profile type beside Player and Referee, and
+it is written through the ordinary `PUT /users/:userId`. Ticking **Padel** in
+`Sports *` on Profile settings reveals four pickers inline; a second **Padel Bio**
+box appears in **My Bio**. Saving sent, off the wire:
+
+```json
+PUT /users/6aa02c7ed2d0446ceef8c2f3
+{"data":{"name":"Probe","lastName":"KB","sports":["Football","Padel"],
+  "position":"Striker","bestHand":"Right Handed","courtPositions":"Both sides",
+  "matchType":"Competitive","preferredTime":"Evening","gender":"Male",
+  "dateOfBirth":"1990-05-04","isMarketingOpted":true,
+  "bio":"...","padelBio":"...","defaultProfile":"Padel"}}
+```
+
+| Field | Screen label | Values, read off the `<select>` |
+|---|---|---|
+| `bestHand` | `Best hand *` | `Left Handed`, `Right Handed` |
+| `courtPositions` | `Court position` | `Left side`, `Both sides`, `Right side` |
+| `matchType` | `Match type` | `Competitive`, `Friendly`, `Both` |
+| `preferredTime` | `Preferred time` | `Morning`, `Afternoon`, `Evening` |
+| `padelBio` | a second `Padel Bio` box, placeholder `Add your Padel bio here...` | free text |
+| `defaultProfile` | `Select your default profile` | `Player`, `Referee`, `Padel` - it decides which pill the profile opens on |
+
+The values are the **labels themselves**, spaces and capitals included. Two traps:
+
+- **`courtPositions` is plural and takes one string.** It cannot be found by
+  trying: `courtPosition`, `padelCourtPosition`, `courtSide`, `padelPosition`,
+  `side` and `preferredSide` are each accepted with a `200` and silently dropped.
+  It was recovered from the app bundle on 2026-09-08 and confirmed on the wire
+  here.
+- **`Best hand *` is asterisked but not enforced.** Saving without it succeeds and
+  leaves four profile tiles reading N/A. A known product defect.
+
+`sports` is the gate: without `Padel` in it none of these fields renders, and
+`Select your default profile` offers only `Football`.
+
+### `GET /users/me` returns no feature flags
+
+**(measured on staging, 2026-09-13.)** The row above used to promise flags. It
+answers `{status, data}` and `data` holds exactly 25 keys:
+
+`name`, `lastName`, `uid`, `email`, `isDisabled`, `isEmailVerified`,
+`isMarketingOpted`, `isTNCAccepted`, `isTourCompleted`, `isReferee`,
+`defaultProfile`, `isDeleted`, `tournamentAnnualStatus`,
+`tournamentAnnualCancelAtPeriodEnd`, `freeTournamentProAllowanceTotal`,
+`freeTournamentProAllowanceRemaining`, `membership`,
+`isFirstTeamCreationEmailSent`, `playerId`, `bio`, `padelBio`, `refereeBio`,
+`dateOfBirth`, `gender`, `position`, `sports`, `id`.
+
+The string `"flags"` does not appear anywhere in the response. **No feature flag
+is readable from the API**, which is why
+`FOOTBALL_GROUP_LEAGUE_SCHEDULER_ENABLED` could not be confirmed for production
+when 14.1 and 12.4 were rewritten - see `state/progress.md`, 2026-09-08. Anything
+that needs to know a flag's value needs backend or infra access.
 
 **This is a live defect a reader will hit.** Changing your profile photo from
 Profile settings deletes your bio. The page saves a new photo with
@@ -651,16 +715,25 @@ exists.
   action cannot be undone. This will permanently delete the leaderboard and remove
   all associated data." / Cancel / Delete Leaderboard.
 
-### The "public link" is not public
+### A leaderboard's "public link" is not public
 
-**(observed in app, 2026-08-31.)** The card's share control opens **Share
-Leaderboard**, which offers a read-only `Link` field, a copy button and a QR code,
-under the words "People with this link can view your board but can't change it.
-This is the link you should share on social media, on your website or elsewhere."
-The link is just `<origin>/leaderboards/<id>`, and a **signed-out** visitor who
-opens it is redirected to `/signin`. The recipient needs a Scoryboard account. The
-QR code's own `<title>` reads "Scan the QR code to view this tournament" on a
-leaderboard.
+**Read this together with [The match preview really is
+public](#the-match-preview-really-is-public).** These two used to be one claim
+and they are no longer the same: a **leaderboard** share link is still sign-in
+only, a **match** preview link is not. Do not harmonise them.
+
+**(observed in app, 2026-08-31; re-measured 2026-09-13.)** The card's share
+control opens **Share Leaderboard**, which offers a read-only `Link` field, a copy
+button and a QR code, under the words "People with this link can view your board
+but can't change it. This is the link you should share on social media, on your
+website or elsewhere." The link is just `<origin>/leaderboards/<id>`, and a
+**signed-out** visitor who opens it is redirected to `/signin`. The recipient
+needs a Scoryboard account. The QR code's own `<title>` reads "Scan the QR code to
+view this tournament" on a leaderboard.
+
+`GET /leaderboards/:leaderboardId` with **no token** answers
+`401 {"reason":"User is not Authorized"}` - measured again on 2026-09-13, so this
+half of the old claim is unchanged. Article 08.5 is correct as written.
 
 ### Comments on a leaderboard
 
@@ -699,10 +772,31 @@ match with two empty `players[]` arrays goes `Scheduled`).
 
 The `leaderboardId` requirement is the surprising one - **a friendly with no
 league still has to be attached to a leaderboard** before the app calls it
-Scheduled. And the change is one-way: `PUT {clubLocationId: null}` and
-`{leaderboardId: null}` are both refused ("Invalid input"), `{clubLocationId: ""}`
-answers "Invalid ObjectId". A Scheduled match can never be pushed back to
-Incomplete.
+Scheduled.
+
+**~~A Scheduled match can never be pushed back to Incomplete.~~ That is false.**
+**(measured on staging, 2026-09-13, on a purpose-built throwaway fixture.)** Six
+of the seven fields refuse a null, but **`date` accepts one**, and clearing it
+takes the match back:
+
+| Body | Answer | Effect |
+|---|---|---|
+| `PUT {"date": null}` | **200** | `status` returns to **`Incomplete`**, `date` is `null` |
+| `PUT {"date": "<ISO>"}` | 200 | back to **`Scheduled`** - it is reversible both ways |
+| `PUT {"date": ""}` | 400 | `"Invalid ISO datetime"` |
+| `PUT {"clubLocationId": null}` | 400 | SCHEMA_VALIDATION_ERROR |
+| `PUT {"clubLocationId": ""}` | 400 | SCHEMA_VALIDATION_ERROR |
+| `PUT {"leaderboardId": null}` | 400 | SCHEMA_VALIDATION_ERROR |
+| `PUT {"duration": null}` | 400 | SCHEMA_VALIDATION_ERROR |
+| `PUT {"teamSize": null}` | 400 | SCHEMA_VALIDATION_ERROR |
+
+So the date is the **only** unschedule path, and it is the only one of the seven
+that is not one-way. **No reader-reachable control clears an ordinary match's
+date** - the match edit form has no such control - so article 09.2 still gives a
+reader the right outcome; it is the reference that was wrong. The one place a
+reader *can* reach this is a **tournament** fixture: dragging a card into the
+`UNSCHEDULED` band on a round-robin football Schedule tab. See
+8sept-updates.md B6.
 
 ### Leaderboard app routes
 
@@ -929,7 +1023,7 @@ as four accounts.
 | Route | Screen |
 |---|---|
 | `/matches/:id` | the match page. **`/matches` with no id is Page not found** |
-| `/match/:id/preview` | the "public link" the Share window hands out |
+| `/match/<home>-vs-<away>/:id/preview` | the public link the Share window hands out. **(observed in app, 2026-09-08)** It gained the slug; the old slug-less `/match/:id/preview` still resolves. Readable **signed out** - see below |
 | `/schedule` | **Scheduled Matches** - the calendar. Three views: Day (`lucide-list`), Week (`lucide-columns2`), Month (`lucide-grid3x3`, the default and the only one labelled) |
 | `/match/create` | in the route enum, **dead**. Create Match posts a match and goes to `/matches/:id` |
 | `/match/invite` | in the route enum, **dead**. Renders the match-page shell with empty tabs. Nothing in the bundle navigates to it |
@@ -960,18 +1054,112 @@ set" for the venue - over data `GET /matches/:id` returns perfectly. Going to
 plain-Player account. Collection 08 hit the same store slice, where it showed up
 as a wrongly applied **External** badge.
 
-**The public link is not public.** A signed-out visitor at `/match/:id/preview`
-gets a **Sign In** button, five empty tab labels and grey skeletons that never
-resolve - held 20 seconds, no console error. `/matches/:id` signed out redirects
-to `/signin`. The Share window meanwhile says "People with this link can view your
-board but can't change it. This is the link you should share on social media, on
-your website or elsewhere." Second of two: collection 08 found the same class of
-defect on a leaderboard's share link.
+### The match preview really is public
+
+~~**The public link is not public.** A signed-out visitor at `/match/:id/preview`
+gets a Sign In button, five empty tab labels and grey skeletons that never
+resolve.~~ **That was true on 2026-08-31 and is false now.** The product changed;
+09.7 and 10.10 were rewritten for it on 2026-09-08. **Do not carry the old claim
+across to a leaderboard** - a leaderboard's share link is still sign-in only, and
+the two are now different. See [A leaderboard's "public link" is not
+public](#a-leaderboards-public-link-is-not-public).
+
+**(observed in app 2026-09-08, re-measured over the API 2026-09-13.)** With **no
+Authorization header at all**:
+
+| Call | No-token answer |
+|---|---|
+| `GET /matches/:matchId` | **200**, the whole match including both line-ups |
+| `GET /matches/:matchId/facts` | **200** |
+| `GET /teams/:teamId` | **200** |
+| `GET /players/:playerId` | **200** |
+| `GET /ratings?entityType=match&entityId=:matchId` | **200** (`entityType` is required, lower case, one of `match`\|`player`\|`team`\|`referee`) |
+| `GET /matches/:matchId/events` | **401** - the feed a stranger reads comes from Firestore, not from here |
+| `GET /matches/:matchId/ratings` | **401** |
+| `GET /leaderboards/:leaderboardId` | **401** - unchanged |
+
+`/matches/:id` signed out still redirects to `/signin`. The public surface is the
+**preview** route, and it now carries a slug:
+`/match/<home>-vs-<away>/<id>/preview`. The old slug-less `/match/:id/preview`
+still resolves. See [The public preview route and its SEO
+tags](#the-public-preview-route-and-its-seo-tags) for what the page emits.
 
 **Nobody has to be invited to a match.** Every account in either line-up gets a
 `MatchInvitation` notification when the match is created - verified, two of them
 on a squad member who was sent nothing by hand. The **referee is not notified at
 all**.
+
+### The public preview route and its SEO tags
+
+**(measured 2026-09-13. New - nothing about the app's SEO surface was recorded.)**
+These are **unauthenticated** surfaces on the web app, not the API. No token, no
+cookie.
+
+**The slug is what carries the tags.** Fetched signed out, with no token:
+
+| Route | What the `<head>` holds |
+|---|---|
+| `/match/<home>-vs-<away>/:id/preview` | `<title>`, `description`, `robots`, `og:title`, `og:description`, `og:url`, `og:site_name`, `og:type`, `twitter:card`, `twitter:title`, `twitter:description` |
+| `/match/:id/preview` (no slug) | resolves, and carries the `<title>` **only** - no `og:*`, no `twitter:*` |
+| `/matches/:id` | the app shell: `description` "Scoryboard app", `robots` `noindex, nofollow, nocache` |
+
+So a link shared **without** the slug does not unfurl. The generated copy, read
+off a real fixture:
+
+```
+<title>KB 09 United vs KB 09 Rovers | Scoryboard</title>
+<meta name="description" content="KB 09 United vs KB 09 Rovers sports match at
+  KB 09 Astro, Salford, Manchester on 24 September 2026 in KB 09 Sunday League.
+  View match details, score, lineup and results on Scoryboard.">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
+```
+
+It is server-rendered, so **there is no SEO request to catch in a browser network
+log**. The data behind it is the unauthenticated `GET /matches/:matchId` above.
+
+**On staging every page is `noindex, nofollow`** and `robots.txt` is
+`User-Agent: * / Disallow: /`. The indexing behaviour below is **production
+only** and was read from production's own public files.
+
+**`robots.txt` and the sitemaps, on production `app.scoryboard.com`:**
+
+```
+User-Agent: *
+Allow: /tournament/
+Allow: /match/
+Allow: /sitemap.xml
+Allow: /sitemaps/
+Disallow: /
+Sitemap: https://app.scoryboard.com/sitemap.xml
+```
+
+(Three Google ad crawlers are allowed everything, above that block. The marketing
+site `scoryboard.com` is a separate origin with its own `Allow: /`.)
+
+**The sitemap publishes tournaments, and only tournaments.** `sitemap.xml` is a
+`<sitemapindex>` holding **one** child today,
+`/sitemaps/tournaments/2026/0.xml`, with **225** tournament URLs at
+`changefreq daily`, `priority 0.9`.
+
+The route shape is `/sitemaps/{entity}/{year}/{page}.xml`, and it validates the
+entity:
+
+| Path | Answer |
+|---|---|
+| `/sitemaps/tournaments/2026/0.xml` | 200, the 225 URLs |
+| `/sitemaps/tournaments/2025/0.xml`, `.../2026/99.xml` | 200, an **empty** `<urlset>` |
+| `/sitemaps/matches/2026/0.xml` | **404 `Not found`** (text/plain, from the handler) - so `matches` **is** a recognised entity, and it is publishing nothing |
+| `/sitemaps/players/...`, `/sitemaps/teams/...`, `/sitemaps/match/...` | the Next.js HTML 404 - not recognised at all |
+
+**This contradicts 8sept-updates.md A1**, which says "the sitemap publishes
+~36,500 match pages as `index, follow`". On 2026-09-13 it publishes **no match
+pages at all**: the matches route answers `Not found` and the index does not list
+it. A match page is *readable* by anyone with the link and it *unfurls* on social
+- both verified - but it is not being offered to crawlers. **No published article
+claims otherwise**; 09.7 says only that the link unfurls, which holds. Worth
+raising with whoever wrote A1: either the match sitemap was turned off, or it was
+never on.
 
 ### Endpoints the collection lacks, observed on the wire
 
@@ -1096,7 +1284,9 @@ asks nothing first.
 | `pausedAt`, `pauseDurationSeconds` | the timer's own state |
 | `hasScoreEntry`, `hasSourceUpdatedGoals` | **tournament only** - see below |
 | `isPenalty`, `winnerTeamId` | **tournament only** - see below |
-| `captainPlayerId`, `isEdited`, `isDateOnly`, `queueName`, `isMatchManager` | - |
+| `captainPlayerId`, `isEdited`, `queueName`, `isMatchManager` | - |
+| `date` | **(measured 2026-09-13)** it is the **only** field of the seven that decides Scheduled vs Incomplete that accepts a `null`. `PUT {"date": null}` answers 200 and takes a Scheduled match back to **`Incomplete`**; sending an ISO string puts it back. `""` is refused 400 `"Invalid ISO datetime"`. See [A match with no venue is Incomplete, not Scheduled](#a-match-with-no-venue-is-incomplete-not-scheduled) for the whole table |
+| `isDateOnly` | true when the fixture carries a day but no kick-off time. **(2026-09-13)** It is **not** what `{"date": null}` sets - clearing the date leaves `isDateOnly` exactly as it was, `false`, and moves `status` instead. The two are independent |
 
 **Penalties and typed score entry are tournament-only.** `isPenalty` and
 `hasScoreEntry` are read in the bundle behind `y.tournamentMatchId`, and the copy
@@ -1360,12 +1550,63 @@ And one small thing that catches a seed out:
 | GET | `/players/:playerId/teams` | Teams joined |
 | GET | `/players/:playerId/teams/rank` | Teams with rank |
 | GET | `/players/:playerId/matches` | Match history (`limit`, `skip`, `scheduleType`, `includeBooking`, `includeIncomplete`, `startDate`, `endDate`) |
+| GET | `/players/:playerId/padel-profile/stats` | **Padel** statistics. **(observed in app, 2026-09-13)** |
+| GET | `/players/:playerId/padel-profile/teams` | **Padel** teams. **(observed in app, 2026-09-13)** |
+| GET | `/players/:playerId/padel-profile/teams/rank` | **Padel** team ranking. **(observed in app, 2026-09-13)** |
+| GET | `/players/:playerId/padel-profile/tournaments` | **Padel** tournament history - the PADEL TOURNAMENTS panel. **(observed in app, 2026-09-13)** |
 | POST | `/players/avatar` | Upload a profile photo, returns `avatarToken` (multipart, field `avatar`). **WebP only** - see below |
 | GET | `/players/:playerId/avatar?v=` | Fetch the photo |
 | DELETE | `/players/:playerId/avatar` | Remove the photo |
 | POST | `/players/:playerId/banner` | Upload a profile banner (multipart, field `banner`) |
 | GET | `/players/:playerId/banner?v=` | Fetch the banner |
 | DELETE | `/players/:playerId/banner` | Remove the banner |
+
+### The padel read surfaces, and the `sport` filter
+
+**(observed in app, 2026-09-13. New - none of the four was recorded.)** A profile
+whose `defaultProfile` is `Padel` renders a different page, and it is fed by four
+`padel-profile/*` reads, all fired on the home page load beside the football ones:
+
+```
+GET /players/:playerId/padel-profile/stats
+GET /players/:playerId/padel-profile/teams
+GET /players/:playerId/padel-profile/teams/rank
+GET /players/:playerId/padel-profile/tournaments
+```
+
+`padel-profile/teams`, `.../teams/rank` and `.../tournaments` each answer a bare
+array. **`padel-profile/stats` answers a football-shaped object** - the same keys
+the football endpoint uses:
+
+```json
+{"winLossDraws":{"wins":0,"losses":0,"draws":0,"totalMatches":0},
+ "playerOfMatch":0,"goalsScored":0,"assists":0,"redCards":0,"yellowCards":0,
+ "playerName":"Perry","playerLastName":"KB"}
+```
+
+Read on two padel accounts, `kb-02-padel@` and a throwaway. It carries no padel
+tile at all - no level, no best hand, no win rate - which is the shape behind the
+known defect that the padel profile's **W/L RATIO** tile reads `0:0` beside
+MATCHES 2 / WIN RATE 100%.
+
+**There is a `sport` filter, and the app never sends it.** Three football
+endpoints accept an optional `?sport=` - `/players/:id/stats`,
+`/players/:id/teams` and `/players/:id/teams/rank`. The parameter is built
+conditionally in the app bundle and **was not sent once** across the flows driven
+here; the app splits football from padel by taking the `padel-profile/*` path
+instead. Measured directly, 2026-09-13:
+
+| Call | Answer |
+|---|---|
+| `/players/:id/stats?sport=Padel` | 200, and a **different** object - `playerName` instead of `playerId`, and no `redCards` or `yellowCards` |
+| `/players/:id/stats?sport=Football` | 200, identical to sending nothing |
+| `/players/:id/teams?sport=Padel` | 200 `[]` on an account whose unfiltered list has two teams |
+| `/players/:id/teams/rank?sport=Padel` | 200 `[]` |
+| `?sport=Nonsense` | 400, `"Invalid enum value. Expected 'Football' \| 'Padel'"` |
+
+So the enum is exactly `Football | Padel`, and **Football is the default**. Write
+the `padel-profile/*` paths in a seed rather than the filter: those are what the
+product uses.
 
 **(observed in app, 2026-08-29)** Both image endpoints - `POST /players/avatar`
 and `POST /players/:playerId/banner` - accept **WebP and nothing else**. A PNG is
@@ -2307,6 +2548,7 @@ are what the format board and the phase banner call.
 | POST | `/tournament-phases/:phaseId/start-next-phase` | Start the next phase | - |
 | POST | `/tournament-phases/:phaseId/undo-next-phase-start` | Undo that start | restores the placeholder slots and blocks score entry again |
 | POST | `/tournament-phases/:phaseId/end-phase` | End the last phase | marks every match in the phase finished |
+| POST | `/tournament-phases/:phaseId/padel-next-round` | **Generate the next padel round** | **(observed in app, 2026-09-13)** what the `Continue <format>` banner's **Continue** button sends. **No request body at all.** See below |
 | GET | `/tournaments/:id/schedule?phaseId=` | Standings for one phase | array of groups, each with `teams[]` carrying `played`, `won`, `points`, `goalsFor` ... and `phaseStarted`, `phaseEnded`, `canEditScores` |
 | GET | `/tournaments/:id/schedule/groups/:groupId/matches` | The matches of one group | - |
 
@@ -2318,6 +2560,46 @@ The `homeSource` object a placeholder slot sends, copied from the wire:
   "phaseOrder":0,"groupOrder":1,"swapKey":"rank-1","swapCategory":"group"}}
 ```
 
+### `padel-next-round` - the Continue banner
+
+**(observed in app, 2026-09-13, on a throwaway Mexicano tournament. New.)** A
+padel phase advances one round at a time. Once every fixture in the current round
+has a score, the **Results** tab grows a banner in the same strip as
+`End Group Phase` and above it:
+
+> **Continue Mexicano**
+> Complete the current round to create the next player combinations.
+> `[ Continue ]`
+
+The heading is `Continue ` plus the raw format id, unspaced - `Continue Mexicano`,
+`Continue RoundRobin`, `Continue Americano`. Selecting **Continue** sends:
+
+```
+POST /tournament-phases/6aa02e55d2d0446ceef8cdf6/padel-next-round
+(no body)
+-> 200 {"status":"OK","data":{"phaseId":"6aa02e55...","round":2,
+        "groupIds":["6aa02e55d2d0446ceef8cdfe"]}}
+```
+
+The new round's fixtures appear in the same group, continuing the kick-off ladder
+(round 1 at 09:00, round 2 at 09:20 with a 20-minute step, on the same courts).
+
+Three things to know before writing about it:
+
+- **Every padel format except Swiss shows the banner.** Swiss still pre-generates
+  all its rounds. Round Robin, Americano, Mexicano and King of the Court all
+  advance a round at a time.
+- **King of the Court adds `Create Playoffs`**, and a modal
+  `Round cannot continue`. Not captured here - it is 8sept-updates.md B5's job.
+- **A Continue-added round can double-book.** On Round Robin with four courts it
+  produced three matches at one kick-off all reading `Player 1 & Player 2`, and
+  put a fixture on a court and time an already-played fixture held. Measured
+  2026-09-08; article 14.7 documents it. On a two-court Mexicano the round came
+  back clean, so it is not universal.
+- **Saving a *changed* padel configuration deletes the Continue-added round** and
+  reverts every played result to `Scheduled` with no score. Nothing undoes it.
+  Saving with nothing changed makes no writes at all.
+
 ### Recording a tournament result
 
 **(observed in app, 2026-08-28.)**
@@ -2326,6 +2608,88 @@ The `homeSource` object a placeholder slot sends, copied from the wire:
 |---|---|---|---|
 | POST | `/matches/:matchId/status` | Move a match on | `{"status":"Live"}`, then `{"status":"Finished"}` |
 | PUT | `/matches/:matchId/score` | Record the score | `homeTeamTotalGoals`, `awayTeamTotalGoals`. Answers `400 "Match must be Live or Finished before tournament results can be entered"` on a Scheduled match, so set the status first |
+
+### The football format save, its points, and the League schedule block
+
+**(observed in app, 2026-09-13, on a purpose-built throwaway. New - none of this
+was recorded anywhere.)** 8sept-updates.md A16 asks for these on
+`PUT /tournament-groups/:groupId`. **They are not on that endpoint.** Football's
+points and its League schedule block ride the same call the padel configuration
+does - a plain `PUT /tournaments/:id` - and so does the **Football
+Configuration** dialog. `PUT /tournament-groups/:groupId` never carries them; the
+row in [Groups, brackets and phases](#groups-brackets-and-phases) is right as it
+stands.
+
+Two screens send this call and they send the **same body**, byte for byte: the
+Format tab's template save, and the **Configuration** button on the phases board.
+Read off the wire, the whole thing:
+
+```json
+PUT /tournaments/6aa62af430dd95871a9c4aca
+{"data":{"teamCount":4,"teamSize":"5 VS 5","duration":"10 min",
+  "teamIds":["...","...","...","..."],"isComplete":true,
+  "format":"RoundRobin","groupCount":1,"teamsPerGroup":4,"matchesPerTeam":1,
+  "autoScheduleMatchesNextDay":true,
+  "footballWinPoints":3,"footballDrawPoints":2,"footballLossPoints":0,
+  "footballGroupScheduleMode":"Custom","footballScheduleStartTime":"10:00",
+  "footballPreferredMatchDays":[6,1],"footballScheduleFrequencyWeeks":6,
+  "footballScheduleMatchesPerWeek":2,"footballScheduleVenueCount":1,
+  "status":"Published"}}
+```
+
+**The three points fields.** `footballWinPoints`, `footballDrawPoints`,
+`footballLossPoints`, integers, sent on every football format save whether or not
+the organiser opened the points boxes.
+
+- The **defaults are 3 / 2 / 0**. A draw is worth **2**, not 1. That is the change
+  behind 8sept-updates.md A15: the default moved, it is applied at read time even
+  to tournaments whose stored config carries no points fields, so historical
+  standings recomputed themselves.
+- The client checks 0-99. **A value of 100 is refused `400` server-side with no
+  on-screen message at all** - a known product defect, see
+  8sept-updates.md.
+- They are **inert on knockout-only**, which has no table to score.
+
+**The six League schedule fields.** All on the same call, all prefixed
+`football`:
+
+| Field | Screen label | Observed |
+|---|---|---|
+| `footballGroupScheduleMode` | Scheduling mode | `"Custom"` or `"Manual"`. The `<select>` shows exactly two options and their labels are **`Custom schedule`** and **`Generate fixtures without dates`**. A reader never sees the words `Custom` or `Manual`; do not print them in an article |
+| `footballScheduleVenueCount` | Number of pitches/venues | integer, defaults `1` |
+| `footballScheduleFrequencyWeeks` | Schedule duration (weeks) | integer, defaults `1`. The `Schedule capacity exceeded` dialog raises it |
+| `footballScheduleMatchesPerWeek` | Matches per week (optional) | integer. **Omitted from the body entirely when the box is blank** |
+| `footballScheduleStartTime` | Daily schedule start time | `"HH:MM"`, 24-hour, defaults `"10:00"` |
+| `footballPreferredMatchDays` | Preferred match day(s) | array of integers, **ISO weekday: Mon 1 ... Sat 6, Sun 7**. Disambiguated by ticking Sunday alone, which sent `[7]`. **Empty by default** - and no day ticked means no slot, which is why a Group-phase-only tournament saved at the wizard's own defaults generates every fixture undated |
+
+**The block is on Group phase only.** It replaced the overflow Yes/No question
+there; the other two templates do not show it. It sits behind
+`FOOTBALL_GROUP_LEAGUE_SCHEDULER_ENABLED`, **and no flag is readable from the
+API** (see [`GET /users/me` returns no feature
+flags](#get-usersme-returns-no-feature-flags)), so everything in this section is
+staging-only until somebody with infra access confirms the flag in production.
+
+**The Football Configuration dialog**, for whoever writes 8sept-updates.md B1:
+its heading is `Football Configuration` - on an Other Sports tournament too,
+which is a product defect - and its controls, read off screen, are `League type *`
+(a team-size picker), `Match duration (minutes) *` (`duration`), `Win points *`,
+`Draw points *`, `Loss points *`, `How many groups do you want to create? *`
+(`groupCount`), `How many teams are there in each group? *` (`teamsPerGroup`),
+`Encounters *` (values `1`-`10`, where `1` is labelled **`Play all teams in pool
+once`**), then the `League schedule` block above.
+
+Two dialogs sit in front of the save:
+
+- **`Schedule capacity exceeded`** - *"6 matches per group x 1 groups = 6 total.
+  Only 1 fit in 1 weeks. Create 5 extra weeks?"*, with **No, create only 1
+  weeks** / **Yes, create extra weeks** / **Close**. It **blocks the save and
+  offers a choice**; accepting it raises `footballScheduleFrequencyWeeks` before
+  the `PUT` goes out. That corrects 8sept-updates.md B1, which records it as
+  blocking with no inline error.
+- **`Update Football Configuration?`** - *"Changing the configuration will reset
+  the current scheduled matches. The matches will be recreated using the new
+  configuration, and the current match setup will be lost."*, with **Cancel** /
+  **Confirm Changes**. Nothing is sent until Confirm Changes.
 
 ### The padel format save - it is not a separate endpoint
 
@@ -2388,8 +2752,43 @@ How the times come out:
 - **`sameStartTimePerRound: true` with no gap** - **every** fixture in the group
   gets the same kick-off time. A football group has no rounds, so the whole group
   counts as one.
-- **`endTime`** is a per-day ceiling: when the next kick-off would pass it,
-  scheduling moves to the next day and restarts at `startTime`.
+- **`endTime`** is a per-day ceiling **on the whole match, not on its kick-off**.
+  When the next match would *finish* past it, scheduling moves to the next day
+  and restarts at `startTime`. ~~when the next kick-off would pass it~~ - the old
+  wording was wrong and is corrected below.
+
+**`endTime` counts the finish, measured 2026-09-13.** On a throwaway
+Group & Knockout tournament, one group of four (six fixtures), `date` 5 Oct 2026,
+`startTime` `10:00`, `duration` `15 min`, `timeBetweenMatches` `20 min`,
+`sameStartTimePerRound` false. Slots are 10:00-10:15, 10:35-10:50, 11:10-11:25:
+
+| `endTime` | What came back |
+|---|---|
+| `11:00` | two a day - 5 Oct 10:00, 10:35; 6 Oct 10:00, 10:35; 7 Oct 10:00, 10:35 |
+| `11:15` | **the same** - the 11:10 kick-off is *before* 11:15 and is still refused, because it would finish at 11:25 |
+| `11:30` | three a day - 5 Oct 10:00, 10:35, 11:10; 6 Oct 10:00, 10:35, 11:10 |
+
+The `11:15` row is the decisive one: a start-time ceiling would have allowed
+11:10. The field is labelled **`End time`** on screen, with the help text *"If the
+next match would finish past this time, scheduling moves to the next day."* It
+replaced a control called `Last allowed match start time`, which **no longer
+exists anywhere in the product**. Article 14.5 was rewritten for this on
+2026-09-08.
+
+**The field is not on every board.** On a **Group phase only** (round-robin)
+football tournament the bulk dialog has no cutoff field at all; it survives on
+**Group & knockout**. 14.5 is scoped to Group & Knockout for that reason.
+
+**The bulk update silently does nothing when the group's matches have no venue.**
+**(measured 2026-09-13, and it cost an hour.)** On a tournament with an empty
+`clubLocations[]`, every one of these answered **200** and changed **nothing** -
+not the times, not the duration, not the day: `{startTime}` alone,
+`{duration}` alone, and the full `{date, startTime, endTime, timeZone, duration,
+timeBetweenMatches, sameStartTimePerRound}` body above. Adding one venue and
+re-sending the identical body applied all of it. There is no error, no warning and
+no clue in the response, which echoes only the group's own record. **Give a
+tournament a venue before you bulk-update its fixtures**, and never read a 200
+here as proof the update landed - read the matches back.
 
 **A UI defect worth knowing before you read that table.** The dialog defaults
 `sameStartTimePerRound` to **true** and disables both `duration` and
@@ -2448,9 +2847,11 @@ collection 12's finding that there is no `Draft` status.
 
 The public page is genuinely public: a signed-out visitor loading
 `/tournament/:id/info` gets the whole page, with `Sign In` where the sidebar
-would be. That is unlike the leaderboard and match "public links", which send a
-signed-out visitor to `/signin` (see [The "public link" is not
-public](#the-public-link-is-not-public) and collection 09).
+would be. **A match preview is now public in the same way** (see [The match
+preview really is public](#the-match-preview-really-is-public)); a **leaderboard**
+share link is not, and still sends a signed-out visitor to `/signin` (see [A
+leaderboard's "public link" is not
+public](#a-leaderboards-public-link-is-not-public)).
 
 | Method | Path | For | Body / notes |
 |---|---|---|---|
@@ -3041,7 +3442,7 @@ admin-created account.
 | Method | Path | For | Body / notes |
 |---|---|---|---|
 | POST | `/contacts` | Contact-us email | `name`, `email`, `subject`, `message` |
-| GET | `/padellevels/results?days=` | Padel Levels results (**admin key**) | - |
+| GET | `/padellevels/results?days=` | Padel Levels results. ~~admin key~~ **(measured on staging, 2026-09-13)** the admin key is **refused**: `401 {"reason":"User is not Authorized"}`, the same answer a user token and no credential get. Unreachable from this project | - |
 | GET | `/marketings/conversions` | Conversions for the marketing team (**admin key**) | `since`, `format` |
 | POST | `/webhooks/prismic/deploy` | Prismic deploy trigger, header `x-prismic-webhook-secret` | - |
 

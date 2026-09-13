@@ -9,6 +9,22 @@
 // Time between matches are disabled. A reader who does not untick it cannot set
 // a gap at all - and gets every fixture in the group on one kick-off time, which
 // is what 14.6 explains.
+//
+// Re-captured 2026-09-13 for 8sept-updates.md A13. All five shots, not the one
+// A13 named, because two things moved under them:
+//
+//   - The dialog LOST its cutoff field on this fixture. Shots 02, 03 and 04
+//     photographed `Last allowed match start time`, which no longer exists
+//     anywhere in the product. On a Group & Knockout tournament it is now
+//     `End time`; on KB 14 League (Group phase only) there is no cutoff field
+//     at all, so the dialog is one field shorter and 02-04 all reflowed.
+//   - The Schedule tab grew a `WEEK 1` band heading above the fixture cards,
+//     which is inside shot 05's clip and shifted shot 01's strip.
+//
+// `UNSCHEDULED` is a sibling band and does NOT appear here: it renders only when
+// a fixture has no date, and all six of these are dated. Verified on a throwaway
+// by clearing one fixture's date - the band then appears above WEEK 1 and holds
+// the fixture as Incomplete.
 
 import { test, expect } from '@playwright/test';
 import {
