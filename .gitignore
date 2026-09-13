@@ -8,3 +8,6 @@ playwright-report/
 # scratch from scripts/verify-urls.mjs
 .verified-urls.json
 .scratch/
+
+# Untracked browser state from ad-hoc probing. Holds session cookies.
+skeptic05-state.json

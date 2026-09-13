@@ -791,6 +791,78 @@ export async function untickSameStartTime(dialog: Locator) {
   return box;
 }
 
+/**
+ * The bands inside one group's card on the Schedule tab: `WEEK 1`, `WEEK 2`,
+ * and `UNSCHEDULED`.
+ *
+ * Round-robin football only. The app renders bands from one branch - game type
+ * Football and format RoundRobin - so a group-and-knockout card has none and
+ * this answers an empty list.
+ *
+ * They are bare `<section>` elements with no id, role or test id. Their headings
+ * are upper-cased by CSS from `Week 1` and `Unscheduled`, so match the original
+ * casing if you address one by name.
+ *
+ * **UNSCHEDULED is LAST**, under the weeks. The app sorts the null week to the
+ * end of the list. 14.3 said it sat above them until 2026-09-13, when this was
+ * measured; the article is corrected.
+ */
+export function scheduleBands(card: Locator) {
+  return card.locator('section');
+}
+
+/**
+ * The draggable wrapper of every fixture inside one band.
+ *
+ * A fixture card is not itself draggable - the wrapper around it is, and only
+ * while the signed-in account can manage the tournament and the fixture is still
+ * editable.
+ */
+export function bandFixtures(band: Locator) {
+  return band.locator('div[draggable="true"]');
+}
+
+/**
+ * Drag one fixture onto a band, by mouse.
+ *
+ * The Schedule tab uses **native HTML5 drag and drop** - `draggable`, a
+ * `dataTransfer` payload typed `application/x-scoryboard-football-match`, and a
+ * `drop` handler on each band - not a pointer-sensor library. Three things
+ * follow, and each one cost a run:
+ *
+ *   - Playwright's mouse drives it, but only while **both ends are inside the
+ *     viewport**. `page.mouse.move` takes viewport coordinates, so a band below
+ *     the fold is never reached and the pointer finishes over whatever fixture
+ *     card happens to be at that height - the drop then does nothing at all and
+ *     nothing on screen says so. Both boxes are asserted here instead.
+ *   - Chromium raises `dragstart` only after a short move, so the long move to
+ *     the target is preceded by a small one.
+ *   - The drop is asynchronous. Wait on the fixture appearing in its new band,
+ *     never on a timeout: the `PUT` lands after the mouse is up.
+ *
+ * `source` is the draggable wrapper, not the card inside it.
+ */
+export async function dragFixture(page: Page, source: Locator, band: Locator) {
+  const from = await source.boundingBox();
+  const to = await band.boundingBox();
+  const view = page.viewportSize();
+  if (!from || !to || !view) throw new Error('dragFixture(): source or band has no box');
+  for (const [what, box] of [['source', from], ['band', to]] as const) {
+    if (box.y < 0 || box.y + 40 > view.height) {
+      throw new Error(
+        `dragFixture(): the ${what} is outside the viewport (y=${Math.round(box.y)}). `
+        + 'Scroll the band into view first and drag a fixture that is still on screen.');
+    }
+  }
+  await page.mouse.move(from.x + 60, from.y + 25);
+  await page.mouse.down();
+  // The short move that makes Chromium start the drag at all.
+  await page.mouse.move(from.x + 70, from.y + 45, { steps: 5 });
+  await page.mouse.move(to.x + to.width / 2, to.y + 14, { steps: 20 });
+  await page.mouse.move(to.x + to.width / 2, to.y + 16, { steps: 3 });
+  await page.mouse.up();
+}
+
 // Re-exported so a spec that changes a schedule can put it back with exactly the
 // values scripts/seed-14.mjs uses. See lib/fixtures-14.mjs for why they live in
 // one place.

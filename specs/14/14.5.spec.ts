@@ -33,11 +33,16 @@
 // 14.8's fixture, so this spec restores its Group A before it finishes - the
 // same contract it already had with KB 14 League.
 
+// ADDED 2026-09-13 - 8sept-updates.md B6, and briefs/14.md, 14.5. A third test
+// and shots 07 and 08: dragging a fixture into the UNSCHEDULED band, which is
+// the only control in the product that takes a date off a tournament fixture.
+
 import { test, expect } from '@playwright/test';
 import {
   signInAs, quiet, shot, fixtures14, headerIdentity, centre, onScreen, freezeClock,
   scheduleReady, scheduleCard, scheduleCardHeader, fixtureCard, openBulkDialog,
   untickSameStartTime, pickDate, pickTime, asUser, restoreGroupSchedule,
+  scheduleBands, bandFixtures, dragFixture,
   LEAGUE_SCHEDULE, CUP_GROUP_A_SCHEDULE,
 } from '../../lib/kb';
 
@@ -187,6 +192,100 @@ test.describe('14.5 Rescheduling fixtures', () => {
       // above, or their captures change on the next run.
       const restored = await restoreGroupSchedule(asUser, fx.token, groupA.id, CUP_GROUP_A_SCHEDULE);
       expect(restored.ok, 'restoring KB 14 Cup Group A failed').toBeTruthy();
+    }
+  });
+
+  // Dragging a fixture into UNSCHEDULED, back on KB 14 League.
+  //
+  // Round-robin football is the only place any of this renders: the week bands
+  // and the UNSCHEDULED band come from one branch keyed on game type Football
+  // and format RoundRobin.
+  //
+  // The band is the drop target, and it exists only while a fixture in the group
+  // already has no date. So this test clears one date over the API FIRST - which
+  // is the state a freshly generated round-robin arrives in, all six undated,
+  // per 8sept-updates.md A4 - and then performs the article's own action with the
+  // mouse on a second fixture.
+  //
+  // It restores the six dates ONE BY ONE rather than with restoreGroupSchedule.
+  // The group bulk update re-times the group in the server's own order, and a
+  // null date perturbs that order: the first run of this test put the same six
+  // pairings back on different kick-off times, which would change 14.3's shot 05
+  // and this article's own 01 to 04 on their next capture.
+  test('taking a fixture out of the schedule, into the UNSCHEDULED band', async ({ page }) => {
+    const fx = await fixtures14();
+    const detail = await fx.detail(fx.league);
+    const groupId = detail.groups[0].id;
+    const path = `/tournaments/${fx.league}/schedule/groups/${groupId}/matches`;
+
+    const before = (await asUser(fx.token, path)).body.data ?? [];
+    expect(before.length, 'KB 14 League Group A should hold six fixtures').toBe(6);
+    const dates = new Map<string, string>(before.map((m: any) => [String(m.id), m.date]));
+
+    try {
+      // The precondition, not the subject: one fixture with no date, so the band
+      // renders and has something to drop onto.
+      const seed = before[before.length - 1];
+      const cleared = await asUser(fx.token, `/matches/${seed.id}`,
+        { method: 'PUT', body: { date: null } });
+      expect(cleared.ok, 'clearing a fixture date failed').toBeTruthy();
+
+      await signInAs(page, fx.email, `/tournaments/${fx.league}/schedule`);
+      await quiet(page);
+      await freezeClock(page);
+      await scheduleReady(page);
+
+      const card = await scheduleCard(page, 'Group A');
+      const bands = scheduleBands(card);
+      await expect(bands).toHaveCount(2);
+      const band = bands.last();
+      // Asserted rather than assumed: the app sorts the null week last, so
+      // UNSCHEDULED is BELOW the weeks. Both this article and 14.3 say so now.
+      await expect(band.getByText('Unscheduled', { exact: true })).toBeVisible();
+      await expect(bands.first().getByText('Week 1', { exact: true })).toBeVisible();
+
+      // 07: the two bands, with the drop target outlined. Clipped to the whole
+      // group card, which is taller than the viewport - the point of the shot is
+      // where the band sits relative to the week above it.
+      await shot(page, '14.5', '07-unscheduled-band', {
+        clip: card,
+        annotate: band.locator('div').first(),
+        annotatePad: -2,
+      });
+
+      // The drag. Both ends have to be on screen at once, so the band is brought
+      // into view and the source is picked from what is still visible above it -
+      // see dragFixture() in lib/kb.ts.
+      await band.scrollIntoViewIfNeeded();
+      const week1 = bands.first();
+      const draggables = bandFixtures(week1);
+      const view = page.viewportSize()!;
+      let source = null;
+      for (let i = 0; i < await draggables.count(); i += 1) {
+        const box = await draggables.nth(i).boundingBox();
+        if (box && box.y > 0 && box.y + 60 < view.height) source = draggables.nth(i);
+      }
+      expect(source, 'no fixture in WEEK 1 is on screen beside the band').not.toBeNull();
+      const moved = (await source!.innerText()).split('\n').find((l) => l.startsWith('KB 14'))!;
+      await dragFixture(page, source!, band);
+
+      // Wait for the fixture to arrive in the band, never on a timeout: the PUT
+      // lands after the mouse is up, and capturing on the mouse alone
+      // photographs the schedule as it was.
+      const landed = bands.last().getByText(moved, { exact: true }).first();
+      await expect(landed).toBeVisible({ timeout: 30_000 });
+      await scheduleReady(page);
+
+      // 08: the moved card itself - Incomplete, and all four cells empty.
+      const movedCard = landed.locator('xpath=ancestor::div[contains(concat(" ", @class, " "), " group ")][1]');
+      await expect(movedCard.getByText('Incomplete', { exact: true })).toBeVisible();
+      await centre(movedCard);
+      await shot(page, '14.5', '08-fixture-unscheduled', { clip: movedCard });
+    } finally {
+      for (const [id, date] of dates) {
+        const put = await asUser(fx.token, `/matches/${id}`, { method: 'PUT', body: { date } });
+        expect(put.ok, `restoring KB 14 League fixture ${id} failed`).toBeTruthy();
+      }
     }
   });
 });

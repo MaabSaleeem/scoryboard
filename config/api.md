@@ -867,6 +867,38 @@ reader *can* reach this is a **tournament** fixture: dragging a card into the
 `UNSCHEDULED` band on a round-robin football Schedule tab. See
 8sept-updates.md B6.
 
+#### The Schedule tab's week bands, and the drag that unschedules
+
+**(observed in app, 2026-09-13. New. Article 14.5 documents it.)** A **round-robin
+football** group's Schedule tab renders its fixtures in bands - `WEEK 1`,
+`WEEK 2`, and `UNSCHEDULED` - and the bands are drop targets. Nothing else
+renders them: the branch is keyed on `gameType === "Football"` **and**
+`format === "RoundRobin"`, so a group-and-knockout card has no bands at all.
+
+- The `UNSCHEDULED` band is **last, under the weeks.** A fixture with no date is
+  sorted to the end of the list, not the front.
+- The band exists **only while a fixture in that group has no date.** With every
+  fixture dated there is no band, so there is no way left to unschedule one.
+- Dropping a fixture on it sends `PUT /matches/:id {"date": null}`. The card turns
+  `Incomplete` and its date, time, pitch and referee cells all empty.
+- Dropping a fixture into a **week** band sends `PUT /matches/:id {"date": <ISO>}`
+  with the **earliest date already in that week** - so the fixture lands on a
+  kick-off another fixture already holds. If that week holds no dated fixture, it
+  falls back to the tournament's `startDate` at midnight (`2026-09-26T00:00:00Z`
+  measured), plus seven days per week of offset.
+- **Neither drop shows anything on screen.** The bundle asks for a toast on every
+  branch - `Match unscheduled` / *"Match moved to Unscheduled."*,
+  `Match rescheduled` / *"Match moved to Week n."*, `Match cannot be moved` -
+  and **none of them renders**. Polled for five seconds after a successful drop
+  with the app's own toast styles left alone: nothing enters the DOM but Next's
+  route announcer. 8sept-updates.md B6 quotes the unschedule toast as if a reader
+  sees it; they do not.
+- It is **native HTML5 drag and drop**, not a pointer-sensor library:
+  `draggable`, a `dataTransfer` payload typed
+  `application/x-scoryboard-football-match`, a `drop` handler per band. A fixture
+  can only be moved **within its own group** - a cross-group payload is refused
+  client-side (untested: no collection-14 round-robin fixture has two groups).
+
 ### Leaderboard app routes
 
 **(observed in app, 2026-08-31.)**
@@ -2653,13 +2685,42 @@ POST /tournament-phases/6aa02e55d2d0446ceef8cdf6/padel-next-round
 The new round's fixtures appear in the same group, continuing the kick-off ladder
 (round 1 at 09:00, round 2 at 09:20 with a 20-minute step, on the same courts).
 
-Three things to know before writing about it:
+Things to know before writing about it:
 
-- **Every padel format except Swiss shows the banner.** Swiss still pre-generates
-  all its rounds. Round Robin, Americano, Mexicano and King of the Court all
-  advance a round at a time.
-- **King of the Court adds `Create Playoffs`**, and a modal
-  `Round cannot continue`. Not captured here - it is 8sept-updates.md B5's job.
+- ~~**Every padel format except Swiss shows the banner.** Swiss still
+  pre-generates all its rounds.~~ **Wrong. Corrected 2026-09-13, for
+  8sept-updates.md B5.** **Every padel format shows the banner, Swiss included.**
+  The gate is not the format: it is the **current round being complete** and the
+  phase not having ended. Read out of the bundle and confirmed on screen -
+  `KB 13 Padel Open` is Swiss with all four rounds scored and carries a
+  `Continue Swiss` banner today. 8sept-updates.md B5's own wording ("every padel
+  format except King of the Court") is wrong the other way; King of the Court
+  shows it too.
+- **The heading is `Continue ` plus the stored `padelFormat`** for every format
+  but one - `Continue Swiss`, `Continue Mexicano`, `Continue RoundRobin`. **King
+  of the Court is written out**, `Continue King of the Court`, not
+  `Continue KingOfTheCourt`.
+- **King of the Court's extra control is not in the banner.** **(observed in app,
+  2026-09-13, on a throwaway.)** `Create Playoffs` is a third button inside the
+  **End Group Phase** dialog, beside `Cancel` and `End Phase`, and that dialog's
+  copy differs there too: *"End Group Phase, or create a playoff match between the
+  winners of the final round."* Selecting it creates a new phase named **King of
+  the Court Playoffs** holding a `FINAL`, and that phase carries the ordinary
+  `Undo` card. If the last round ended level it refuses inline, in red inside the
+  dialog: *"King of the Court playoff matches cannot be created from a draw"*.
+- **King of the Court refuses a drawn round**, and says so in a modal rather than
+  a toast: **`Round cannot continue`** - *"King of the Court does not allow a
+  draw. Please update the tied match with a golden point or another winning score
+  before creating the next round."* with a `Close` button. Every other failure
+  raises a toast titled `Unable to create the next round`.
+- **The King of the Court buttons send their own calls, and those paths are NOT
+  recorded.** The bundle has three separate mutations - advance a padel round,
+  advance a King of the Court round, and start the playoffs - and only the first
+  has been read off the wire. `POST /tournament-phases/:phaseId/padel-next-round`
+  **does** advance a King of the Court phase when called directly (measured
+  2026-09-13, rounds 2 to 5 on a throwaway), but that is not proof the button
+  sends it. Record the other two when someone next drives them with the network
+  log on.
 - **A Continue-added round can double-book.** On Round Robin with four courts it
   produced three matches at one kick-off all reading `Player 1 & Player 2`, and
   put a fixture on a court and time an already-played fixture held. Measured

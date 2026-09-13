@@ -1,5 +1,5 @@
 <!-- title: Rescheduling fixtures, and rolling them onto the next day -->
-<!-- description: Moving one fixture, moving several, and spreading a group across more than one day. -->
+<!-- description: Moving one fixture, moving several, spreading a group across more than one day, and taking a fixture back off the schedule. -->
 
 <p>Every fixture can be moved after it has been generated. Only the tournament <strong>Owner</strong> and an <strong>Administrator</strong> can do it; everyone else sees the read-only public page.</p>
 
@@ -64,6 +64,28 @@
 
 <p>Two matches a day, then the next day, and so on.
 
+<h2>Taking a fixture out of the schedule</h2>
+
+<p>A <strong>Group phase only</strong> tournament - the round-robin league - groups its fixtures by week. A fixture with no date sits in a band of its own, <strong>UNSCHEDULED</strong>, under the week bands. Dragging a fixture into that band is the only way to take a date off a fixture.</p>
+
+<p><strong>The band has to be there already.</strong> It appears only while at least one fixture in the group has no date. A freshly generated group starts that way: every fixture in the band, waiting to be dragged into a week. Once you have dated them all the band goes, and nothing in that group can be unscheduled again.</p>
+
+<p>This is football, and Group phase only. A Group &amp; knockout tournament has no week bands and no UNSCHEDULED band.</p>
+
+<ol>
+  <li>Open the tournament and select <strong>Schedule</strong>. Find the group and the <strong>UNSCHEDULED</strong> band under its weeks.
+    {{shot:07|The Group A card with its fixtures under a WEEK 1 heading and an UNSCHEDULED band below them, the band outlined.}}
+  </li>
+  <li>Drag a fixture card onto the band. The band lights up while you hold the card over it.</li>
+  <li>Let go. The card moves into the band.
+    {{shot:08|The moved fixture sitting under UNSCHEDULED, reading Incomplete with its date, time, pitch and referee cells all empty.}}
+  </li>
+</ol>
+
+<p>The fixture now reads <strong>Incomplete</strong> and all four of its cells are empty. Nothing else confirms the move: the card changing bands is the confirmation.</p>
+
+<p><strong>Dragging it back is not an undo.</strong> A fixture dropped into a week takes the earliest kick-off already in that week, so it lands on top of the fixture that holds that slot - two fixtures, one time. If nothing in that week has a date, it lands on the tournament's start date at midnight instead and shows a kick-off nobody chose. Either way, set the date and the time on the card afterwards, or bulk-update the group.</p>
+
 <h2>If it does not work</h2>
 
 <ul>
@@ -73,4 +95,7 @@
   <li><strong>There is no End time in the dialog.</strong> This is a Group phase only tournament. Only Group &amp; knockout has one.</li>
   <li><strong>Every fixture now starts at the same time.</strong> <strong>Same start time per round</strong> was left ticked. See "Why two football fixtures clash, and fixtures showing only one team".</li>
   <li><strong>Nothing saved.</strong> The dialog needs at least one field filled in.</li>
+  <li><strong>There is no UNSCHEDULED band.</strong> Every fixture in the group has a date. The band shows only while one does not.</li>
+  <li><strong>You cannot find the band.</strong> It is the last band in the group, under the weeks, not above them.</li>
+  <li><strong>A fixture you dragged back now clashes.</strong> It took the kick-off of the first fixture in that week. Give it its own time on the card - see "Why two football fixtures clash, and fixtures showing only one team".</li>
 </ul>

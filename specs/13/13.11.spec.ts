@@ -207,5 +207,42 @@ test.describe('13.11 Tournament phases', () => {
     // Never confirmed. Ending a phase cannot be undone.
     await endConfirm.getByRole('button', { name: 'Cancel', exact: true }).click();
     await expect(page.locator('[role="dialog"]').locator('visible=true')).toHaveCount(0);
+
+    // --- 11. the padel Continue banner --------------------------------------
+    //
+    // ADDED 2026-09-13 - 8sept-updates.md B5. A padel phase advances one ROUND
+    // at a time, and its banner renders in the same strip as the phase banner,
+    // above it. Nothing else in this collection photographs it.
+    //
+    // KB 13 Padel Open is Swiss with every round scored, which is exactly the
+    // state that shows the banner. 8sept-updates.md B5 says Swiss does not show
+    // it and config/api.md said the same; both are wrong, and this assertion is
+    // what proves it. The gate is the CURRENT round being complete, not the
+    // format - measured on throwaway Mexicano and King of the Court tournaments
+    // on 2026-09-13 and read out of the bundle.
+    //
+    // READ-ONLY. Continue is never selected: it writes a new round into the
+    // fixture that 13.6 photographs, and nothing undoes that.
+    await page.goto(`/tournaments/${fx.padelOpen}/results`);
+    await quiet(page);
+    await boardReady(page, groupPhaseTab(page));
+    await groupPhaseTab(page).click();
+    const continueCopy = page.getByText(
+      'Complete the current round to create the next player combinations.',
+    );
+    await expect(continueCopy).toBeVisible();
+    const continueBanner = continueCopy.locator('xpath=ancestor::div[2]');
+    // The heading is "Continue " plus the format, and for every format but King
+    // of the Court that is the raw stored value - so "Continue Swiss" here.
+    await expect(continueBanner.getByText('Continue Swiss', { exact: true })).toBeVisible();
+    await expect(
+      onScreen(continueBanner.getByRole('button', { name: 'Continue', exact: true })).first(),
+    ).toBeEnabled();
+    await fixturesReady(page);
+    await centre(continueBanner);
+    await shot(page, '13.11', '11-padel-continue-banner', {
+      mask: [headerIdentity(page)],
+      annotate: continueBanner,
+    });
   });
 });
