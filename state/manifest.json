@@ -341,13 +341,13 @@
       "intercom_collection_id": "19733982",
       "brief": "briefs/13.md",
       "spec": "specs/13/13.5.spec.ts",
-      "commit_sha": "33b6313f3bbd11f2efb913ca5e88542f7795abc9",
+      "commit_sha": "45226cbf20476b913d94934925bf3ff160f06f70",
       "screenshots": [
-        "screenshots/13/13.5/01-results-group-phase.5eb38642.png",
-        "screenshots/13/13.5/02-standings-columns.b557f265.png",
-        "screenshots/13/13.5/03-fixtures-with-scores.17636c51.png"
+        "screenshots/13/13.5/01-results-group-phase.4cfb96e6.png",
+        "screenshots/13/13.5/02-standings-columns.fd207ce1.png",
+        "screenshots/13/13.5/03-fixtures-with-scores.7b2f7106.png"
       ],
-      "published_at": "2026-09-01T13:15:36.000Z",
+      "published_at": "2026-09-13T05:54:29.000Z",
       "status": "published"
     },
     "13.6": {
@@ -447,20 +447,20 @@
       "intercom_collection_id": "19733982",
       "brief": "briefs/13.md",
       "spec": "specs/13/13.11.spec.ts",
-      "commit_sha": "4805124de04fef130ad30f2b1880ae53fdecd946",
+      "commit_sha": "45226cbf20476b913d94934925bf3ff160f06f70",
       "screenshots": [
-        "screenshots/13/13.11/01-no-phase-controls.add1f1a2.png",
+        "screenshots/13/13.11/01-no-phase-controls.858a02d4.png",
         "screenshots/13/13.11/02-start-disabled.51e6889a.png",
         "screenshots/13/13.11/03-start-enabled.5c5cfbc8.png",
         "screenshots/13/13.11/04-start-preview-modal.3e3ae3b3.png",
         "screenshots/13/13.11/05-preview-assignments.10ec823b.png",
-        "screenshots/13/13.11/06-knockout-started.4503c53a.png",
-        "screenshots/13/13.11/07-undo-card.c7058b17.png",
-        "screenshots/13/13.11/08-undo-confirm.3710ffaf.png",
-        "screenshots/13/13.11/09-end-phase-card.7d5c3024.png",
-        "screenshots/13/13.11/10-end-phase-confirm.a91c1bd8.png"
+        "screenshots/13/13.11/06-knockout-started.1478b1b0.png",
+        "screenshots/13/13.11/07-undo-card.9c0bf3d5.png",
+        "screenshots/13/13.11/08-undo-confirm.d713def2.png",
+        "screenshots/13/13.11/09-end-phase-card.8c204815.png",
+        "screenshots/13/13.11/10-end-phase-confirm.7650cdea.png"
       ],
-      "published_at": "2026-09-01T13:15:55.000Z",
+      "published_at": "2026-09-13T05:54:49.000Z",
       "status": "published"
     },
     "14.1": {
@@ -501,21 +501,21 @@
     },
     "14.3": {
       "intercom_id": "16736753",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16736753-bulk-scheduling-a-football-group-and-the-gap-between-matches",
       "collection": "14",
       "intercom_collection_id": "19733983",
       "brief": "briefs/14.md",
       "spec": "specs/14/14.3.spec.ts",
-      "commit_sha": "20abd3e",
+      "commit_sha": "45226cbf20476b913d94934925bf3ff160f06f70",
       "screenshots": [
         "screenshots/14/14.3/01-bulk-match-update-button.a10ebca0.png",
-        "screenshots/14/14.3/02-dialog-as-it-opens.f2ed539f.png",
-        "screenshots/14/14.3/03-gap-fields-enabled.5ebe727d.png",
-        "screenshots/14/14.3/04-dialog-filled.96c326a8.png",
-        "screenshots/14/14.3/05-new-kick-off-times.c9f9a116.png"
+        "screenshots/14/14.3/02-dialog-as-it-opens.ab3d8651.png",
+        "screenshots/14/14.3/03-gap-fields-enabled.db311672.png",
+        "screenshots/14/14.3/04-dialog-filled.3c6f381d.png",
+        "screenshots/14/14.3/05-new-kick-off-times.600543d8.png"
       ],
-      "published_at": "2026-08-28T17:08:28.000Z",
-      "status": "published",
-      "intercom_url": "https://help.scoryboard.com/en/articles/16736753-bulk-scheduling-a-football-group-and-the-gap-between-matches"
+      "published_at": "2026-09-13T05:54:56.000Z",
+      "status": "published"
     },
     "14.4": {
       "intercom_id": "16736755",
@@ -1454,11 +1454,12 @@
     },
     "09.2": {
       "intercom_id": "16762191",
+      "intercom_url": "https://help.scoryboard.com/en/articles/16762191-match-statuses-and-why-a-match-is-stuck-on-incomplete",
       "collection": "09",
       "intercom_collection_id": "19733978",
       "brief": "briefs/09.md",
       "spec": "specs/09/09.2.spec.ts",
-      "commit_sha": "67a299df04e14b628587ce1fe9c9661786925859",
+      "commit_sha": "45226cbf20476b913d94934925bf3ff160f06f70",
       "screenshots": [
         "screenshots/09/09.2/01-team-finish-setup.efdf506a.png",
         "screenshots/09/09.2/02-incomplete-form.6815cdf4.png",
@@ -1466,9 +1467,8 @@
         "screenshots/09/09.2/04-now-scheduled.a6697bcc.png",
         "screenshots/09/09.2/05-team-card-complete.8506a6d0.png"
       ],
-      "published_at": "2026-08-31T16:09:11.000Z",
-      "status": "published",
-      "intercom_url": "https://help.scoryboard.com/en/articles/16762191-match-statuses-and-why-a-match-is-stuck-on-incomplete"
+      "published_at": "2026-09-13T05:54:24.000Z",
+      "status": "published"
     },
     "09.3": {
       "intercom_id": "16762193",
@@ -1924,16 +1924,16 @@
       "intercom_collection_id": "19733984",
       "brief": "briefs/15.md",
       "spec": "specs/15/15.9.spec.ts",
-      "commit_sha": "76c189949f22657b5f34c974ce15f6690735c87b",
+      "commit_sha": "45226cbf20476b913d94934925bf3ff160f06f70",
       "screenshots": [
         "screenshots/15/15.9/01-participants-teams.be30a35d.png",
         "screenshots/15/15.9/02-participants-players.6af05c03.png",
-        "screenshots/15/15.9/03-participants-referees-empty.3b5756af.png",
-        "screenshots/15/15.9/04-followers-dialog.e3734d99.png",
+        "screenshots/15/15.9/03-participants-referees-empty.57fbb981.png",
+        "screenshots/15/15.9/04-followers-dialog.31c39f52.png",
         "screenshots/15/15.9/05-unfollow-in-the-header.6f11ecdb.png",
-        "screenshots/15/15.9/06-tournament-over.640145bc.png"
+        "screenshots/15/15.9/06-tournament-over.5ce58f96.png"
       ],
-      "published_at": "2026-09-01T13:20:28.000Z",
+      "published_at": "2026-09-13T05:55:06.000Z",
       "status": "published"
     },
     "17.1": {

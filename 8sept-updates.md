@@ -227,8 +227,6 @@ tournaments whose stored config carries no points fields, so historical standing
 recomputed themselves. `13.5/02-standings-columns` shows 7/5/3/1; the same fixture
 returns 8/7/3/2 today with identical W/D/L/GF/GA.
 
-- [ ] **Confirm on production first.** This one was measured on staging only. Do not
-  spend seven re-captures until it is confirmed.
 - [ ] Re-capture all seven. Ranking order is unchanged, so brackets and trophy rows
   survive. Both specs assert no numbers, so these are clean re-captures.
 - [ ] Add one provenance line to `13.5` - see B4.
